@@ -1,0 +1,171 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+type Word = {
+  word: string;
+  meaning: string;
+  example: string;
+  category: "일상" | "여행" | "업무" | "친구";
+};
+
+type Sentence = {
+  japanese: string;
+  meaning: string;
+  category: "일상" | "여행" | "업무" | "친구";
+  note: string;
+};
+
+const WORDS_KEY = "savedWords";
+const SENTENCES_KEY = "savedSentences";
+
+export default function ReviewPage() {
+  const [savedWords, setSavedWords] = useState<Word[]>([]);
+  const [savedSentences, setSavedSentences] = useState<Sentence[]>([]);
+
+  // 초기 로드: localStorage에서 저장된 단어/문장 불러오기
+  useEffect(() => {
+    try {
+      const rawWords = localStorage.getItem(WORDS_KEY);
+      if (rawWords) {
+        setSavedWords(JSON.parse(rawWords) as Word[]);
+      }
+    } catch {
+      // 무시 (잘못된 JSON 등)
+    }
+
+    try {
+      const rawSentences = localStorage.getItem(SENTENCES_KEY);
+      if (rawSentences) {
+        setSavedSentences(JSON.parse(rawSentences) as Sentence[]);
+      }
+    } catch {
+      // 무시 (잘못된 JSON 등)
+    }
+  }, []);
+
+  // 단어 삭제
+  const handleDeleteWord = (w: Word) => {
+    const next = savedWords.filter((x) => x.word !== w.word);
+    setSavedWords(next);
+    localStorage.setItem(WORDS_KEY, JSON.stringify(next));
+  };
+
+  // 문장 삭제
+  const handleDeleteSentence = (s: Sentence) => {
+    const next = savedSentences.filter((x) => x.japanese !== s.japanese);
+    setSavedSentences(next);
+    localStorage.setItem(SENTENCES_KEY, JSON.stringify(next));
+  };
+
+  return (
+    <section>
+      <div className="page-header">
+        <h1>복습</h1>
+        <p className="muted" style={{ margin: 0 }}>
+          저장한 단어와 문장을 다시 확인해 보세요.
+        </p>
+      </div>
+
+      {/* 저장한 단어 섹션 */}
+      <div className="section-title">
+        <h2>저장한 단어</h2>
+        <span className="count">{savedWords.length}개</span>
+      </div>
+
+      {savedWords.length === 0 ? (
+        <div className="empty-state">
+          아직 저장된 단어가 없습니다.
+          <br />
+          <span style={{ fontSize: "13px" }}>
+            &apos;단어 학습&apos;에서 마음에 드는 단어를 저장해 보세요.
+          </span>
+        </div>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {savedWords.map((w) => (
+            <li
+              key={w.word}
+              className="card"
+              style={{ marginBottom: "14px" }}
+            >
+              <div className="card-top">
+                <div className="jp-text">{w.word}</div>
+                <span className="badge">{w.category}</span>
+              </div>
+
+              <div style={{ marginTop: "12px" }}>
+                <div className="label">뜻</div>
+                <div>{w.meaning}</div>
+              </div>
+
+              <div style={{ marginTop: "10px" }}>
+                <div className="label">예문</div>
+                <div style={{ color: "#555" }}>{w.example}</div>
+              </div>
+
+              <div className="card-actions">
+                <button
+                  onClick={() => handleDeleteWord(w)}
+                  className="btn btn-danger"
+                >
+                  삭제
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* 저장한 문장 섹션 */}
+      <div className="section-title">
+        <h2>저장한 문장</h2>
+        <span className="count">{savedSentences.length}개</span>
+      </div>
+
+      {savedSentences.length === 0 ? (
+        <div className="empty-state">
+          아직 저장된 문장이 없습니다.
+          <br />
+          <span style={{ fontSize: "13px" }}>
+            &apos;문장 학습&apos;에서 유용한 표현을 저장해 보세요.
+          </span>
+        </div>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {savedSentences.map((s) => (
+            <li
+              key={s.japanese}
+              className="card"
+              style={{ marginBottom: "14px" }}
+            >
+              <div className="card-top">
+                <div className="jp-text">{s.japanese}</div>
+                <span className="badge">{s.category}</span>
+              </div>
+
+              <div style={{ marginTop: "12px" }}>
+                <div className="label">뜻</div>
+                <div>{s.meaning}</div>
+              </div>
+
+              <div style={{ marginTop: "10px" }}>
+                <div className="label">설명</div>
+                <div style={{ color: "#555" }}>{s.note}</div>
+              </div>
+
+              <div className="card-actions">
+                <button
+                  onClick={() => handleDeleteSentence(s)}
+                  className="btn btn-danger"
+                >
+                  삭제
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
