@@ -107,7 +107,7 @@ const WORDS: Word[] = [
 const STORAGE_KEY = "savedWords";
 const WRONG_WORDS_KEY = "wrongWords";
 type CategoryFilter = "전체" | "여행" | "업무" | "일상" | "친구";
-type QuizType = "jp-to-kr" | "kr-to-jp";
+type QuizType = "jp-to-kr" | "kr-to-jp" | "jp-to-kor-pron";
 type PageMode = "study" | "quiz";
 
 type WrongWord = {
@@ -155,9 +155,9 @@ function getChoices(correct: Word, pool: Word[], quizType: QuizType): string[] {
   const others = pool.filter((w) => w.word !== correct.word);
   const shuffled = shuffle(others).slice(0, 3);
   const all = shuffle([...shuffled, correct]);
-  return quizType === "jp-to-kr"
-    ? all.map((w) => w.meaning)
-    : all.map((w) => w.word);
+  if (quizType === "jp-to-kr") return all.map((w) => w.meaning);
+  if (quizType === "kr-to-jp") return all.map((w) => w.word);
+  return all.map((w) => w.koreanPronunciation ?? "");
 }
 
 export default function WordsPage() {
@@ -193,6 +193,11 @@ export default function WordsPage() {
       ? WORDS
       : WORDS.filter((w) => w.category === categoryFilter);
 
+  const quizPool =
+    quizType === "jp-to-kor-pron"
+      ? filteredWords.filter((w) => Boolean(w.koreanPronunciation))
+      : filteredWords;
+
   const generateQuiz = useCallback(
     (pool: Word[], type: QuizType) => {
       if (pool.length < 4) return;
@@ -206,7 +211,7 @@ export default function WordsPage() {
 
   useEffect(() => {
     if (mode === "quiz") {
-      generateQuiz(filteredWords, quizType);
+      generateQuiz(quizPool, quizType);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, categoryFilter, quizType]);
@@ -215,7 +220,11 @@ export default function WordsPage() {
     if (selected !== null || !currentWord) return;
     setSelected(choice);
     const correctAnswer =
-      quizType === "jp-to-kr" ? currentWord.meaning : currentWord.word;
+      quizType === "jp-to-kr"
+        ? currentWord.meaning
+        : quizType === "kr-to-jp"
+          ? currentWord.word
+          : currentWord.koreanPronunciation ?? "";
     const isCorrect = choice === correctAnswer;
     if (!isCorrect) {
       saveWrongWord(currentWord, quizType);
@@ -227,13 +236,15 @@ export default function WordsPage() {
   };
 
   const handleNext = () => {
-    generateQuiz(filteredWords, quizType);
+    generateQuiz(quizPool, quizType);
   };
 
   const correctAnswer = currentWord
     ? quizType === "jp-to-kr"
       ? currentWord.meaning
-      : currentWord.word
+      : quizType === "kr-to-jp"
+        ? currentWord.word
+        : currentWord.koreanPronunciation ?? ""
     : "";
 
   const CATEGORIES: CategoryFilter[] = ["전체", "여행", "업무", "일상", "친구"];
@@ -375,12 +386,14 @@ export default function WordsPage() {
       {/* ===== 퀴즈 모드 ===== */}
       {mode === "quiz" && (
         <div>
-          {filteredWords.length < 4 ? (
+          {quizPool.length < 4 ? (
             <div
               className="card"
               style={{ textAlign: "center", color: "#888", padding: "40px 20px" }}
             >
-              퀴즈를 위해 해당 카테고리에 단어가 4개 이상 필요합니다.
+              {quizType === "jp-to-kor-pron"
+                ? "발음 퀴즈를 위해 한글 발음이 있는 단어가 4개 이상 필요합니다."
+                : "퀴즈를 위해 해당 카테고리에 단어가 4개 이상 필요합니다."}
             </div>
           ) : (
             <>
@@ -432,6 +445,22 @@ export default function WordsPage() {
                   >
                     뜻→일
                   </button>
+                  <button
+                    className="btn"
+                    onClick={() => {
+                      setQuizType("jp-to-kor-pron");
+                      setScore({ correct: 0, total: 0 });
+                    }}
+                    style={{
+                      fontSize: "12px",
+                      padding: "5px 10px",
+                      background: quizType === "jp-to-kor-pron" ? "#222" : "transparent",
+                      color: quizType === "jp-to-kor-pron" ? "#fff" : "#222",
+                      border: "1.5px solid #222",
+                    }}
+                  >
+                    일→발음
+                  </button>
                 </div>
               </div>
 
@@ -450,7 +479,7 @@ export default function WordsPage() {
                       letterSpacing: "2px",
                     }}
                   >
-                    {quizType === "jp-to-kr" ? currentWord.word : currentWord.meaning}
+                    {quizType === "kr-to-jp" ? currentWord.meaning : currentWord.word}
                   </div>
                   {quizType === "jp-to-kr" && currentWord.reading && (
                     <div
@@ -485,7 +514,11 @@ export default function WordsPage() {
                       marginTop: "4px",
                     }}
                   >
-                    {quizType === "jp-to-kr" ? "이 단어의 뜻은?" : "이 뜻의 일본어는?"}
+                    {quizType === "jp-to-kr"
+                      ? "이 단어의 뜻은?"
+                      : quizType === "kr-to-jp"
+                        ? "이 뜻의 일본어는?"
+                        : "이 단어의 한글 발음 참고를 고르세요"}
                   </div>
 
                   {/* 보기 */}
