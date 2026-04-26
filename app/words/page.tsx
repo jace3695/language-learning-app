@@ -10,12 +10,13 @@ type Word = {
   example: string;
   exampleReading?: string;
   exampleKoreanPronunciation?: string;
+  exampleMeaning?: string;
   category: "일상" | "여행" | "업무" | "친구";
 };
 
 const WORDS: Word[] = [
   // ===== 여행 =====
-  { word: "入口", reading: "いりぐち", koreanPronunciation: "이리구치", meaning: "입구", example: "入口はどこですか？", exampleReading: "いりぐちはどこですか？", exampleKoreanPronunciation: "이리구치와 도코데스카?", category: "여행" },
+  { word: "入口", reading: "いりぐち", koreanPronunciation: "이리구치", meaning: "입구", example: "入口はどこですか？", exampleReading: "いりぐちはどこですか？", exampleKoreanPronunciation: "이리구치와 도코데스카?", exampleMeaning: "입구가 어디인가요?", category: "여행" },
   { word: "出口", reading: "でぐち", koreanPronunciation: "데구치", meaning: "출구", example: "出口はこちらです", exampleReading: "でぐちはこちらです", exampleKoreanPronunciation: "데구치와 고치라데스", category: "여행" },
   { word: "会計", reading: "かいけい", koreanPronunciation: "카이케이", meaning: "계산", example: "会計お願いします", exampleReading: "かいけいおねがいします", exampleKoreanPronunciation: "카이케이 오네가이시마스", category: "여행" },
   { word: "予約", reading: "よやく", koreanPronunciation: "요야쿠", meaning: "예약", example: "予約しています", exampleReading: "よやくしています", exampleKoreanPronunciation: "요야쿠시테이마스", category: "여행" },
@@ -330,21 +331,31 @@ export default function WordsPage() {
                   <div className="label">뜻</div>
                   <div>{w.meaning}</div>
                 </div>
-                <div style={{ marginTop: "10px" }}>
-                  <div className="label">예문</div>
-                  <div style={{ color: "#555" }}>{w.example}</div>
-                </div>
-                {w.exampleReading && (
-                  <div style={{ marginTop: "4px" }}>
-                    <div className="label">예문 읽기</div>
-                    <div style={{ color: "#666", fontSize: "13px" }}>{w.exampleReading}</div>
-                  </div>
-                )}
-                {w.exampleKoreanPronunciation && (
-                  <div style={{ marginTop: "4px" }}>
-                    <div className="label">예문 한글 발음</div>
-                    <div style={{ color: "#888", fontSize: "13px" }}>{w.exampleKoreanPronunciation}</div>
-                  </div>
+                {w.example && (
+                  <>
+                    <div style={{ marginTop: "10px" }}>
+                      <div className="label">예문</div>
+                      <div style={{ color: "#555" }}>{w.example}</div>
+                    </div>
+                    {w.exampleMeaning && (
+                      <div style={{ marginTop: "4px" }}>
+                        <div className="label">예문 뜻</div>
+                        <div style={{ color: "#666", fontSize: "13px" }}>{w.exampleMeaning}</div>
+                      </div>
+                    )}
+                    {w.exampleReading && (
+                      <div style={{ marginTop: "4px" }}>
+                        <div className="label">예문 읽기</div>
+                        <div style={{ color: "#666", fontSize: "13px" }}>{w.exampleReading}</div>
+                      </div>
+                    )}
+                    {w.exampleKoreanPronunciation && (
+                      <div style={{ marginTop: "4px" }}>
+                        <div className="label">예문 한글 발음</div>
+                        <div style={{ color: "#888", fontSize: "13px" }}>{w.exampleKoreanPronunciation}</div>
+                      </div>
+                    )}
+                  </>
                 )}
                 <div className="card-actions">
                   <button
