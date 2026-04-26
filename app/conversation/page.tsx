@@ -108,6 +108,25 @@ export default function ConversationPage() {
   const isCorrectionDifferent = (original: string, corrected: string) =>
     corrected.trim() !== "" && corrected.trim() !== original.trim();
 
+  const sectionLabelStyle: React.CSSProperties = {
+    fontSize: "11px",
+    color: "#7b8c7b",
+    marginBottom: "4px",
+    letterSpacing: "0.01em",
+  };
+
+  const sectionDividerStyle: React.CSSProperties = {
+    marginTop: "10px",
+    paddingTop: "10px",
+    borderTop: "1px solid #dce8dc",
+  };
+
+  const readingTextStyle: React.CSSProperties = {
+    color: "#4f5b4f",
+    fontSize: "13px",
+    lineHeight: 1.5,
+  };
+
   return (
     <section>
       <div className="page-header">
@@ -240,15 +259,16 @@ export default function ConversationPage() {
                       maxWidth: "90%",
                       border: "1px solid #d6e9d6",
                       borderRadius: "12px",
-                      padding: "10px 12px",
+                      padding: "14px 14px",
                       background: "#f5faf5",
+                      lineHeight: 1.6,
                     }}
                   >
                     <div
                       style={{
                         fontSize: "11px",
                         color: "#5e8f5e",
-                        marginBottom: "4px",
+                        marginBottom: "6px",
                       }}
                     >
                       AI
@@ -256,33 +276,32 @@ export default function ConversationPage() {
 
                     {/* 1) AI 답변 */}
                     <div>
-                      <div className="label">답변</div>
-                      <div style={{ fontSize: "15px", fontWeight: "bold" }}>
+                      <div style={sectionLabelStyle}>답변</div>
+                      <div
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: 700,
+                          color: "#223322",
+                          lineHeight: 1.55,
+                        }}
+                      >
                         {m.reply || "—"}
                       </div>
                     </div>
 
                     {/* 2) 읽기 */}
                     {m.replyReading && (
-                      <div
-                        style={{
-                          marginTop: "8px",
-                        }}
-                      >
-                        <div className="label">읽기</div>
-                        <div style={{ color: "#444" }}>{m.replyReading}</div>
+                      <div style={sectionDividerStyle}>
+                        <div style={sectionLabelStyle}>읽기</div>
+                        <div style={readingTextStyle}>{m.replyReading}</div>
                       </div>
                     )}
 
                     {/* 3) 한글 발음 참고 */}
                     {m.replyKoreanPronunciation && (
-                      <div
-                        style={{
-                          marginTop: "8px",
-                        }}
-                      >
-                        <div className="label">한글 발음 참고</div>
-                        <div style={{ color: "#444" }}>
+                      <div style={sectionDividerStyle}>
+                        <div style={sectionLabelStyle}>한글 발음 참고</div>
+                        <div style={readingTextStyle}>
                           {m.replyKoreanPronunciation}
                         </div>
                       </div>
@@ -290,41 +309,36 @@ export default function ConversationPage() {
 
                     {/* 4) 교정 */}
                     {m.correction && (
-                      <div
-                        style={{
-                          marginTop: "10px",
-                          paddingTop: "8px",
-                          borderTop: "1px dashed #cfe0cf",
-                        }}
-                      >
-                        <div className="label">
+                      <div style={sectionDividerStyle}>
+                        <div style={sectionLabelStyle}>
                           교정 {corrected ? "(수정됨)" : "(자연스러움)"}
                         </div>
-                        <div style={{ color: "#333" }}>{m.correction}</div>
+                        <div
+                          style={{
+                            color: "#233223",
+                            fontSize: "15px",
+                            fontWeight: 600,
+                            lineHeight: 1.55,
+                          }}
+                        >
+                          {m.correction}
+                        </div>
                       </div>
                     )}
 
                     {/* 5) 교정 읽기 */}
                     {m.correctionReading && (
-                      <div
-                        style={{
-                          marginTop: "8px",
-                        }}
-                      >
-                        <div className="label">교정 읽기</div>
-                        <div style={{ color: "#555" }}>{m.correctionReading}</div>
+                      <div style={sectionDividerStyle}>
+                        <div style={sectionLabelStyle}>교정 읽기</div>
+                        <div style={readingTextStyle}>{m.correctionReading}</div>
                       </div>
                     )}
 
                     {/* 6) 교정 한글 발음 참고 */}
                     {m.correctionKoreanPronunciation && (
-                      <div
-                        style={{
-                          marginTop: "8px",
-                        }}
-                      >
-                        <div className="label">교정 한글 발음 참고</div>
-                        <div style={{ color: "#555" }}>
+                      <div style={sectionDividerStyle}>
+                        <div style={sectionLabelStyle}>교정 한글 발음 참고</div>
+                        <div style={readingTextStyle}>
                           {m.correctionKoreanPronunciation}
                         </div>
                       </div>
@@ -332,15 +346,13 @@ export default function ConversationPage() {
 
                     {/* 7) 설명 */}
                     {m.explanation && (
-                      <div
-                        style={{
-                          marginTop: "8px",
-                          paddingTop: "8px",
-                          borderTop: "1px dashed #cfe0cf",
-                        }}
-                      >
-                        <div className="label">설명</div>
-                        <div style={{ color: "#555" }}>{m.explanation}</div>
+                      <div style={sectionDividerStyle}>
+                        <div style={sectionLabelStyle}>설명</div>
+                        <div
+                          style={{ color: "#4c5d4c", fontSize: "14px", lineHeight: 1.6 }}
+                        >
+                          {m.explanation}
+                        </div>
                       </div>
                     )}
                   </div>
