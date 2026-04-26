@@ -21,11 +21,41 @@ type SavedSentence = {
 };
 
 const BASE_QUESTIONS: Question[] = [
-  { korean: "이거 얼마예요?", japanese: "これはいくらですか？", category: "여행" },
-  { korean: "확인 부탁드립니다", japanese: "ご確認お願いします", category: "업무" },
-  { korean: "지금 뭐 해?", japanese: "今何してる？", category: "친구" },
-  { korean: "같이 가자", japanese: "一緒に行こう", category: "친구" },
-  { korean: "천천히 말해 주세요", japanese: "ゆっくり話してください", category: "여행" },
+  {
+    korean: "이거 얼마예요?",
+    japanese: "これはいくらですか？",
+    category: "여행",
+    reading: "これはいくらですか",
+    koreanPronunciation: "코레와 이쿠라데스카",
+  },
+  {
+    korean: "확인 부탁드립니다",
+    japanese: "ご確認お願いします",
+    category: "업무",
+    reading: "ごかくにんおねがいします",
+    koreanPronunciation: "고카쿠닌 오네가이시마스",
+  },
+  {
+    korean: "지금 뭐 해?",
+    japanese: "今何してる？",
+    category: "친구",
+    reading: "いまなにしてる？",
+    koreanPronunciation: "이마 나니 시테루",
+  },
+  {
+    korean: "같이 가자",
+    japanese: "一緒に行こう",
+    category: "친구",
+    reading: "いっしょにいこう",
+    koreanPronunciation: "잇쇼니 이코오",
+  },
+  {
+    korean: "천천히 말해 주세요",
+    japanese: "ゆっくり話してください",
+    category: "여행",
+    reading: "ゆっくりはなしてください",
+    koreanPronunciation: "윳쿠리 하나시테 쿠다사이",
+  },
 ];
 
 const CATEGORIES = ["전체", "여행", "업무", "친구", "일상"];
