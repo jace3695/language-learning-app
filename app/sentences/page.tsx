@@ -13,9 +13,9 @@ type Sentence = {
 
 const SENTENCES: Sentence[] = ([
   // ===== 여행 =====
-  { japanese: "これをください", meaning: "이거 주세요", category: "여행", note: "가게나 식당에서 주문할 때" },
-  { japanese: "おすすめは何ですか？", meaning: "추천은 뭐예요?", category: "여행", note: "식당이나 가게에서 추천을 물을 때" },
-  { japanese: "お会計お願いします", meaning: "계산 부탁합니다", category: "여행", note: "식당에서 계산을 요청할 때" },
+  { japanese: "これをください", koreanPronunciation: "코레오 쿠다사이", meaning: "이거 주세요", category: "여행", note: "가게나 식당에서 주문할 때" },
+  { japanese: "おすすめは何ですか？", koreanPronunciation: "오스스메와 난데스카?", meaning: "추천은 뭐예요?", category: "여행", note: "식당이나 가게에서 추천을 물을 때" },
+  { japanese: "お会計お願いします", koreanPronunciation: "오카이케이 오네가이시마스", meaning: "계산 부탁합니다", category: "여행", note: "식당에서 계산을 요청할 때" },
   { japanese: "カードは使えますか？", meaning: "카드 사용할 수 있나요?", category: "여행", note: "결제 가능 여부를 확인할 때" },
   { japanese: "現金だけですか？", meaning: "현금만 되나요?", category: "여행", note: "카드 결제가 안 되는지 확인할 때" },
   { japanese: "水をください", meaning: "물 주세요", category: "여행", note: "식당에서 물을 요청할 때" },
@@ -119,7 +119,7 @@ const SENTENCES: Sentence[] = ([
   { japanese: "またね", meaning: "또 봐", category: "친구", note: "헤어질 때 인사" },] as Sentence[]).map((sentence) => ({
   ...sentence,
   reading: sentence.reading ?? sentence.japanese,
-  koreanPronunciation: sentence.koreanPronunciation ?? sentence.japanese,
+  koreanPronunciation: sentence.koreanPronunciation ?? "발음 참고 준비 중",
 }));
 
 const STORAGE_KEY = "savedSentences";
@@ -355,23 +355,23 @@ export default function SentencesPage() {
             const saved = isSaved(s);
             return (
               <li key={s.japanese} className="card" style={{ marginBottom: "14px" }}>
-                <div className="card-top">
+                <div>
                   <div className="jp-text">{s.japanese}</div>
-                  {s.reading && (
-                    <div style={{ marginTop: "6px", color: "#444", fontSize: "14px" }}>
-                      읽기: {s.reading}
-                    </div>
-                  )}
-                  {s.koreanPronunciation && (
-                    <div style={{ marginTop: "4px", color: "#666", fontSize: "14px" }}>
-                      한글 발음 참고: {s.koreanPronunciation}
-                    </div>
-                  )}
-                  <span className="badge">{s.category}</span>
+                  <div style={{ marginTop: "8px", color: "#444", fontSize: "14px" }}>
+                    <span className="label" style={{ marginRight: "6px" }}>읽기</span>
+                    {s.reading}
+                  </div>
+                  <div style={{ marginTop: "4px", color: "#666", fontSize: "14px" }}>
+                    <span className="label" style={{ marginRight: "6px" }}>한글 발음 참고</span>
+                    {s.koreanPronunciation}
+                  </div>
                 </div>
 
                 <div style={{ marginTop: "12px" }}>
-                  <div className="label">뜻</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div className="label">뜻</div>
+                    <span className="badge">{s.category}</span>
+                  </div>
                   <div>{s.meaning}</div>
                 </div>
 
