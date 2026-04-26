@@ -4,82 +4,108 @@ import { useEffect, useState, useCallback } from "react";
 
 type Word = {
   word: string;
+  reading?: string;
+  koreanPronunciation?: string;
   meaning: string;
   example: string;
+  exampleReading?: string;
+  exampleKoreanPronunciation?: string;
   category: "일상" | "여행" | "업무" | "친구";
 };
 
 const WORDS: Word[] = [
   // ===== 여행 =====
-  { word: "入口", meaning: "입구", example: "入口はどこですか？", category: "여행" },
-  { word: "出口", meaning: "출구", example: "出口はこちらです", category: "여행" },
-  { word: "会計", meaning: "계산", example: "会計お願いします", category: "여행" },
-  { word: "予約", meaning: "예약", example: "予約しています", category: "여행" },
-  { word: "注文", meaning: "주문", example: "注文いいですか？", category: "여행" },
-  { word: "おすすめ", meaning: "추천", example: "おすすめは何ですか？", category: "여행" },
-  { word: "水", meaning: "물", example: "水をください", category: "여행" },
-  { word: "お茶", meaning: "차", example: "お茶お願いします", category: "여행" },
-  { word: "トイレ", meaning: "화장실", example: "トイレはどこですか？", category: "여행" },
-  { word: "駅", meaning: "역", example: "駅に行きます", category: "여행" },
-  { word: "電車", meaning: "전철", example: "電車に乗ります", category: "여행" },
-  { word: "バス", meaning: "버스", example: "バスで行きます", category: "여행" },
-  { word: "ホテル", meaning: "호텔", example: "ホテルに泊まります", category: "여행" },
-  { word: "地図", meaning: "지도", example: "地図を見せてください", category: "여행" },
-  { word: "道", meaning: "길", example: "道を教えてください", category: "여행" },
-  { word: "右", meaning: "오른쪽", example: "右に曲がってください", category: "여행" },
-  { word: "左", meaning: "왼쪽", example: "左に行ってください", category: "여행" },
-  { word: "まっすぐ", meaning: "직진", example: "まっすぐ行ってください", category: "여행" },
-  { word: "遠い", meaning: "멀다", example: "ここは遠いです", category: "여행" },
-  { word: "近い", meaning: "가깝다", example: "駅は近いです", category: "여행" },
+  { word: "入口", reading: "いりぐち", koreanPronunciation: "이리구치", meaning: "입구", example: "入口はどこですか？", exampleReading: "いりぐちはどこですか？", exampleKoreanPronunciation: "이리구치와 도코데스카?", category: "여행" },
+  { word: "出口", reading: "でぐち", koreanPronunciation: "데구치", meaning: "출구", example: "出口はこちらです", exampleReading: "でぐちはこちらです", exampleKoreanPronunciation: "데구치와 고치라데스", category: "여행" },
+  { word: "会計", reading: "かいけい", koreanPronunciation: "카이케이", meaning: "계산", example: "会計お願いします", exampleReading: "かいけいおねがいします", exampleKoreanPronunciation: "카이케이 오네가이시마스", category: "여행" },
+  { word: "予約", reading: "よやく", koreanPronunciation: "요야쿠", meaning: "예약", example: "予約しています", exampleReading: "よやくしています", exampleKoreanPronunciation: "요야쿠시테이마스", category: "여행" },
+  { word: "注文", reading: "ちゅうもん", koreanPronunciation: "츄몬", meaning: "주문", example: "注文いいですか？", exampleReading: "ちゅうもんいいですか？", exampleKoreanPronunciation: "츄몬 이이데스카?", category: "여행" },
+  { word: "おすすめ", reading: "おすすめ", koreanPronunciation: "오스스메", meaning: "추천", example: "おすすめは何ですか？", exampleReading: "おすすめはなんですか？", exampleKoreanPronunciation: "오스스메와 난데스카?", category: "여행" },
+  { word: "水", reading: "みず", koreanPronunciation: "미즈", meaning: "물", example: "水をください", exampleReading: "みずをください", exampleKoreanPronunciation: "미즈오 구다사이", category: "여행" },
+  { word: "お茶", reading: "おちゃ", koreanPronunciation: "오챠", meaning: "차", example: "お茶お願いします", exampleReading: "おちゃおねがいします", exampleKoreanPronunciation: "오챠 오네가이시마스", category: "여행" },
+  { word: "トイレ", reading: "トイレ", koreanPronunciation: "토이레", meaning: "화장실", example: "トイレはどこですか？", exampleReading: "トイレはどこですか？", exampleKoreanPronunciation: "토이레와 도코데스카?", category: "여행" },
+  { word: "駅", reading: "えき", koreanPronunciation: "에키", meaning: "역", example: "駅に行きます", exampleReading: "えきにいきます", exampleKoreanPronunciation: "에키니 이키마스", category: "여행" },
+  { word: "電車", reading: "でんしゃ", koreanPronunciation: "덴샤", meaning: "전철", example: "電車に乗ります", exampleReading: "でんしゃにのります", exampleKoreanPronunciation: "덴샤니 노리마스", category: "여행" },
+  { word: "バス", reading: "バス", koreanPronunciation: "바스", meaning: "버스", example: "バスで行きます", exampleReading: "バスでいきます", exampleKoreanPronunciation: "바스데 이키마스", category: "여행" },
+  { word: "ホテル", reading: "ホテル", koreanPronunciation: "호테루", meaning: "호텔", example: "ホテルに泊まります", exampleReading: "ホテルにとまります", exampleKoreanPronunciation: "호테루니 토마리마스", category: "여행" },
+  { word: "地図", reading: "ちず", koreanPronunciation: "치즈", meaning: "지도", example: "地図を見せてください", exampleReading: "ちずをみせてください", exampleKoreanPronunciation: "치즈오 미세테 구다사이", category: "여행" },
+  { word: "道", reading: "みち", koreanPronunciation: "미치", meaning: "길", example: "道を教えてください", exampleReading: "みちをおしえてください", exampleKoreanPronunciation: "미치오 오시에테 구다사이", category: "여행" },
+  { word: "右", reading: "みぎ", koreanPronunciation: "미기", meaning: "오른쪽", example: "右に曲がってください", exampleReading: "みぎにまがってください", exampleKoreanPronunciation: "미기니 마갓테 구다사이", category: "여행" },
+  { word: "左", reading: "ひだり", koreanPronunciation: "히다리", meaning: "왼쪽", example: "左に行ってください", exampleReading: "ひだりにいってください", exampleKoreanPronunciation: "히다리니 잇테 구다사이", category: "여행" },
+  { word: "まっすぐ", reading: "まっすぐ", koreanPronunciation: "맛스구", meaning: "직진", example: "まっすぐ行ってください", exampleReading: "まっすぐいってください", exampleKoreanPronunciation: "맛스구 잇테 구다사이", category: "여행" },
+  { word: "遠い", reading: "とおい", koreanPronunciation: "토오이", meaning: "멀다", example: "ここは遠いです", exampleReading: "ここはとおいです", exampleKoreanPronunciation: "고코와 토오이데스", category: "여행" },
+  { word: "近い", reading: "ちかい", koreanPronunciation: "치카이", meaning: "가깝다", example: "駅は近いです", exampleReading: "えきはちかいです", exampleKoreanPronunciation: "에키와 치카이데스", category: "여행" },
 
   // ===== 업무 =====
-  { word: "納期", meaning: "납기", example: "納期はいつですか？", category: "업무" },
-  { word: "見積", meaning: "견적", example: "見積をお願いします", category: "업무" },
-  { word: "仕様", meaning: "사양", example: "仕様を確認してください", category: "업무" },
-  { word: "確認", meaning: "확인", example: "確認お願いします", category: "업무" },
-  { word: "依頼", meaning: "의뢰", example: "依頼があります", category: "업무" },
-  { word: "資料", meaning: "자료", example: "資料を送ります", category: "업무" },
-  { word: "送付", meaning: "송부", example: "メールで送付します", category: "업무" },
-  { word: "連絡", meaning: "연락", example: "後で連絡します", category: "업무" },
-  { word: "対応", meaning: "대응", example: "対応します", category: "업무" },
-  { word: "変更", meaning: "변경", example: "内容を変更します", category: "업무" },
-  { word: "追加", meaning: "추가", example: "項目を追加します", category: "업무" },
-  { word: "削除", meaning: "삭제", example: "データを削除します", category: "업무" },
-  { word: "問題", meaning: "문제", example: "問題があります", category: "업무" },
-  { word: "原因", meaning: "원인", example: "原因を確認します", category: "업무" },
-  { word: "結果", meaning: "결과", example: "結果を報告します", category: "업무" },
-  { word: "進捗", meaning: "진행상황", example: "進捗はどうですか？", category: "업무" },
-  { word: "会議", meaning: "회의", example: "会議があります", category: "업무" },
-  { word: "担当", meaning: "담당", example: "担当者は誰ですか？", category: "업무" },
-  { word: "報告", meaning: "보고", example: "報告します", category: "업무" },
-  { word: "相談", meaning: "상담", example: "相談したいです", category: "업무" },
+  { word: "納期", reading: "のうき", koreanPronunciation: "노키", meaning: "납기", example: "納期はいつですか？", exampleReading: "のうきはいつですか？", exampleKoreanPronunciation: "노키와 이츠데스카?", category: "업무" },
+  { word: "見積", reading: "みつもり", koreanPronunciation: "미츠모리", meaning: "견적", example: "見積をお願いします", exampleReading: "みつもりをおねがいします", exampleKoreanPronunciation: "미츠모리오 오네가이시마스", category: "업무" },
+  { word: "仕様", reading: "しよう", koreanPronunciation: "시요", meaning: "사양", example: "仕様を確認してください", exampleReading: "しようをかくにんしてください", exampleKoreanPronunciation: "시요오 카쿠닌시테 구다사이", category: "업무" },
+  { word: "確認", reading: "かくにん", koreanPronunciation: "카쿠닌", meaning: "확인", example: "確認お願いします", exampleReading: "かくにんおねがいします", exampleKoreanPronunciation: "카쿠닌 오네가이시마스", category: "업무" },
+  { word: "依頼", reading: "いらい", koreanPronunciation: "이라이", meaning: "의뢰", example: "依頼があります", exampleReading: "いらいがあります", exampleKoreanPronunciation: "이라이가 아리마스", category: "업무" },
+  { word: "資料", reading: "しりょう", koreanPronunciation: "시료", meaning: "자료", example: "資料を送ります", exampleReading: "しりょうをおくります", exampleKoreanPronunciation: "시료오 오쿠리마스", category: "업무" },
+  { word: "送付", reading: "そうふ", koreanPronunciation: "소후", meaning: "송부", example: "メールで送付します", exampleReading: "メールでそうふします", exampleKoreanPronunciation: "메루데 소후시마스", category: "업무" },
+  { word: "連絡", reading: "れんらく", koreanPronunciation: "렌라쿠", meaning: "연락", example: "後で連絡します", exampleReading: "あとでれんらくします", exampleKoreanPronunciation: "아토데 렌라쿠시마스", category: "업무" },
+  { word: "対応", reading: "たいおう", koreanPronunciation: "타이오", meaning: "대응", example: "対応します", exampleReading: "たいおうします", exampleKoreanPronunciation: "타이오시마스", category: "업무" },
+  { word: "変更", reading: "へんこう", koreanPronunciation: "헨코", meaning: "변경", example: "内容を変更します", exampleReading: "ないようをへんこうします", exampleKoreanPronunciation: "나이요오 헨코시마스", category: "업무" },
+  { word: "追加", reading: "ついか", koreanPronunciation: "츠이카", meaning: "추가", example: "項目を追加します", exampleReading: "こうもくをついかします", exampleKoreanPronunciation: "코모쿠오 츠이카시마스", category: "업무" },
+  { word: "削除", reading: "さくじょ", koreanPronunciation: "사쿠죠", meaning: "삭제", example: "データを削除します", exampleReading: "データをさくじょします", exampleKoreanPronunciation: "데타오 사쿠죠시마스", category: "업무" },
+  { word: "問題", reading: "もんだい", koreanPronunciation: "몬다이", meaning: "문제", example: "問題があります", exampleReading: "もんだいがあります", exampleKoreanPronunciation: "몬다이가 아리마스", category: "업무" },
+  { word: "原因", reading: "げんいん", koreanPronunciation: "겐인", meaning: "원인", example: "原因を確認します", exampleReading: "げんいんをかくにんします", exampleKoreanPronunciation: "겐인오 카쿠닌시마스", category: "업무" },
+  { word: "結果", reading: "けっか", koreanPronunciation: "켁카", meaning: "결과", example: "結果を報告します", exampleReading: "けっかをほうこくします", exampleKoreanPronunciation: "켁카오 호코쿠시마스", category: "업무" },
+  { word: "進捗", reading: "しんちょく", koreanPronunciation: "신초쿠", meaning: "진행상황", example: "進捗はどうですか？", exampleReading: "しんちょくはどうですか？", exampleKoreanPronunciation: "신초쿠와 도데스카?", category: "업무" },
+  { word: "会議", reading: "かいぎ", koreanPronunciation: "카이기", meaning: "회의", example: "会議があります", exampleReading: "かいぎがあります", exampleKoreanPronunciation: "카이기가 아리마스", category: "업무" },
+  { word: "担当", reading: "たんとう", koreanPronunciation: "탄토", meaning: "담당", example: "担当者は誰ですか？", exampleReading: "たんとうしゃはだれですか？", exampleKoreanPronunciation: "탄토샤와 다레데스카?", category: "업무" },
+  { word: "報告", reading: "ほうこく", koreanPronunciation: "호코쿠", meaning: "보고", example: "報告します", exampleReading: "ほうこくします", exampleKoreanPronunciation: "호코쿠시마스", category: "업무" },
+  { word: "相談", reading: "そうだん", koreanPronunciation: "소단", meaning: "상담", example: "相談したいです", exampleReading: "そうだんしたいです", exampleKoreanPronunciation: "소단시타이데스", category: "업무" },
 
   // ===== 일상 =====
-  { word: "今日", meaning: "오늘", example: "今日は忙しいです", category: "일상" },
-  { word: "明日", meaning: "내일", example: "明日会いましょう", category: "일상" },
-  { word: "昨日", meaning: "어제", example: "昨日は楽しかったです", category: "일상" },
-  { word: "今", meaning: "지금", example: "今何してる？", category: "일상" },
-  { word: "後で", meaning: "나중에", example: "後で行きます", category: "일상" },
-  { word: "一緒に", meaning: "함께", example: "一緒に行こう", category: "일상" },
-  { word: "友達", meaning: "친구", example: "友達と遊ぶ", category: "일상" },
-  { word: "家族", meaning: "가족", example: "家族と住んでいます", category: "일상" },
-  { word: "仕事", meaning: "일", example: "仕事が忙しい", category: "일상" },
-  { word: "休み", meaning: "휴식", example: "今日は休みです", category: "일상" },
-  { word: "趣味", meaning: "취미", example: "趣味は何ですか？", category: "일상" },
-  { word: "映画", meaning: "영화", example: "映画を見ます", category: "일상" },
-  { word: "音楽", meaning: "음악", example: "音楽を聞く", category: "일상" },
-  { word: "ご飯", meaning: "밥", example: "ご飯食べた？", category: "일상" },
-  { word: "美味しい", meaning: "맛있다", example: "これ美味しい！", category: "일상" },
-  { word: "楽しい", meaning: "재밌다", example: "楽しかった", category: "일상" },
-  { word: "疲れた", meaning: "피곤하다", example: "ちょっと疲れた", category: "일상" },
-  { word: "眠い", meaning: "졸리다", example: "眠いです", category: "일상" },
-  { word: "忙しい", meaning: "바쁘다", example: "今忙しい", category: "일상" },
-  { word: "暇", meaning: "한가하다", example: "暇だよ", category: "일상" },
+  { word: "今日", reading: "きょう", koreanPronunciation: "쿄", meaning: "오늘", example: "今日は忙しいです", exampleReading: "きょうはいそがしいです", exampleKoreanPronunciation: "쿄와 이소가시이데스", category: "일상" },
+  { word: "明日", reading: "あした", koreanPronunciation: "아시타", meaning: "내일", example: "明日会いましょう", exampleReading: "あしたあいましょう", exampleKoreanPronunciation: "아시타 아이마쇼", category: "일상" },
+  { word: "昨日", reading: "きのう", koreanPronunciation: "키노", meaning: "어제", example: "昨日は楽しかったです", exampleReading: "きのうはたのしかったです", exampleKoreanPronunciation: "키노와 타노시캇타데스", category: "일상" },
+  { word: "今", reading: "いま", koreanPronunciation: "이마", meaning: "지금", example: "今何してる？", exampleReading: "いまなにしてる？", exampleKoreanPronunciation: "이마 나니시테루?", category: "일상" },
+  { word: "後で", reading: "あとで", koreanPronunciation: "아토데", meaning: "나중에", example: "後で行きます", exampleReading: "あとでいきます", exampleKoreanPronunciation: "아토데 이키마스", category: "일상" },
+  { word: "一緒に", reading: "いっしょに", koreanPronunciation: "잇쇼니", meaning: "함께", example: "一緒に行こう", exampleReading: "いっしょにいこう", exampleKoreanPronunciation: "잇쇼니 이코", category: "일상" },
+  { word: "友達", reading: "ともだち", koreanPronunciation: "토모다치", meaning: "친구", example: "友達と遊ぶ", exampleReading: "ともだちとあそぶ", exampleKoreanPronunciation: "토모다치토 아소부", category: "일상" },
+  { word: "家族", reading: "かぞく", koreanPronunciation: "카조쿠", meaning: "가족", example: "家族と住んでいます", exampleReading: "かぞくとすんでいます", exampleKoreanPronunciation: "카조쿠토 슨데이마스", category: "일상" },
+  { word: "仕事", reading: "しごと", koreanPronunciation: "시고토", meaning: "일", example: "仕事が忙しい", exampleReading: "しごとがいそがしい", exampleKoreanPronunciation: "시고토가 이소가시이", category: "일상" },
+  { word: "休み", reading: "やすみ", koreanPronunciation: "야스미", meaning: "휴식", example: "今日は休みです", exampleReading: "きょうはやすみです", exampleKoreanPronunciation: "쿄와 야스미데스", category: "일상" },
+  { word: "趣味", reading: "しゅみ", koreanPronunciation: "슈미", meaning: "취미", example: "趣味は何ですか？", exampleReading: "しゅみはなんですか？", exampleKoreanPronunciation: "슈미와 난데스카?", category: "일상" },
+  { word: "映画", reading: "えいが", koreanPronunciation: "에이가", meaning: "영화", example: "映画を見ます", exampleReading: "えいがをみます", exampleKoreanPronunciation: "에이가오 미마스", category: "일상" },
+  { word: "音楽", reading: "おんがく", koreanPronunciation: "온가쿠", meaning: "음악", example: "音楽を聞く", exampleReading: "おんがくをきく", exampleKoreanPronunciation: "온가쿠오 키쿠", category: "일상" },
+  { word: "ご飯", reading: "ごはん", koreanPronunciation: "고항", meaning: "밥", example: "ご飯食べた？", exampleReading: "ごはんたべた？", exampleKoreanPronunciation: "고항 타베타?", category: "일상" },
+  { word: "美味しい", reading: "おいしい", koreanPronunciation: "오이시이", meaning: "맛있다", example: "これ美味しい！", exampleReading: "これおいしい！", exampleKoreanPronunciation: "고레 오이시이!", category: "일상" },
+  { word: "楽しい", reading: "たのしい", koreanPronunciation: "타노시이", meaning: "재밌다", example: "楽しかった", exampleReading: "たのしかった", exampleKoreanPronunciation: "타노시캇타", category: "일상" },
+  { word: "疲れた", reading: "つかれた", koreanPronunciation: "츠카레타", meaning: "피곤하다", example: "ちょっと疲れた", exampleReading: "ちょっとつかれた", exampleKoreanPronunciation: "쵸토 츠카레타", category: "일상" },
+  { word: "眠い", reading: "ねむい", koreanPronunciation: "네무이", meaning: "졸리다", example: "眠いです", exampleReading: "ねむいです", exampleKoreanPronunciation: "네무이데스", category: "일상" },
+  { word: "忙しい", reading: "いそがしい", koreanPronunciation: "이소가시이", meaning: "바쁘다", example: "今忙しい", exampleReading: "いまいそがしい", exampleKoreanPronunciation: "이마 이소가시이", category: "일상" },
+  { word: "暇", reading: "ひま", koreanPronunciation: "히마", meaning: "한가하다", example: "暇だよ", exampleReading: "ひまだよ", exampleKoreanPronunciation: "히마다요", category: "일상" },
+
+  // ===== 친구 =====
+  { word: "友達", reading: "ともだち", koreanPronunciation: "토모다치", meaning: "친구", example: "友達と会いたい", exampleReading: "ともだちとあいたい", exampleKoreanPronunciation: "토모다치토 아이타이", category: "친구" },
+  { word: "一緒に", reading: "いっしょに", koreanPronunciation: "잇쇼니", meaning: "함께", example: "一緒に遊ぼう", exampleReading: "いっしょにあそぼう", exampleKoreanPronunciation: "잇쇼니 아소보", category: "친구" },
+  { word: "遊ぶ", reading: "あそぶ", koreanPronunciation: "아소부", meaning: "놀다", example: "明日遊ばない？", exampleReading: "あしたあそばない？", exampleKoreanPronunciation: "아시타 아소바나이?", category: "친구" },
+  { word: "会う", reading: "あう", koreanPronunciation: "아우", meaning: "만나다", example: "今日会えない？", exampleReading: "きょうあえない？", exampleKoreanPronunciation: "쿄 아에나이?", category: "친구" },
+  { word: "楽しい", reading: "たのしい", koreanPronunciation: "타노시이", meaning: "즐겁다", example: "今日すごく楽しかった", exampleReading: "きょうすごくたのしかった", exampleKoreanPronunciation: "쿄 스고쿠 타노시캇타", category: "친구" },
+  { word: "久しぶり", reading: "ひさしぶり", koreanPronunciation: "히사시부리", meaning: "오랜만", example: "久しぶり！元気だった？", exampleReading: "ひさしぶり！げんきだった？", exampleKoreanPronunciation: "히사시부리! 겐키닷타?", category: "친구" },
+  { word: "元気", reading: "げんき", koreanPronunciation: "겐키", meaning: "건강함/잘 지냄", example: "最近元気？", exampleReading: "さいきんげんき？", exampleKoreanPronunciation: "사이킨 겐키?", category: "친구" },
+  { word: "暇", reading: "ひま", koreanPronunciation: "히마", meaning: "한가함", example: "今日暇だから遊ぼう", exampleReading: "きょうひまだからあそぼう", exampleKoreanPronunciation: "쿄 히마다카라 아소보", category: "친구" },
+  { word: "約束", reading: "やくそく", koreanPronunciation: "야쿠소쿠", meaning: "약속", example: "約束忘れないでね", exampleReading: "やくそくわすれないでね", exampleKoreanPronunciation: "야쿠소쿠 와스레나이데네", category: "친구" },
+  { word: "連絡", reading: "れんらく", koreanPronunciation: "렌라쿠", meaning: "연락", example: "後で連絡してね", exampleReading: "あとでれんらくしてね", exampleKoreanPronunciation: "아토데 렌라쿠시테네", category: "친구" },
+  { word: "写真", reading: "しゃしん", koreanPronunciation: "샤신", meaning: "사진", example: "一緒に写真撮ろう", exampleReading: "いっしょにしゃしんとろう", exampleKoreanPronunciation: "잇쇼니 샤신 토로", category: "친구" },
+  { word: "ご飯", reading: "ごはん", koreanPronunciation: "고항", meaning: "밥", example: "一緒にご飯食べよう", exampleReading: "いっしょにごはんたべよう", exampleKoreanPronunciation: "잇쇼니 고항 타베요", category: "친구" },
+  { word: "映画", reading: "えいが", koreanPronunciation: "에이가", meaning: "영화", example: "映画一緒に見ない？", exampleReading: "えいがいっしょにみない？", exampleKoreanPronunciation: "에이가 잇쇼니 미나이?", category: "친구" },
+  { word: "音楽", reading: "おんがく", koreanPronunciation: "온가쿠", meaning: "음악", example: "この音楽好き？", exampleReading: "このおんがくすき？", exampleKoreanPronunciation: "코노 온가쿠 스키?", category: "친구" },
+  { word: "好き", reading: "すき", koreanPronunciation: "스키", meaning: "좋아함", example: "これ好きだよ", exampleReading: "これすきだよ", exampleKoreanPronunciation: "고레 스키다요", category: "친구" },
+  { word: "大丈夫", reading: "だいじょうぶ", koreanPronunciation: "다이죠부", meaning: "괜찮음", example: "大丈夫？心配してたよ", exampleReading: "だいじょうぶ？しんぱいしてたよ", exampleKoreanPronunciation: "다이죠부? 신파이시테타요", category: "친구" },
+  { word: "本当", reading: "ほんとう", koreanPronunciation: "혼토오", meaning: "정말", example: "本当に楽しかった！", exampleReading: "ほんとうにたのしかった！", exampleKoreanPronunciation: "혼토니 타노시캇타!", category: "친구" },
+  { word: "すごい", reading: "すごい", koreanPronunciation: "스고이", meaning: "대단함", example: "すごい！さすがだね", exampleReading: "すごい！さすがだね", exampleKoreanPronunciation: "스고이! 사스가다네", category: "친구" },
+  { word: "ありがとう", reading: "ありがとう", koreanPronunciation: "아리가토오", meaning: "고마워", example: "来てくれてありがとう", exampleReading: "きてくれてありがとう", exampleKoreanPronunciation: "키테쿠레테 아리가토", category: "친구" },
+  { word: "またね", reading: "またね", koreanPronunciation: "마타네", meaning: "또 봐", example: "またね！楽しかったよ", exampleReading: "またね！たのしかったよ", exampleKoreanPronunciation: "마타네! 타노시캇타요", category: "친구" },
 ];
 
 const STORAGE_KEY = "savedWords";
 const WRONG_WORDS_KEY = "wrongWords";
-type CategoryFilter = "전체" | "여행" | "업무" | "일상";
+type CategoryFilter = "전체" | "여행" | "업무" | "일상" | "친구";
 type QuizType = "jp-to-kr" | "kr-to-jp";
 type PageMode = "study" | "quiz";
 
@@ -209,7 +235,7 @@ export default function WordsPage() {
       : currentWord.word
     : "";
 
-  const CATEGORIES: CategoryFilter[] = ["전체", "여행", "업무", "일상"];
+  const CATEGORIES: CategoryFilter[] = ["전체", "여행", "업무", "일상", "친구"];
 
   return (
     <section>
@@ -288,7 +314,19 @@ export default function WordsPage() {
                   <div className="jp-text">{w.word}</div>
                   <span className="badge">{w.category}</span>
                 </div>
-                <div style={{ marginTop: "12px" }}>
+                {w.reading && (
+                  <div style={{ marginTop: "6px" }}>
+                    <div className="label">읽기</div>
+                    <div style={{ color: "#444", fontSize: "15px" }}>{w.reading}</div>
+                  </div>
+                )}
+                {w.koreanPronunciation && (
+                  <div style={{ marginTop: "4px" }}>
+                    <div className="label">한글 발음</div>
+                    <div style={{ color: "#666", fontSize: "14px" }}>{w.koreanPronunciation}</div>
+                  </div>
+                )}
+                <div style={{ marginTop: "10px" }}>
                   <div className="label">뜻</div>
                   <div>{w.meaning}</div>
                 </div>
@@ -296,6 +334,18 @@ export default function WordsPage() {
                   <div className="label">예문</div>
                   <div style={{ color: "#555" }}>{w.example}</div>
                 </div>
+                {w.exampleReading && (
+                  <div style={{ marginTop: "4px" }}>
+                    <div className="label">예문 읽기</div>
+                    <div style={{ color: "#666", fontSize: "13px" }}>{w.exampleReading}</div>
+                  </div>
+                )}
+                {w.exampleKoreanPronunciation && (
+                  <div style={{ marginTop: "4px" }}>
+                    <div className="label">예문 한글 발음</div>
+                    <div style={{ color: "#888", fontSize: "13px" }}>{w.exampleKoreanPronunciation}</div>
+                  </div>
+                )}
                 <div className="card-actions">
                   <button
                     onClick={() => handleSave(w)}
@@ -385,18 +435,43 @@ export default function WordsPage() {
                       fontSize: "36px",
                       fontWeight: 700,
                       textAlign: "center",
-                      padding: "24px 0 8px",
+                      padding: "24px 0 4px",
                       letterSpacing: "2px",
                     }}
                   >
                     {quizType === "jp-to-kr" ? currentWord.word : currentWord.meaning}
                   </div>
+                  {quizType === "jp-to-kr" && currentWord.reading && (
+                    <div
+                      style={{
+                        textAlign: "center",
+                        fontSize: "14px",
+                        color: "#666",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      {currentWord.reading}
+                    </div>
+                  )}
+                  {quizType === "jp-to-kr" && currentWord.koreanPronunciation && (
+                    <div
+                      style={{
+                        textAlign: "center",
+                        fontSize: "13px",
+                        color: "#999",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      {currentWord.koreanPronunciation}
+                    </div>
+                  )}
                   <div
                     style={{
                       textAlign: "center",
                       fontSize: "13px",
                       color: "#aaa",
                       marginBottom: "8px",
+                      marginTop: "4px",
                     }}
                   >
                     {quizType === "jp-to-kr" ? "이 단어의 뜻은?" : "이 뜻의 일본어는?"}

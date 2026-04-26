@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 
 const hiragana = [
   { char: "あ", roman: "a" }, { char: "い", roman: "i" }, { char: "う", roman: "u" }, { char: "え", roman: "e" }, { char: "お", roman: "o" },
@@ -77,6 +77,62 @@ type ConfusingQuizItem = {
   pairIndex: number;
 };
 
+function speakKanaFallback(char: string, onStart?: () => void, onEnd?: () => void) {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+
+  const makeUtter = (text: string) => {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "ja-JP";
+    utter.rate = 0.75;
+    utter.pitch = 1;
+    utter.volume = 1;
+    const voices = window.speechSynthesis.getVoices();
+    const jaVoice = voices.find((v) => v.lang === "ja-JP" || v.lang.startsWith("ja"));
+    if (jaVoice) utter.voice = jaVoice;
+    return utter;
+  };
+
+  const utter1 = makeUtter(char);
+  const utter2 = makeUtter(char);
+
+  utter1.onstart = () => { if (onStart) onStart(); };
+  utter2.onend = () => { if (onEnd) onEnd(); };
+
+  setTimeout(() => {
+    window.speechSynthesis.speak(utter1);
+    window.speechSynthesis.speak(utter2);
+  }, 80);
+}
+
+async function speakKana(
+  char: string,
+  onStart?: () => void,
+  onEnd?: () => void
+) {
+  try {
+    if (onStart) onStart();
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: char }),
+    });
+    if (!res.ok) throw new Error("TTS API error");
+    const { audioContent } = await res.json();
+    if (!audioContent) throw new Error("No audioContent");
+
+    const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+    audio.onended = () => { if (onEnd) onEnd(); };
+    audio.onerror = () => {
+      if (onEnd) onEnd();
+      speakKanaFallback(char, undefined, undefined);
+    };
+    await audio.play();
+  } catch {
+    speakKanaFallback(char, onStart, onEnd);
+  }
+}
+
 function getKanaType(char: string): "hiragana" | "katakana" {
   const code = char.codePointAt(0) ?? 0;
   // Hiragana: U+3041–U+309F, Katakana: U+30A0–U+30FF
@@ -152,6 +208,24 @@ export default function KanaPage() {
   const [confusingQuiz, setConfusingQuiz] = useState<ConfusingQuizItem>(() => getConfusingQuizQuestion());
   const [confusingSelected, setConfusingSelected] = useState<string | null>(null);
   const [confusingScore, setConfusingScore] = useState({ correct: 0, total: 0 });
+
+  // 발음 재생 중 표시
+  const [playingChar, setPlayingChar] = useState<string | null>(null);
+  const playingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSpeak = useCallback((char: string) => {
+    if (playingTimerRef.current) clearTimeout(playingTimerRef.current);
+    setPlayingChar(char);
+    speakKana(
+      char,
+      () => { setPlayingChar(char); },
+      () => {
+        playingTimerRef.current = setTimeout(() => setPlayingChar(null), 300);
+      }
+    );
+    // 최대 6초 후 강제 초기화 (onEnd 미발동 대비)
+    playingTimerRef.current = setTimeout(() => setPlayingChar(null), 6000);
+  }, []);
 
   const loadNextQuestion = useCallback(
     (currentData: KanaItem[]) => {
@@ -338,26 +412,35 @@ export default function KanaPage() {
             gap: "0.75rem",
           }}
         >
-          {data.map((item) => (
-            <div
-              key={item.char}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "1rem 0.5rem",
-                borderRadius: "8px",
-                border: "1px solid #e5e7eb",
-                background: "#f9fafb",
-              }}
-            >
-              <span style={{ fontSize: "2rem", lineHeight: 1 }}>{item.char}</span>
-              <span style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: "0.4rem" }}>
-                {item.roman}
-              </span>
-            </div>
-          ))}
+          {data.map((item) => {
+            const isPlaying = playingChar === item.char;
+            return (
+              <div
+                key={item.char}
+                onClick={() => handleSpeak(item.char)}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "1rem 0.5rem",
+                  borderRadius: "8px",
+                  border: `1px solid ${isPlaying ? "#6366f1" : "#e5e7eb"}`,
+                  background: isPlaying ? "#eef2ff" : "#f9fafb",
+                  cursor: "pointer",
+                  userSelect: "none",
+                  WebkitUserSelect: "none",
+                  transition: "background 0.15s, border-color 0.15s",
+                  position: "relative",
+                }}
+              >
+                <span style={{ fontSize: "2rem", lineHeight: 1 }}>{item.char}</span>
+                <span style={{ fontSize: "0.75rem", color: isPlaying ? "#6366f1" : "#6b7280", marginTop: "0.4rem", fontWeight: isPlaying ? "700" : "400" }}>
+                  {isPlaying ? "재생 중..." : item.roman}
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -514,34 +597,46 @@ export default function KanaPage() {
                 >
                   {/* 글자 쌍 */}
                   <div style={{ display: "flex", borderBottom: "1px solid #f3f4f6" }}>
-                    {[pair.a, pair.b].map((item, j) => (
-                      <div
-                        key={j}
-                        style={{
-                          flex: 1,
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          padding: "1.5rem 1rem",
-                          background: j === 0 ? "#faf5ff" : "#fff7ed",
-                          borderRight: j === 0 ? "1px solid #f3f4f6" : undefined,
-                        }}
-                      >
-                        <span style={{ fontSize: "3.5rem", lineHeight: 1 }}>{item.char}</span>
-                        <span
+                    {[pair.a, pair.b].map((item, j) => {
+                      const isPlaying = playingChar === item.char;
+                      return (
+                        <div
+                          key={j}
+                          onClick={() => handleSpeak(item.char)}
                           style={{
-                            marginTop: "0.5rem",
-                            fontSize: "1rem",
-                            fontWeight: "700",
-                            color: j === 0 ? "#7c3aed" : "#d97706",
-                            letterSpacing: "0.05em",
+                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "1.5rem 1rem",
+                            background: isPlaying
+                              ? (j === 0 ? "#ede9fe" : "#fef3c7")
+                              : (j === 0 ? "#faf5ff" : "#fff7ed"),
+                            borderRight: j === 0 ? "1px solid #f3f4f6" : undefined,
+                            cursor: "pointer",
+                            userSelect: "none",
+                            WebkitUserSelect: "none",
+                            transition: "background 0.15s",
                           }}
                         >
-                          {item.roman}
-                        </span>
-                      </div>
-                    ))}
+                          <span style={{ fontSize: "3.5rem", lineHeight: 1 }}>{item.char}</span>
+                          <span
+                            style={{
+                              marginTop: "0.5rem",
+                              fontSize: "0.85rem",
+                              fontWeight: "700",
+                              color: isPlaying
+                                ? (j === 0 ? "#6366f1" : "#b45309")
+                                : (j === 0 ? "#7c3aed" : "#d97706"),
+                              letterSpacing: "0.05em",
+                            }}
+                          >
+                            {isPlaying ? "재생 중..." : item.roman}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                   {/* 구분 팁 */}
                   <div style={{ padding: "0.875rem 1.25rem", background: "#f9fafb" }}>
@@ -609,19 +704,30 @@ export default function KanaPage() {
 
               {/* 문제 */}
               <div
+                onClick={() => handleSpeak(confusingQuiz.question.char)}
                 style={{
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                   width: "100%",
                   height: "150px",
                   borderRadius: "12px",
-                  border: "2px solid #e5e7eb",
-                  background: "#fff",
+                  border: `2px solid ${playingChar === confusingQuiz.question.char ? "#6366f1" : "#e5e7eb"}`,
+                  background: playingChar === confusingQuiz.question.char ? "#eef2ff" : "#fff",
                   marginBottom: "1.5rem",
+                  cursor: "pointer",
+                  userSelect: "none",
+                  WebkitUserSelect: "none",
+                  transition: "background 0.15s, border-color 0.15s",
                 }}
               >
                 <span style={{ fontSize: "6rem", lineHeight: 1 }}>{confusingQuiz.question.char}</span>
+                {playingChar === confusingQuiz.question.char && (
+                  <span style={{ fontSize: "0.75rem", color: "#6366f1", fontWeight: "600", marginTop: "0.25rem" }}>
+                    재생 중...
+                  </span>
+                )}
               </div>
 
               {/* 보기 2개 */}
