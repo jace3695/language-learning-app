@@ -4,7 +4,16 @@ type Situation = "카페" | "여행" | "일상" | "업무" | "친구";
 
 type HistoryMessage =
   | { role: "user"; text: string }
-  | { role: "assistant"; reply: string; correction: string; explanation: string };
+  | {
+      role: "assistant";
+      reply: string;
+      replyReading: string;
+      replyKoreanPronunciation: string;
+      correction: string;
+      correctionReading: string;
+      correctionKoreanPronunciation: string;
+      explanation: string;
+    };
 
 type RequestBody = {
   situation: Situation;
@@ -14,7 +23,11 @@ type RequestBody = {
 
 type AIResponse = {
   reply: string;
+  replyReading: string;
+  replyKoreanPronunciation: string;
   correction: string;
+  correctionReading: string;
+  correctionKoreanPronunciation: string;
   explanation: string;
 };
 
@@ -45,12 +58,17 @@ function buildSystemPrompt(situation: Situation): string {
 
 【응답 규칙 — 반드시 준수】
 1. reply: 위 상황과 말투에 맞게 일본어로 짧고 자연스럽게 (1~2문장). 대화가 이어지도록 반응하거나 가볍게 질문해.
-2. correction: 사용자 문장에서 어색한 부분만 고쳐서 자연스러운 일본어로 제시. 이미 자연스러우면 원문 그대로.
-3. explanation: 수정 이유 또는 자연스러운 이유를 한국어로 딱 한 줄.
+2. replyReading: reply를 히라가나/가타카나 중심 읽기로 작성.
+3. replyKoreanPronunciation: reply의 한국어식 발음 참고를 작성.
+4. correction: 사용자 문장에서 어색한 부분만 고쳐서 자연스러운 일본어로 제시. 이미 자연스러우면 원문 그대로.
+5. correctionReading: correction을 히라가나/가타카나 중심 읽기로 작성.
+6. correctionKoreanPronunciation: correction의 한국어식 발음 참고를 작성.
+7. explanation: 수정 이유 또는 자연스러운 이유를 한국어로 1~2문장으로 설명.
+   - 틀린 부분이 있다면 가능하면 "일본어 원문 + 읽기 + 한글 발음 참고"를 함께 적어.
 
 【출력 형식 — 절대 규칙】
 아래 JSON만 출력. 코드블록, 마크다운, 추가 텍스트 금지.
-{"reply":"(일본어)","correction":"(일본어)","explanation":"(한국어 한 줄)"}`;
+{"reply":"(일본어)","replyReading":"(읽기)","replyKoreanPronunciation":"(한글 발음 참고)","correction":"(일본어)","correctionReading":"(읽기)","correctionKoreanPronunciation":"(한글 발음 참고)","explanation":"(한국어 설명)"}`;
 }
 
 function safeParseJSON(raw: string): Partial<AIResponse> {
@@ -91,8 +109,13 @@ async function callOpenAI(
   if (!apiKey) {
     return {
       reply: "（モック）こんにちは！何かお手伝いできますか？",
+      replyReading: "（モック）こんにちは！なにかおてつだいできますか？",
+      replyKoreanPronunciation: "(모크) 곤니치와! 나니카 오테츠다이 데키마스카?",
       correction: message,
-      explanation: "OPENAI_API_KEY가 없어 임시 응답입니다. .env.local에 키를 추가해 주세요.",
+      correctionReading: message,
+      correctionKoreanPronunciation: "입력 문장의 발음 참고를 생성하지 못했습니다.",
+      explanation:
+        "OPENAI_API_KEY가 없어 임시 응답입니다. .env.local에 키를 추가해 주세요.",
     };
   }
 
@@ -138,10 +161,28 @@ async function callOpenAI(
       typeof parsed.reply === "string" && parsed.reply.trim()
         ? parsed.reply
         : "すみません、もう一度お願いします。",
+    replyReading:
+      typeof parsed.replyReading === "string" && parsed.replyReading.trim()
+        ? parsed.replyReading
+        : "すみません、もういちどおねがいします。",
+    replyKoreanPronunciation:
+      typeof parsed.replyKoreanPronunciation === "string" &&
+      parsed.replyKoreanPronunciation.trim()
+        ? parsed.replyKoreanPronunciation
+        : "스미마셍, 모-이치도 오네가이시마스.",
     correction:
       typeof parsed.correction === "string" && parsed.correction.trim()
         ? parsed.correction
         : message,
+    correctionReading:
+      typeof parsed.correctionReading === "string" && parsed.correctionReading.trim()
+        ? parsed.correctionReading
+        : message,
+    correctionKoreanPronunciation:
+      typeof parsed.correctionKoreanPronunciation === "string" &&
+      parsed.correctionKoreanPronunciation.trim()
+        ? parsed.correctionKoreanPronunciation
+        : "교정 문장의 한글 발음 참고를 생성하지 못했습니다.",
     explanation:
       typeof parsed.explanation === "string" ? parsed.explanation : "",
   };

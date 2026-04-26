@@ -12,7 +12,11 @@ type ChatMessage =
   | {
       role: "assistant";
       reply: string;
+      replyReading: string;
+      replyKoreanPronunciation: string;
       correction: string;
+      correctionReading: string;
+      correctionKoreanPronunciation: string;
       explanation: string;
       originalUserText: string; // 어떤 입력에 대한 교정인지 비교용
     };
@@ -61,14 +65,22 @@ export default function ConversationPage() {
 
       const ai = data as {
         reply?: string;
+        replyReading?: string;
+        replyKoreanPronunciation?: string;
         correction?: string;
+        correctionReading?: string;
+        correctionKoreanPronunciation?: string;
         explanation?: string;
       };
 
       const aiMsg: ChatMessage = {
         role: "assistant",
         reply: ai.reply ?? "",
+        replyReading: ai.replyReading ?? "",
+        replyKoreanPronunciation: ai.replyKoreanPronunciation ?? "",
         correction: ai.correction ?? "",
+        correctionReading: ai.correctionReading ?? "",
+        correctionKoreanPronunciation: ai.correctionKoreanPronunciation ?? "",
         explanation: ai.explanation ?? "",
         originalUserText: text,
       };
@@ -250,7 +262,33 @@ export default function ConversationPage() {
                       </div>
                     </div>
 
-                    {/* 2) 교정 */}
+                    {/* 2) 읽기 */}
+                    {m.replyReading && (
+                      <div
+                        style={{
+                          marginTop: "8px",
+                        }}
+                      >
+                        <div className="label">읽기</div>
+                        <div style={{ color: "#444" }}>{m.replyReading}</div>
+                      </div>
+                    )}
+
+                    {/* 3) 한글 발음 참고 */}
+                    {m.replyKoreanPronunciation && (
+                      <div
+                        style={{
+                          marginTop: "8px",
+                        }}
+                      >
+                        <div className="label">한글 발음 참고</div>
+                        <div style={{ color: "#444" }}>
+                          {m.replyKoreanPronunciation}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 4) 교정 */}
                     {m.correction && (
                       <div
                         style={{
@@ -266,7 +304,33 @@ export default function ConversationPage() {
                       </div>
                     )}
 
-                    {/* 3) 설명 */}
+                    {/* 5) 교정 읽기 */}
+                    {m.correctionReading && (
+                      <div
+                        style={{
+                          marginTop: "8px",
+                        }}
+                      >
+                        <div className="label">교정 읽기</div>
+                        <div style={{ color: "#555" }}>{m.correctionReading}</div>
+                      </div>
+                    )}
+
+                    {/* 6) 교정 한글 발음 참고 */}
+                    {m.correctionKoreanPronunciation && (
+                      <div
+                        style={{
+                          marginTop: "8px",
+                        }}
+                      >
+                        <div className="label">교정 한글 발음 참고</div>
+                        <div style={{ color: "#555" }}>
+                          {m.correctionKoreanPronunciation}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 7) 설명 */}
                     {m.explanation && (
                       <div
                         style={{
