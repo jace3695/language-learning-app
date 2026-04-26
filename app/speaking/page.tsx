@@ -7,6 +7,8 @@ type Question = {
   japanese: string;
   category: string;
   note?: string;
+  reading?: string;
+  koreanPronunciation?: string;
 };
 
 type SavedSentence = {
@@ -14,6 +16,8 @@ type SavedSentence = {
   meaning: string;
   category: string;
   note?: string;
+  reading?: string;
+  koreanPronunciation?: string;
 };
 
 const BASE_QUESTIONS: Question[] = [
@@ -46,6 +50,8 @@ export default function SpeakingPage() {
           japanese: s.japanese,
           category: s.category || "일상",
           note: s.note,
+          reading: s.reading,
+          koreanPronunciation: s.koreanPronunciation,
         }));
         setAllQuestions([...BASE_QUESTIONS, ...converted]);
       }
@@ -263,9 +269,19 @@ export default function SpeakingPage() {
             <p style={{ fontSize: "0.78rem", color: "#065f46", marginBottom: "0.25rem" }}>
               정답
             </p>
-            <p style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0 }}>
+            <p style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0, marginBottom: current.reading || current.koreanPronunciation ? "0.5rem" : 0 }}>
               {current.japanese}
             </p>
+            {current.reading && (
+              <p style={{ fontSize: "0.95rem", color: "#065f46", margin: 0, marginBottom: current.koreanPronunciation ? "0.35rem" : 0 }}>
+                읽기: {current.reading}
+              </p>
+            )}
+            {current.koreanPronunciation && (
+              <p style={{ fontSize: "0.9rem", color: "#047857", margin: 0 }}>
+                한글 발음 참고: {current.koreanPronunciation}
+              </p>
+            )}
           </div>
 
           <button
