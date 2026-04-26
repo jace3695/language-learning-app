@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 type RoutineItem = {
   href: string;
@@ -63,7 +66,83 @@ const practicalPractice: RoutineItem[] = [
   },
 ];
 
+const DAILY_ROUTINE_STORAGE_KEY = "dailyRoutineStatus";
+
+type DailyRoutineStorage = {
+  date: string;
+  completed: Record<string, boolean>;
+};
+
+const getTodayKey = () => new Date().toISOString().slice(0, 10);
+
 export default function HomePage() {
+  const [completedByHref, setCompletedByHref] = useState<Record<string, boolean>>({});
+  const todayKey = useMemo(() => getTodayKey(), []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const raw = window.localStorage.getItem(DAILY_ROUTINE_STORAGE_KEY);
+      if (!raw) {
+        setCompletedByHref({});
+        return;
+      }
+
+      const parsed: unknown = JSON.parse(raw);
+      if (
+        typeof parsed !== "object" ||
+        parsed === null ||
+        !("date" in parsed) ||
+        !("completed" in parsed)
+      ) {
+        setCompletedByHref({});
+        return;
+      }
+
+      const date = (parsed as DailyRoutineStorage).date;
+      const completed = (parsed as DailyRoutineStorage).completed;
+      if (date !== todayKey || typeof completed !== "object" || completed === null) {
+        setCompletedByHref({});
+        return;
+      }
+
+      const nextCompleted: Record<string, boolean> = {};
+      for (const item of todayRoutine) {
+        nextCompleted[item.href] = Boolean(completed[item.href]);
+      }
+      setCompletedByHref(nextCompleted);
+    } catch {
+      setCompletedByHref({});
+    }
+  }, [todayKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const data: DailyRoutineStorage = {
+      date: todayKey,
+      completed: completedByHref,
+    };
+    window.localStorage.setItem(DAILY_ROUTINE_STORAGE_KEY, JSON.stringify(data));
+  }, [completedByHref, todayKey]);
+
+  const completedCount = todayRoutine.reduce(
+    (count, item) => count + (completedByHref[item.href] ? 1 : 0),
+    0,
+  );
+
+  const toggleCompleted = (href: string) => {
+    setCompletedByHref((prev) => ({
+      ...prev,
+      [href]: !prev[href],
+    }));
+  };
+
+  const resetAllCompleted = () => {
+    setCompletedByHref({});
+  };
+
   return (
     <section>
       <div
@@ -76,6 +155,27 @@ export default function HomePage() {
         <p className="muted" style={{ margin: 0 }}>
           가나, 단어, 문장, 말하기를 짧게 반복해 보세요.
         </p>
+        <p className="muted" style={{ margin: "8px 0 0", fontWeight: 600 }}>
+          오늘 완료 {completedCount} / {todayRoutine.length}
+        </p>
+        <div style={{ marginTop: "10px" }}>
+          <button
+            type="button"
+            onClick={resetAllCompleted}
+            style={{
+              border: "1px solid var(--line)",
+              borderRadius: "8px",
+              padding: "8px 12px",
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "inherit",
+              background: "var(--card)",
+              cursor: "pointer",
+            }}
+          >
+            전체 초기화
+          </button>
+        </div>
       </div>
 
       <div style={{ display: "grid", gap: "12px", marginBottom: "20px" }}>
@@ -96,17 +196,22 @@ export default function HomePage() {
                   margin: "0 0 6px",
                 }}
               >
-                {item.title}
+                {completedByHref[item.href] ? `✅ ${item.title}` : item.title}
               </h2>
               <p className="muted" style={{ margin: "0 0 8px" }}>
                 {item.desc}
               </p>
+              {completedByHref[item.href] && (
+                <p className="muted" style={{ margin: "0 0 8px", fontWeight: 600 }}>
+                  완료됨
+                </p>
+              )}
               <p className="muted" style={{ margin: 0, fontSize: "13px" }}>
                 예상 소요 시간: {item.duration}
               </p>
             </div>
 
-            <div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               <Link
                 href={item.href}
                 style={{
@@ -123,6 +228,22 @@ export default function HomePage() {
               >
                 {item.cta}
               </Link>
+              <button
+                type="button"
+                onClick={() => toggleCompleted(item.href)}
+                style={{
+                  border: "1px solid var(--line)",
+                  borderRadius: "8px",
+                  padding: "8px 12px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "inherit",
+                  background: completedByHref[item.href] ? "var(--line)" : "var(--card)",
+                  cursor: "pointer",
+                }}
+              >
+                {completedByHref[item.href] ? "완료됨" : "완료"}
+              </button>
             </div>
           </article>
         ))}
