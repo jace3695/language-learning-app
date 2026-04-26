@@ -25,8 +25,11 @@ const navItems = [
   { href: "/sentences", label: "Sentences" },
   { href: "/writing", label: "Writing" },
   { href: "/conversation", label: "Conversation" },
+  { href: "/kana", label: "Kana" },
   { href: "/review", label: "Review" },
+  { href: "/speaking", label: "Speaking" },
   { href: "/settings", label: "Settings" },
+  { href: "/progress", label: "Progress" },
 ];
 
 export default function RootLayout({
