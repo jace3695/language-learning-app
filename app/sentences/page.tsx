@@ -4,12 +4,14 @@ import { useEffect, useState, useCallback } from "react";
 
 type Sentence = {
   japanese: string;
+  reading?: string;
+  koreanPronunciation?: string;
   meaning: string;
   category: "일상" | "여행" | "업무" | "친구";
   note: string;
 };
 
-const SENTENCES: Sentence[] = [
+const SENTENCES: Sentence[] = ([
   // ===== 여행 =====
   { japanese: "これをください", meaning: "이거 주세요", category: "여행", note: "가게나 식당에서 주문할 때" },
   { japanese: "おすすめは何ですか？", meaning: "추천은 뭐예요?", category: "여행", note: "식당이나 가게에서 추천을 물을 때" },
@@ -114,8 +116,11 @@ const SENTENCES: Sentence[] = [
   { japanese: "助かった", meaning: "도움 됐어", category: "친구", note: "고마움을 자연스럽게 표현할 때" },
   { japanese: "ありがとう", meaning: "고마워", category: "친구", note: "친구에게 감사할 때" },
   { japanese: "ごめんね", meaning: "미안해", category: "친구", note: "가볍게 사과할 때" },
-  { japanese: "またね", meaning: "또 봐", category: "친구", note: "헤어질 때 인사" },
-];
+  { japanese: "またね", meaning: "또 봐", category: "친구", note: "헤어질 때 인사" },] as Sentence[]).map((sentence) => ({
+  ...sentence,
+  reading: sentence.reading ?? sentence.japanese,
+  koreanPronunciation: sentence.koreanPronunciation ?? sentence.japanese,
+}));
 
 const STORAGE_KEY = "savedSentences";
 const WRONG_SENTENCES_KEY = "wrongSentences";
@@ -352,6 +357,16 @@ export default function SentencesPage() {
               <li key={s.japanese} className="card" style={{ marginBottom: "14px" }}>
                 <div className="card-top">
                   <div className="jp-text">{s.japanese}</div>
+                  {s.reading && (
+                    <div style={{ marginTop: "6px", color: "#444", fontSize: "14px" }}>
+                      읽기: {s.reading}
+                    </div>
+                  )}
+                  {s.koreanPronunciation && (
+                    <div style={{ marginTop: "4px", color: "#666", fontSize: "14px" }}>
+                      한글 발음 참고: {s.koreanPronunciation}
+                    </div>
+                  )}
                   <span className="badge">{s.category}</span>
                 </div>
 
