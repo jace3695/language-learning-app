@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 const hiragana = [
   { char: "あ", roman: "a" }, { char: "い", roman: "i" }, { char: "う", roman: "u" }, { char: "え", roman: "e" }, { char: "お", roman: "o" },
@@ -193,7 +193,7 @@ function getQuizQuestion(data: KanaItem[]): { question: KanaItem; choices: strin
 
 export default function KanaPage() {
   const [tab, setTab] = useState<"hiragana" | "katakana">("hiragana");
-  const [mode, setMode] = useState<"learn" | "quiz" | "confusing">("learn");
+  const [mode, setMode] = useState<"learn" | "quiz" | "confusing" | "writing">("learn");
 
   const data = tab === "hiragana" ? hiragana : katakana;
 
@@ -212,6 +212,13 @@ export default function KanaPage() {
   // 발음 재생 중 표시
   const [playingChar, setPlayingChar] = useState<string | null>(null);
   const playingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 쓰기 연습 모드 상태
+  const [writingIndex, setWritingIndex] = useState(0);
+  const writingCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const writingAreaRef = useRef<HTMLDivElement | null>(null);
+  const writingIsDrawingRef = useRef(false);
+  const writingLastPointRef = useRef<{ x: number; y: number } | null>(null);
 
   const handleSpeak = useCallback((char: string) => {
     if (playingTimerRef.current) clearTimeout(playingTimerRef.current);
@@ -238,12 +245,13 @@ export default function KanaPage() {
   const handleTabChange = (newTab: "hiragana" | "katakana") => {
     setTab(newTab);
     const newData = newTab === "hiragana" ? hiragana : katakana;
+    setWritingIndex(0);
     setSelected(null);
     setScore({ correct: 0, total: 0 });
     setQuiz(getQuizQuestion(newData));
   };
 
-  const handleModeChange = (newMode: "learn" | "quiz" | "confusing") => {
+  const handleModeChange = (newMode: "learn" | "quiz" | "confusing" | "writing") => {
     setMode(newMode);
     if (newMode === "quiz") {
       setSelected(null);
@@ -257,6 +265,97 @@ export default function KanaPage() {
       setConfusingQuiz(getConfusingQuizQuestion());
     }
   };
+
+  const clearWritingCanvas = useCallback(() => {
+    const canvas = writingCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, []);
+
+  const syncWritingCanvasSize = useCallback(() => {
+    const canvas = writingCanvasRef.current;
+    const area = writingAreaRef.current;
+    if (!canvas || !area) return;
+
+    const rect = area.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${rect.height}px`;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#111827";
+    ctx.lineWidth = 6;
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "writing") return;
+    syncWritingCanvasSize();
+    const onResize = () => syncWritingCanvasSize();
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+    };
+  }, [mode, syncWritingCanvasSize]);
+
+  useEffect(() => {
+    if (mode !== "writing") return;
+    clearWritingCanvas();
+  }, [mode, writingIndex, tab, clearWritingCanvas]);
+
+  const getCanvasPoint = useCallback((clientX: number, clientY: number) => {
+    const canvas = writingCanvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }, []);
+
+  const drawFromLastPoint = useCallback((point: { x: number; y: number }) => {
+    const canvas = writingCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const prev = writingLastPointRef.current;
+    if (!prev) {
+      writingLastPointRef.current = point;
+      return;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(prev.x, prev.y);
+    ctx.lineTo(point.x, point.y);
+    ctx.stroke();
+    writingLastPointRef.current = point;
+  }, []);
+
+  const startDrawing = useCallback((clientX: number, clientY: number) => {
+    const point = getCanvasPoint(clientX, clientY);
+    if (!point) return;
+    writingIsDrawingRef.current = true;
+    writingLastPointRef.current = point;
+  }, [getCanvasPoint]);
+
+  const drawMove = useCallback((clientX: number, clientY: number) => {
+    if (!writingIsDrawingRef.current) return;
+    const point = getCanvasPoint(clientX, clientY);
+    if (!point) return;
+    drawFromLastPoint(point);
+  }, [drawFromLastPoint, getCanvasPoint]);
+
+  const endDrawing = useCallback(() => {
+    writingIsDrawingRef.current = false;
+    writingLastPointRef.current = null;
+  }, []);
+
+  const currentWritingItem = data[writingIndex];
 
   const handleChoice = (choice: string) => {
     if (selected !== null) return;
@@ -401,6 +500,9 @@ export default function KanaPage() {
         <button onClick={() => handleModeChange("confusing")} style={modeBtnStyle("confusing")}>
           헷갈리는 글자
         </button>
+        <button onClick={() => handleModeChange("writing")} style={modeBtnStyle("writing")}>
+          쓰기 연습
+        </button>
       </div>
 
       {/* 학습 모드 */}
@@ -534,6 +636,162 @@ export default function KanaPage() {
               다음 문제 →
             </button>
           )}
+        </div>
+      )}
+
+      {/* 쓰기 연습 모드 */}
+      {mode === "writing" && currentWritingItem && (
+        <div style={{ maxWidth: "560px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "0.9rem",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+              <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>현재 글자</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <span style={{ fontSize: "3.2rem", fontWeight: "700", lineHeight: 1 }}>{currentWritingItem.char}</span>
+                <span style={{ fontSize: "1rem", color: "#374151", fontWeight: "600" }}>
+                  {currentWritingItem.roman}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => handleSpeak(currentWritingItem.char)}
+              style={{
+                padding: "0.55rem 0.9rem",
+                borderRadius: "8px",
+                border: "1px solid #d1d5db",
+                background: "#fff",
+                cursor: "pointer",
+                color: "#374151",
+                fontWeight: 600,
+              }}
+            >
+              🔊 발음
+            </button>
+          </div>
+
+          <div
+            ref={writingAreaRef}
+            style={{
+              width: "100%",
+              height: "380px",
+              borderRadius: "12px",
+              border: "2px solid #e5e7eb",
+              background: "#fff",
+              position: "relative",
+              overflow: "hidden",
+              marginBottom: "1rem",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "13rem",
+                fontWeight: 700,
+                color: "rgba(156, 163, 175, 0.22)",
+                pointerEvents: "none",
+                userSelect: "none",
+                WebkitUserSelect: "none",
+                lineHeight: 1,
+              }}
+            >
+              {currentWritingItem.char}
+            </div>
+            <canvas
+              ref={writingCanvasRef}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                startDrawing(e.clientX, e.clientY);
+              }}
+              onPointerMove={(e) => {
+                e.preventDefault();
+                drawMove(e.clientX, e.clientY);
+              }}
+              onPointerUp={endDrawing}
+              onPointerCancel={endDrawing}
+              onPointerLeave={endDrawing}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                if (!touch) return;
+                startDrawing(touch.clientX, touch.clientY);
+              }}
+              onTouchMove={(e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                if (!touch) return;
+                drawMove(touch.clientX, touch.clientY);
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                endDrawing();
+              }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                touchAction: "none",
+              }}
+            />
+          </div>
+
+          <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
+            <button
+              onClick={() => setWritingIndex((prev) => Math.max(0, prev - 1))}
+              disabled={writingIndex === 0}
+              style={{
+                padding: "0.65rem 0.9rem",
+                borderRadius: "8px",
+                border: "1px solid #d1d5db",
+                cursor: writingIndex === 0 ? "not-allowed" : "pointer",
+                background: writingIndex === 0 ? "#f3f4f6" : "#fff",
+                color: writingIndex === 0 ? "#9ca3af" : "#374151",
+                fontWeight: 600,
+              }}
+            >
+              ← 이전 글자
+            </button>
+            <button
+              onClick={clearWritingCanvas}
+              style={{
+                padding: "0.65rem 0.9rem",
+                borderRadius: "8px",
+                border: "1px solid #d1d5db",
+                cursor: "pointer",
+                background: "#fff",
+                color: "#374151",
+                fontWeight: 600,
+              }}
+            >
+              지우기
+            </button>
+            <button
+              onClick={() => setWritingIndex((prev) => Math.min(data.length - 1, prev + 1))}
+              disabled={writingIndex === data.length - 1}
+              style={{
+                marginLeft: "auto",
+                padding: "0.65rem 0.9rem",
+                borderRadius: "8px",
+                border: "1px solid #d1d5db",
+                cursor: writingIndex === data.length - 1 ? "not-allowed" : "pointer",
+                background: writingIndex === data.length - 1 ? "#f3f4f6" : "#fff",
+                color: writingIndex === data.length - 1 ? "#9ca3af" : "#374151",
+                fontWeight: 600,
+              }}
+            >
+              다음 글자 →
+            </button>
+          </div>
         </div>
       )}
 
