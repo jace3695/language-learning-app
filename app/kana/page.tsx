@@ -83,6 +83,51 @@ type StrokeOrderInfo = {
   tip: string;
 };
 
+const hiraganaDetailedStrokeOrderData: Record<string, StrokeOrderInfo> = {
+  あ: {
+    totalStrokes: 3,
+    steps: [
+      "1획: 위쪽 가로획을 왼쪽에서 오른쪽으로 가볍게 긋습니다.",
+      "2획: 가운데에서 세로로 내려오며 아래쪽에서 살짝 방향을 틉니다.",
+      "3획: 왼쪽 아래에서 시작해 둥글게 감아 오른쪽으로 마무리합니다.",
+    ],
+    tip: "마지막 곡선이 너무 작아지지 않도록 아래 공간을 넉넉히 써서 균형을 맞추세요.",
+  },
+  い: {
+    totalStrokes: 2,
+    steps: [
+      "1획: 왼쪽 세로 곡선을 위에서 아래로 내려오며 부드럽게 끝냅니다.",
+      "2획: 오른쪽 짧은 곡선을 위에서 아래로 빠르게 써서 마무리합니다.",
+    ],
+    tip: "두 획 사이 간격을 너무 좁히지 말고, 오른쪽 획을 살짝 안쪽으로 기울이면 안정적입니다.",
+  },
+  う: {
+    totalStrokes: 2,
+    steps: [
+      "1획: 위쪽의 짧은 점획을 왼쪽에서 오른쪽으로 찍듯이 씁니다.",
+      "2획: 중앙에서 시작해 아래로 내려간 뒤 오른쪽으로 크게 휘어 마무리합니다.",
+    ],
+    tip: "2획의 아래 곡선을 너무 급하게 꺾지 말고, 둥근 호를 크게 그려 주세요.",
+  },
+  え: {
+    totalStrokes: 2,
+    steps: [
+      "1획: 윗부분의 짧은 가로획을 왼쪽에서 오른쪽으로 긋습니다.",
+      "2획: 가운데에서 시작해 아래로 내려온 뒤 왼쪽으로 짧게 내밀고 크게 오른쪽으로 감습니다.",
+    ],
+    tip: "2획의 좌우 폭을 충분히 벌려야 え 특유의 펼쳐진 형태가 또렷해집니다.",
+  },
+  お: {
+    totalStrokes: 3,
+    steps: [
+      "1획: 위쪽 가로획을 왼쪽에서 오른쪽으로 반듯하게 긋습니다.",
+      "2획: 중앙 세로획을 위에서 아래로 내려 쓰며 아래쪽에서 살짝 왼쪽으로 붙입니다.",
+      "3획: 오른쪽 점획을 위에서 아래로 짧게 내린 뒤 둥글게 이어 마무리합니다.",
+    ],
+    tip: "왼쪽(1·2획)과 오른쪽(3획)의 간격을 벌려야 お 모양이 답답하지 않게 보입니다.",
+  },
+};
+
 const strokeCountByRoman: Record<string, number> = {
   a: 3, i: 2, u: 2, e: 2, o: 3,
   ka: 3, ki: 4, ku: 1, ke: 3, ko: 2,
@@ -117,6 +162,8 @@ const buildStrokeOrderInfo = (char: string, roman: string): StrokeOrderInfo | un
 const hiraganaStrokeOrderData: Record<string, StrokeOrderInfo> = Object.fromEntries(
   hiragana
     .map((item) => {
+      const detailedInfo = hiraganaDetailedStrokeOrderData[item.char];
+      if (detailedInfo) return [item.char, detailedInfo] as [string, StrokeOrderInfo];
       const info = buildStrokeOrderInfo(item.char, item.roman);
       return info ? [item.char, info] : null;
     })
