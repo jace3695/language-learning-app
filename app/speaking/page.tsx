@@ -60,6 +60,33 @@ const BASE_QUESTIONS: Question[] = [
 
 const CATEGORIES = ["전체", "여행", "업무", "친구", "일상"];
 
+function speakJapaneseFallback(text: string) {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "ja-JP";
+  window.speechSynthesis.speak(utter);
+}
+
+async function speakJapanese(text: string) {
+  try {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!res.ok) throw new Error("TTS API error");
+    const { audioContent } = await res.json();
+    if (!audioContent) throw new Error("No audioContent");
+
+    const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+    audio.onerror = () => speakJapaneseFallback(text);
+    await audio.play();
+  } catch {
+    speakJapaneseFallback(text);
+  }
+}
+
 export default function SpeakingPage() {
   const [allQuestions, setAllQuestions] = useState<Question[]>(BASE_QUESTIONS);
   const [activeCategory, setActiveCategory] = useState("전체");
@@ -315,14 +342,7 @@ export default function SpeakingPage() {
           </div>
 
           <button
-            onClick={() => {
-              if (typeof window !== "undefined" && window.speechSynthesis) {
-                window.speechSynthesis.cancel();
-                const utter = new SpeechSynthesisUtterance(current.japanese);
-                utter.lang = "ja-JP";
-                window.speechSynthesis.speak(utter);
-              }
-            }}
+            onClick={() => speakJapanese(current.japanese)}
             style={{ ...btnStyle("#0891b2", "#fff"), marginBottom: "1rem" }}
           >
             🔊 정답 듣기
