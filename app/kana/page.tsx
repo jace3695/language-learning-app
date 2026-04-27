@@ -1189,6 +1189,7 @@ export default function KanaPage() {
   const currentStrokeOrderInfo = currentWritingItem
     ? (tab === "hiragana" ? hiraganaStrokeOrderData[currentWritingItem.char] : katakanaStrokeOrderData[currentWritingItem.char])
     : undefined;
+  const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
 
   const handleChoice = (choice: string) => {
     if (selected !== null) return;
@@ -1667,27 +1668,13 @@ export default function KanaPage() {
             }}
           >
             <div style={{ fontWeight: 700, color: "#1f2937", fontSize: "0.95rem", marginBottom: "0.45rem" }}>
-              획순
+              쓰기 팁
             </div>
-            {currentStrokeOrderInfo ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
-                <div style={{ fontSize: "0.78rem", color: "#374151" }}>
-                  총 획수: <strong>{currentStrokeOrderInfo.totalStrokes}획</strong>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                  {currentStrokeOrderInfo.steps.map((step) => (
-                    <div key={step} style={{ fontSize: "0.76rem", color: "#4b5563", lineHeight: 1.45 }}>
-                      • {step}
-                    </div>
-                  ))}
-                </div>
-                <div style={{ fontSize: "0.76rem", color: "#374151", lineHeight: 1.45 }}>
-                  쓰기 팁: {currentStrokeOrderInfo.tip}
-                </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+              <div style={{ fontSize: "0.76rem", color: "#374151", lineHeight: 1.45 }}>
+                {currentWritingTip}
               </div>
-            ) : (
-              <div style={{ fontSize: "0.78rem", color: "#6b7280" }}>획순 정보 준비 중</div>
-            )}
+            </div>
           </div>
         </div>
       )}
