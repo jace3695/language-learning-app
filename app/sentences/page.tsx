@@ -137,7 +137,7 @@ interface QuizState {
   isCorrect: boolean | null;
 }
 
-function speakJapanese(text: string) {
+function speakJapaneseFallback(text: string) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
@@ -146,6 +146,25 @@ function speakJapanese(text: string) {
   setTimeout(() => {
     window.speechSynthesis.speak(utter);
   }, 50);
+}
+
+async function speakJapanese(text: string) {
+  try {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!res.ok) throw new Error("TTS API error");
+    const { audioContent } = await res.json();
+    if (!audioContent) throw new Error("No audioContent");
+
+    const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+    audio.onerror = () => speakJapaneseFallback(text);
+    await audio.play();
+  } catch {
+    speakJapaneseFallback(text);
+  }
 }
 
 function shuffle<T>(arr: T[]): T[] {
