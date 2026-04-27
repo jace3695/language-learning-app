@@ -1021,6 +1021,11 @@ function getQuizQuestion(data: KanaItem[]): { question: KanaItem; choices: strin
   return { question, choices };
 }
 
+function getWritingQuizQuestion(data: KanaItem[]): KanaItem {
+  const questionIndex = Math.floor(Math.random() * data.length);
+  return data[questionIndex];
+}
+
 export default function KanaPage() {
   const [tab, setTab] = useState<"hiragana" | "katakana">("hiragana");
   const [mode, setMode] = useState<"learn" | "quiz" | "confusing" | "writing">("learn");
@@ -1044,7 +1049,14 @@ export default function KanaPage() {
   const playingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 쓰기 연습 모드 상태
+  const [writingSubMode, setWritingSubMode] = useState<"trace" | "quiz">("trace");
   const [writingIndex, setWritingIndex] = useState(0);
+  const [writingQuizQuestion, setWritingQuizQuestion] = useState<KanaItem>(() =>
+    getWritingQuizQuestion(hiragana)
+  );
+  const [writingQuizShowAnswer, setWritingQuizShowAnswer] = useState(false);
+  const [writingQuizAnswered, setWritingQuizAnswered] = useState(false);
+  const [writingQuizScore, setWritingQuizScore] = useState({ correct: 0, wrong: 0, total: 0 });
   const writingCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const writingAreaRef = useRef<HTMLDivElement | null>(null);
   const writingIsDrawingRef = useRef(false);
@@ -1076,6 +1088,11 @@ export default function KanaPage() {
     setTab(newTab);
     const newData = newTab === "hiragana" ? hiragana : katakana;
     setWritingIndex(0);
+    setWritingSubMode("trace");
+    setWritingQuizQuestion(getWritingQuizQuestion(newData));
+    setWritingQuizShowAnswer(false);
+    setWritingQuizAnswered(false);
+    setWritingQuizScore({ correct: 0, wrong: 0, total: 0 });
     setSelected(null);
     setScore({ correct: 0, total: 0 });
     setQuiz(getQuizQuestion(newData));
@@ -1190,6 +1207,23 @@ export default function KanaPage() {
     ? (tab === "hiragana" ? hiraganaStrokeOrderData[currentWritingItem.char] : katakanaStrokeOrderData[currentWritingItem.char])
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
+
+  const loadNextWritingQuizQuestion = useCallback(() => {
+    setWritingQuizQuestion(getWritingQuizQuestion(data));
+    setWritingQuizShowAnswer(false);
+    setWritingQuizAnswered(false);
+    clearWritingCanvas();
+  }, [clearWritingCanvas, data]);
+
+  const markWritingQuizResult = (result: "correct" | "wrong") => {
+    if (writingQuizAnswered) return;
+    setWritingQuizAnswered(true);
+    setWritingQuizScore((prev) => ({
+      correct: prev.correct + (result === "correct" ? 1 : 0),
+      wrong: prev.wrong + (result === "wrong" ? 1 : 0),
+      total: prev.total + 1,
+    }));
+  };
 
   const handleChoice = (choice: string) => {
     if (selected !== null) return;
@@ -1485,6 +1519,51 @@ export default function KanaPage() {
             boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
           }}
         >
+          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.9rem" }}>
+            <button
+              onClick={() => {
+                setWritingSubMode("trace");
+                setWritingQuizShowAnswer(false);
+                clearWritingCanvas();
+              }}
+              style={{
+                padding: "0.4rem 1rem",
+                borderRadius: "6px",
+                border: "2px solid",
+                cursor: "pointer",
+                fontWeight: writingSubMode === "trace" ? "bold" : "normal",
+                borderColor: writingSubMode === "trace" ? "#8b5cf6" : "#d1d5db",
+                background: writingSubMode === "trace" ? "#ede9fe" : "#fff",
+                color: writingSubMode === "trace" ? "#7c3aed" : "#6b7280",
+                fontSize: "0.875rem",
+              }}
+            >
+              따라 쓰기
+            </button>
+            <button
+              onClick={() => {
+                setWritingSubMode("quiz");
+                setWritingQuizQuestion(getWritingQuizQuestion(data));
+                setWritingQuizShowAnswer(false);
+                setWritingQuizAnswered(false);
+                clearWritingCanvas();
+              }}
+              style={{
+                padding: "0.4rem 1rem",
+                borderRadius: "6px",
+                border: "2px solid",
+                cursor: "pointer",
+                fontWeight: writingSubMode === "quiz" ? "bold" : "normal",
+                borderColor: writingSubMode === "quiz" ? "#8b5cf6" : "#d1d5db",
+                background: writingSubMode === "quiz" ? "#ede9fe" : "#fff",
+                color: writingSubMode === "quiz" ? "#7c3aed" : "#6b7280",
+                fontSize: "0.875rem",
+              }}
+            >
+              쓰기 퀴즈
+            </button>
+          </div>
+
           <div
             style={{
               display: "flex",
@@ -1495,15 +1574,21 @@ export default function KanaPage() {
               marginBottom: "0.8rem",
             }}
           >
-            <strong style={{ fontSize: "1.1rem", color: "#111827" }}>
-              {writingIndex + 1} / {data.length} · {currentWritingItem.char}
-            </strong>
+            {writingSubMode === "trace" ? (
+              <strong style={{ fontSize: "1.1rem", color: "#111827" }}>
+                {writingIndex + 1} / {data.length} · {currentWritingItem.char}
+              </strong>
+            ) : (
+              <strong style={{ fontSize: "1.1rem", color: "#111827" }}>
+                쓰기 퀴즈 · 문제: <span style={{ color: "#7c3aed" }}>{writingQuizQuestion.roman}</span>
+              </strong>
+            )}
             <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
               <span style={{ fontSize: "0.98rem", color: "#4b5563" }}>
-                발음: <strong>{currentWritingItem.roman}</strong>
+                발음: <strong>{writingSubMode === "trace" ? currentWritingItem.roman : writingQuizQuestion.roman}</strong>
               </span>
               <button
-                onClick={() => handleSpeak(currentWritingItem.char)}
+                onClick={() => handleSpeak(writingSubMode === "trace" ? currentWritingItem.char : writingQuizQuestion.char)}
                 style={{
                   padding: "0.45rem 0.7rem",
                   borderRadius: "8px",
@@ -1570,7 +1655,7 @@ export default function KanaPage() {
                 lineHeight: 1,
               }}
             >
-              {currentWritingItem.char}
+              {writingSubMode === "trace" ? currentWritingItem.char : ""}
             </div>
             <canvas
               ref={writingCanvasRef}
@@ -1611,71 +1696,189 @@ export default function KanaPage() {
             />
           </div>
 
-          <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
-            <button
-              onClick={() => setWritingIndex((prev) => Math.max(0, prev - 1))}
-              disabled={writingIndex === 0}
-              style={{
-                padding: "0.65rem 0.9rem",
-                borderRadius: "8px",
-                border: "1px solid #d1d5db",
-                cursor: writingIndex === 0 ? "not-allowed" : "pointer",
-                background: writingIndex === 0 ? "#f3f4f6" : "#fff",
-                color: writingIndex === 0 ? "#9ca3af" : "#374151",
-                fontWeight: 600,
-              }}
-            >
-              이전 글자
-            </button>
-            <button
-              onClick={() => setWritingIndex((prev) => Math.min(data.length - 1, prev + 1))}
-              disabled={writingIndex === data.length - 1}
-              style={{
-                padding: "0.65rem 0.9rem",
-                borderRadius: "8px",
-                border: "1px solid #d1d5db",
-                cursor: writingIndex === data.length - 1 ? "not-allowed" : "pointer",
-                background: writingIndex === data.length - 1 ? "#f3f4f6" : "#fff",
-                color: writingIndex === data.length - 1 ? "#9ca3af" : "#374151",
-                fontWeight: 600,
-              }}
-            >
-              다음 글자
-            </button>
-            <button
-              onClick={clearWritingCanvas}
-              style={{
-                padding: "0.65rem 0.9rem",
-                borderRadius: "8px",
-                border: "1px solid #d1d5db",
-                cursor: "pointer",
-                background: "#fff",
-                color: "#374151",
-                fontWeight: 600,
-              }}
-            >
-              지우기
-            </button>
-          </div>
-
-          <div
-            style={{
-              marginTop: "0.9rem",
-              borderRadius: "10px",
-              border: "1px solid #e5e7eb",
-              background: "#f9fafb",
-              padding: "0.8rem 0.85rem",
-            }}
-          >
-            <div style={{ fontWeight: 700, color: "#1f2937", fontSize: "0.95rem", marginBottom: "0.45rem" }}>
-              쓰기 팁
+          {writingSubMode === "trace" ? (
+            <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
+              <button
+                onClick={() => setWritingIndex((prev) => Math.max(0, prev - 1))}
+                disabled={writingIndex === 0}
+                style={{
+                  padding: "0.65rem 0.9rem",
+                  borderRadius: "8px",
+                  border: "1px solid #d1d5db",
+                  cursor: writingIndex === 0 ? "not-allowed" : "pointer",
+                  background: writingIndex === 0 ? "#f3f4f6" : "#fff",
+                  color: writingIndex === 0 ? "#9ca3af" : "#374151",
+                  fontWeight: 600,
+                }}
+              >
+                이전 글자
+              </button>
+              <button
+                onClick={() => setWritingIndex((prev) => Math.min(data.length - 1, prev + 1))}
+                disabled={writingIndex === data.length - 1}
+                style={{
+                  padding: "0.65rem 0.9rem",
+                  borderRadius: "8px",
+                  border: "1px solid #d1d5db",
+                  cursor: writingIndex === data.length - 1 ? "not-allowed" : "pointer",
+                  background: writingIndex === data.length - 1 ? "#f3f4f6" : "#fff",
+                  color: writingIndex === data.length - 1 ? "#9ca3af" : "#374151",
+                  fontWeight: 600,
+                }}
+              >
+                다음 글자
+              </button>
+              <button
+                onClick={clearWritingCanvas}
+                style={{
+                  padding: "0.65rem 0.9rem",
+                  borderRadius: "8px",
+                  border: "1px solid #d1d5db",
+                  cursor: "pointer",
+                  background: "#fff",
+                  color: "#374151",
+                  fontWeight: 600,
+                }}
+              >
+                지우기
+              </button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
-              <div style={{ fontSize: "0.76rem", color: "#374151", lineHeight: 1.45 }}>
-                {currentWritingTip}
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+              <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap" }}>
+                <button
+                  onClick={clearWritingCanvas}
+                  style={{
+                    padding: "0.65rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db",
+                    cursor: "pointer",
+                    background: "#fff",
+                    color: "#374151",
+                    fontWeight: 600,
+                  }}
+                >
+                  지우기
+                </button>
+                <button
+                  onClick={() => setWritingQuizShowAnswer(true)}
+                  style={{
+                    padding: "0.65rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db",
+                    cursor: "pointer",
+                    background: "#fff",
+                    color: "#374151",
+                    fontWeight: 600,
+                  }}
+                >
+                  정답 보기
+                </button>
+                <button
+                  onClick={() => markWritingQuizResult("correct")}
+                  disabled={writingQuizAnswered}
+                  style={{
+                    padding: "0.65rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "1px solid #16a34a",
+                    cursor: writingQuizAnswered ? "not-allowed" : "pointer",
+                    background: writingQuizAnswered ? "#f3f4f6" : "#dcfce7",
+                    color: writingQuizAnswered ? "#9ca3af" : "#166534",
+                    fontWeight: 700,
+                  }}
+                >
+                  맞았음
+                </button>
+                <button
+                  onClick={() => markWritingQuizResult("wrong")}
+                  disabled={writingQuizAnswered}
+                  style={{
+                    padding: "0.65rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "1px solid #dc2626",
+                    cursor: writingQuizAnswered ? "not-allowed" : "pointer",
+                    background: writingQuizAnswered ? "#f3f4f6" : "#fee2e2",
+                    color: writingQuizAnswered ? "#9ca3af" : "#991b1b",
+                    fontWeight: 700,
+                  }}
+                >
+                  틀렸음
+                </button>
+                <button
+                  onClick={loadNextWritingQuizQuestion}
+                  style={{
+                    padding: "0.65rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "none",
+                    cursor: "pointer",
+                    background: "#3b82f6",
+                    color: "#fff",
+                    fontWeight: 700,
+                  }}
+                >
+                  다음 문제 →
+                </button>
+              </div>
+              {writingQuizShowAnswer && (
+                <div
+                  style={{
+                    borderRadius: "10px",
+                    border: "1px solid #ddd6fe",
+                    background: "#f5f3ff",
+                    padding: "0.8rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "1rem",
+                  }}
+                >
+                  <span style={{ color: "#5b21b6", fontWeight: 700 }}>정답</span>
+                  <span style={{ fontSize: "3.5rem", lineHeight: 1, color: "#111827", fontWeight: 700 }}>
+                    {writingQuizQuestion.char}
+                  </span>
+                  <span style={{ color: "#6b7280", fontSize: "0.95rem" }}>{writingQuizQuestion.roman}</span>
+                </div>
+              )}
+              <div
+                style={{
+                  borderRadius: "10px",
+                  border: "1px solid #e5e7eb",
+                  background: "#f9fafb",
+                  padding: "0.65rem 0.8rem",
+                  color: "#1f2937",
+                  fontSize: "0.95rem",
+                  display: "flex",
+                  gap: "0.8rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                <span><strong>맞음:</strong> {writingQuizScore.correct}</span>
+                <span><strong>틀림:</strong> {writingQuizScore.wrong}</span>
+                <span><strong>총 시도:</strong> {writingQuizScore.total}</span>
               </div>
             </div>
-          </div>
+          )}
+
+          {writingSubMode === "trace" && (
+            <div
+              style={{
+                marginTop: "0.9rem",
+                borderRadius: "10px",
+                border: "1px solid #e5e7eb",
+                background: "#f9fafb",
+                padding: "0.8rem 0.85rem",
+              }}
+            >
+              <div style={{ fontWeight: 700, color: "#1f2937", fontSize: "0.95rem", marginBottom: "0.45rem" }}>
+                쓰기 팁
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+                <div style={{ fontSize: "0.76rem", color: "#374151", lineHeight: 1.45 }}>
+                  {currentWritingTip}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
