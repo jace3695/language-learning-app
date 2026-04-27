@@ -83,6 +83,13 @@ type StrokeOrderInfo = {
   tip: string;
 };
 
+type HandwritingFeedback = {
+  summary: string;
+  goodPoints: string[] | string;
+  advice: string[] | string;
+  exampleTip: string;
+};
+
 const hiraganaDetailedStrokeOrderData: Record<string, StrokeOrderInfo> = {
   あ: {
     totalStrokes: 3,
@@ -1057,6 +1064,9 @@ export default function KanaPage() {
   const [writingQuizShowAnswer, setWritingQuizShowAnswer] = useState(false);
   const [writingQuizAnswered, setWritingQuizAnswered] = useState(false);
   const [writingQuizScore, setWritingQuizScore] = useState({ correct: 0, wrong: 0, total: 0 });
+  const [writingFeedback, setWritingFeedback] = useState<HandwritingFeedback | null>(null);
+  const [writingFeedbackLoading, setWritingFeedbackLoading] = useState(false);
+  const [writingFeedbackError, setWritingFeedbackError] = useState<string | null>(null);
   const writingCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const writingAreaRef = useRef<HTMLDivElement | null>(null);
   const writingIsDrawingRef = useRef(false);
@@ -1212,8 +1222,59 @@ export default function KanaPage() {
     setWritingQuizQuestion(getWritingQuizQuestion(data));
     setWritingQuizShowAnswer(false);
     setWritingQuizAnswered(false);
+    setWritingFeedback(null);
+    setWritingFeedbackError(null);
+    setWritingFeedbackLoading(false);
     clearWritingCanvas();
   }, [clearWritingCanvas, data]);
+
+  const resetWritingFeedback = useCallback(() => {
+    setWritingFeedback(null);
+    setWritingFeedbackError(null);
+    setWritingFeedbackLoading(false);
+  }, []);
+
+  const getFeedbackLines = (value: string[] | string | undefined) => {
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
+  };
+
+  const requestHandwritingFeedback = useCallback(async () => {
+    const canvas = writingCanvasRef.current;
+    if (!canvas) {
+      setWritingFeedbackError("피드백을 불러오지 못했어요");
+      return;
+    }
+
+    setWritingFeedbackLoading(true);
+    setWritingFeedbackError(null);
+    setWritingFeedback(null);
+
+    try {
+      const imageDataUrl = canvas.toDataURL("image/png");
+      const response = await fetch("/api/handwriting-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetChar: writingQuizQuestion.char,
+          romaji: writingQuizQuestion.roman,
+          imageDataUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch handwriting feedback");
+      }
+
+      const result = (await response.json()) as HandwritingFeedback;
+      setWritingFeedback(result);
+    } catch (error) {
+      console.error(error);
+      setWritingFeedbackError("피드백을 불러오지 못했어요");
+    } finally {
+      setWritingFeedbackLoading(false);
+    }
+  }, [writingQuizQuestion]);
 
   const markWritingQuizResult = (result: "correct" | "wrong") => {
     if (writingQuizAnswered) return;
@@ -1524,6 +1585,7 @@ export default function KanaPage() {
               onClick={() => {
                 setWritingSubMode("trace");
                 setWritingQuizShowAnswer(false);
+                resetWritingFeedback();
                 clearWritingCanvas();
               }}
               style={{
@@ -1546,6 +1608,7 @@ export default function KanaPage() {
                 setWritingQuizQuestion(getWritingQuizQuestion(data));
                 setWritingQuizShowAnswer(false);
                 setWritingQuizAnswered(false);
+                resetWritingFeedback();
                 clearWritingCanvas();
               }}
               style={{
@@ -1747,7 +1810,10 @@ export default function KanaPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
               <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap" }}>
                 <button
-                  onClick={clearWritingCanvas}
+                  onClick={() => {
+                    clearWritingCanvas();
+                    resetWritingFeedback();
+                  }}
                   style={{
                     padding: "0.65rem 0.9rem",
                     borderRadius: "8px",
@@ -1759,6 +1825,21 @@ export default function KanaPage() {
                   }}
                 >
                   지우기
+                </button>
+                <button
+                  onClick={requestHandwritingFeedback}
+                  disabled={writingFeedbackLoading}
+                  style={{
+                    padding: "0.65rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "1px solid #8b5cf6",
+                    cursor: writingFeedbackLoading ? "not-allowed" : "pointer",
+                    background: writingFeedbackLoading ? "#f3f4f6" : "#ede9fe",
+                    color: writingFeedbackLoading ? "#9ca3af" : "#6d28d9",
+                    fontWeight: 700,
+                  }}
+                >
+                  AI 피드백 받기
                 </button>
                 <button
                   onClick={() => setWritingQuizShowAnswer(true)}
@@ -1819,6 +1900,71 @@ export default function KanaPage() {
                   다음 문제 →
                 </button>
               </div>
+              {writingFeedbackLoading && (
+                <div
+                  style={{
+                    borderRadius: "10px",
+                    border: "1px solid #ddd6fe",
+                    background: "#f5f3ff",
+                    padding: "0.8rem",
+                    color: "#6d28d9",
+                    fontWeight: 600,
+                  }}
+                >
+                  AI가 글씨를 확인하는 중...
+                </div>
+              )}
+              {writingFeedbackError && (
+                <div
+                  style={{
+                    borderRadius: "10px",
+                    border: "1px solid #fecaca",
+                    background: "#fef2f2",
+                    padding: "0.8rem",
+                    color: "#b91c1c",
+                    fontWeight: 600,
+                  }}
+                >
+                  {writingFeedbackError}
+                </div>
+              )}
+              {writingFeedback && (
+                <div
+                  style={{
+                    borderRadius: "10px",
+                    border: "1px solid #ddd6fe",
+                    background: "#faf5ff",
+                    padding: "0.85rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <div style={{ fontWeight: 800, color: "#5b21b6" }}>AI 필기 피드백 (보조 설명)</div>
+                  <div style={{ color: "#1f2937", fontSize: "0.93rem", lineHeight: 1.5 }}>
+                    <strong>요약:</strong> {writingFeedback.summary}
+                  </div>
+                  <div style={{ color: "#1f2937", fontSize: "0.93rem", lineHeight: 1.5 }}>
+                    <strong>잘한 점:</strong>
+                    <ul style={{ margin: "0.25rem 0 0 1.1rem", padding: 0 }}>
+                      {getFeedbackLines(writingFeedback.goodPoints).map((line, idx) => (
+                        <li key={`good-${idx}`}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div style={{ color: "#1f2937", fontSize: "0.93rem", lineHeight: 1.5 }}>
+                    <strong>조언:</strong>
+                    <ul style={{ margin: "0.25rem 0 0 1.1rem", padding: 0 }}>
+                      {getFeedbackLines(writingFeedback.advice).map((line, idx) => (
+                        <li key={`advice-${idx}`}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div style={{ color: "#1f2937", fontSize: "0.93rem", lineHeight: 1.5 }}>
+                    <strong>예시 팁:</strong> {writingFeedback.exampleTip}
+                  </div>
+                </div>
+              )}
               {writingQuizShowAnswer && (
                 <div
                   style={{
