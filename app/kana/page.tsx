@@ -77,6 +77,61 @@ type ConfusingQuizItem = {
   pairIndex: number;
 };
 
+type StrokeOrderInfo = {
+  totalStrokes: number;
+  steps: string[];
+  tip: string;
+};
+
+const strokeCountByRoman: Record<string, number> = {
+  a: 3, i: 2, u: 2, e: 2, o: 3,
+  ka: 3, ki: 4, ku: 1, ke: 3, ko: 2,
+  sa: 3, shi: 1, su: 2, se: 3, so: 1,
+  ta: 4, chi: 2, tsu: 1, te: 1, to: 2,
+  na: 4, ni: 3, nu: 2, ne: 1, no: 1,
+  ha: 3, hi: 1, fu: 4, he: 1, ho: 4,
+  ma: 3, mi: 2, mu: 3, me: 2, mo: 3,
+  ya: 3, yu: 2, yo: 2,
+  ra: 2, ri: 2, ru: 1, re: 1, ro: 3,
+  wa: 2, wo: 3, n: 1,
+};
+
+const buildStrokeOrderInfo = (char: string, roman: string): StrokeOrderInfo | undefined => {
+  const totalStrokes = strokeCountByRoman[roman];
+  if (!totalStrokes) return undefined;
+
+  const steps = Array.from({ length: totalStrokes }, (_, idx) => {
+    const strokeNo = idx + 1;
+    if (strokeNo === 1) return `${strokeNo}획: 글자의 기준이 되는 첫 선을 위에서 아래로 안정적으로 시작해요.`;
+    if (strokeNo === totalStrokes) return `${strokeNo}획: 마지막 마무리 획은 길이를 짧게 조절해 균형을 맞춰요.`;
+    return `${strokeNo}획: 이전 획과 간격을 맞추며 자연스럽게 이어서 써요.`;
+  });
+
+  return {
+    totalStrokes,
+    steps,
+    tip: `${char}(${roman})는 중심선을 기준으로 비율을 먼저 잡고, 천천히 획 순서를 지키며 반복 연습하세요.`,
+  };
+};
+
+const hiraganaStrokeOrderData: Record<string, StrokeOrderInfo> = Object.fromEntries(
+  hiragana
+    .map((item) => {
+      const info = buildStrokeOrderInfo(item.char, item.roman);
+      return info ? [item.char, info] : null;
+    })
+    .filter((entry): entry is [string, StrokeOrderInfo] => entry !== null)
+);
+
+const katakanaStrokeOrderData: Record<string, StrokeOrderInfo> = Object.fromEntries(
+  katakana
+    .map((item) => {
+      const info = buildStrokeOrderInfo(item.char, item.roman);
+      return info ? [item.char, info] : null;
+    })
+    .filter((entry): entry is [string, StrokeOrderInfo] => entry !== null)
+);
+
 function speakKanaFallback(char: string, onStart?: () => void, onEnd?: () => void) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -356,6 +411,9 @@ export default function KanaPage() {
   }, []);
 
   const currentWritingItem = data[writingIndex];
+  const currentStrokeOrderInfo = currentWritingItem
+    ? (tab === "hiragana" ? hiraganaStrokeOrderData[currentWritingItem.char] : katakanaStrokeOrderData[currentWritingItem.char])
+    : undefined;
 
   const handleChoice = (choice: string) => {
     if (selected !== null) return;
@@ -822,6 +880,39 @@ export default function KanaPage() {
             >
               지우기
             </button>
+          </div>
+
+          <div
+            style={{
+              marginTop: "0.9rem",
+              borderRadius: "10px",
+              border: "1px solid #e5e7eb",
+              background: "#f9fafb",
+              padding: "0.8rem 0.85rem",
+            }}
+          >
+            <div style={{ fontWeight: 700, color: "#1f2937", fontSize: "0.95rem", marginBottom: "0.45rem" }}>
+              획순
+            </div>
+            {currentStrokeOrderInfo ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+                <div style={{ fontSize: "0.78rem", color: "#374151" }}>
+                  총 획수: <strong>{currentStrokeOrderInfo.totalStrokes}획</strong>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  {currentStrokeOrderInfo.steps.map((step) => (
+                    <div key={step} style={{ fontSize: "0.76rem", color: "#4b5563", lineHeight: 1.45 }}>
+                      • {step}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: "0.76rem", color: "#374151", lineHeight: 1.45 }}>
+                  쓰기 팁: {currentStrokeOrderInfo.tip}
+                </div>
+              </div>
+            ) : (
+              <div style={{ fontSize: "0.78rem", color: "#6b7280" }}>획순 정보 준비 중</div>
+            )}
           </div>
         </div>
       )}
