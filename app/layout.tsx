@@ -26,7 +26,6 @@ const navItems = [
   { href: "/writing", label: "쓰기" },
   { href: "/conversation", label: "AI 회화" },
   { href: "/kana", label: "가나" },
-  { href: "/kana-writing", label: "가나 쓰기" },
   { href: "/review", label: "복습" },
   { href: "/speaking", label: "말하기" },
   { href: "/settings", label: "설정" },

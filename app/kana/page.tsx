@@ -641,53 +641,85 @@ export default function KanaPage() {
 
       {/* 쓰기 연습 모드 */}
       {mode === "writing" && currentWritingItem && (
-        <div style={{ maxWidth: "560px" }}>
+        <div
+          style={{
+            maxWidth: "720px",
+            borderRadius: "14px",
+            border: "1px solid #e5e7eb",
+            background: "#fff",
+            padding: "1rem",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          }}
+        >
           <div
             style={{
               display: "flex",
-              alignItems: "center",
               justifyContent: "space-between",
-              marginBottom: "0.9rem",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "0.75rem",
+              marginBottom: "0.8rem",
             }}
           >
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-              <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>현재 글자</span>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                <span style={{ fontSize: "3.2rem", fontWeight: "700", lineHeight: 1 }}>{currentWritingItem.char}</span>
-                <span style={{ fontSize: "1rem", color: "#374151", fontWeight: "600" }}>
-                  {currentWritingItem.roman}
-                </span>
-              </div>
+            <strong style={{ fontSize: "1.1rem", color: "#111827" }}>
+              {writingIndex + 1} / {data.length} · {currentWritingItem.char}
+            </strong>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+              <span style={{ fontSize: "0.98rem", color: "#4b5563" }}>
+                발음: <strong>{currentWritingItem.roman}</strong>
+              </span>
+              <button
+                onClick={() => handleSpeak(currentWritingItem.char)}
+                style={{
+                  padding: "0.45rem 0.7rem",
+                  borderRadius: "8px",
+                  border: "1px solid #d1d5db",
+                  background: "#fff",
+                  cursor: "pointer",
+                  color: "#374151",
+                  fontWeight: 600,
+                }}
+              >
+                🔊 발음
+              </button>
             </div>
-            <button
-              onClick={() => handleSpeak(currentWritingItem.char)}
-              style={{
-                padding: "0.55rem 0.9rem",
-                borderRadius: "8px",
-                border: "1px solid #d1d5db",
-                background: "#fff",
-                cursor: "pointer",
-                color: "#374151",
-                fontWeight: 600,
-              }}
-            >
-              🔊 발음
-            </button>
           </div>
 
           <div
             ref={writingAreaRef}
             style={{
               width: "100%",
-              height: "380px",
+              height: "420px",
               borderRadius: "12px",
-              border: "2px solid #e5e7eb",
+              border: "1px solid #d1d5db",
               background: "#fff",
               position: "relative",
               overflow: "hidden",
-              marginBottom: "1rem",
+              marginBottom: "0.95rem",
             }}
           >
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                top: "50%",
+                borderTop: "2px solid #eef1f5",
+                transform: "translateY(-1px)",
+                pointerEvents: "none",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: "50%",
+                borderLeft: "2px solid #eef1f5",
+                transform: "translateX(-1px)",
+                pointerEvents: "none",
+              }}
+            />
             <div
               style={{
                 position: "absolute",
@@ -697,7 +729,7 @@ export default function KanaPage() {
                 justifyContent: "center",
                 fontSize: "13rem",
                 fontWeight: 700,
-                color: "rgba(156, 163, 175, 0.22)",
+                color: "rgba(17, 24, 39, 0.08)",
                 pointerEvents: "none",
                 userSelect: "none",
                 WebkitUserSelect: "none",
@@ -759,7 +791,22 @@ export default function KanaPage() {
                 fontWeight: 600,
               }}
             >
-              ← 이전 글자
+              이전 글자
+            </button>
+            <button
+              onClick={() => setWritingIndex((prev) => Math.min(data.length - 1, prev + 1))}
+              disabled={writingIndex === data.length - 1}
+              style={{
+                padding: "0.65rem 0.9rem",
+                borderRadius: "8px",
+                border: "1px solid #d1d5db",
+                cursor: writingIndex === data.length - 1 ? "not-allowed" : "pointer",
+                background: writingIndex === data.length - 1 ? "#f3f4f6" : "#fff",
+                color: writingIndex === data.length - 1 ? "#9ca3af" : "#374151",
+                fontWeight: 600,
+              }}
+            >
+              다음 글자
             </button>
             <button
               onClick={clearWritingCanvas}
@@ -774,22 +821,6 @@ export default function KanaPage() {
               }}
             >
               지우기
-            </button>
-            <button
-              onClick={() => setWritingIndex((prev) => Math.min(data.length - 1, prev + 1))}
-              disabled={writingIndex === data.length - 1}
-              style={{
-                marginLeft: "auto",
-                padding: "0.65rem 0.9rem",
-                borderRadius: "8px",
-                border: "1px solid #d1d5db",
-                cursor: writingIndex === data.length - 1 ? "not-allowed" : "pointer",
-                background: writingIndex === data.length - 1 ? "#f3f4f6" : "#fff",
-                color: writingIndex === data.length - 1 ? "#9ca3af" : "#374151",
-                fontWeight: 600,
-              }}
-            >
-              다음 글자 →
             </button>
           </div>
         </div>
