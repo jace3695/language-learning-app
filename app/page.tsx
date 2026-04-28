@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type RoutineItem = {
   href: string;
@@ -78,6 +78,7 @@ const getTodayKey = () => new Date().toISOString().slice(0, 10);
 export default function HomePage() {
   const [completedByHref, setCompletedByHref] = useState<Record<string, boolean>>({});
   const todayKey = useMemo(() => getTodayKey(), []);
+  const hasLoadedRoutineRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -114,11 +115,14 @@ export default function HomePage() {
       setCompletedByHref(nextCompleted);
     } catch {
       setCompletedByHref({});
+    } finally {
+      hasLoadedRoutineRef.current = true;
     }
   }, [todayKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!hasLoadedRoutineRef.current) return;
 
     const data: DailyRoutineStorage = {
       date: todayKey,
