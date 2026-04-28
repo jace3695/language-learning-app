@@ -1,8 +1,10 @@
 export type LearningCategory = "일상" | "여행" | "업무" | "친구" | string;
+export type LearningLevel = "beginner" | "basic" | "practical";
 
 export type WordItem = {
   id?: string;
   category: LearningCategory;
+  level?: LearningLevel;
   word: string;
   reading?: string;
   koreanPronunciation?: string;
