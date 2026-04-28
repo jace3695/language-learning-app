@@ -107,18 +107,17 @@ function formatDate(dateStr: string): string {
 function renderKanaItem(item: AnyItem, i: number): React.ReactNode {
   if (typeof item === "string") {
     return (
-      <li key={i} style={{ marginBottom: "0.5rem" }}>
+      <div key={i} style={{ marginBottom: "0.5rem" }}>
         {item}
-      </li>
+      </div>
     );
   }
   const obj = item as Record<string, unknown>;
   return (
-    <li
+    <div
       key={i}
       style={{
         marginBottom: "0.5rem",
-        listStyle: "none",
         border: "1px solid #eee",
         borderRadius: 6,
         padding: "0.5rem 0.75rem",
@@ -164,16 +163,16 @@ function renderKanaItem(item: AnyItem, i: number): React.ReactNode {
           {formatDate(obj.createdAt)}
         </span>
       )}
-    </li>
+    </div>
   );
 }
 
 function renderWordOrSentenceItem(item: AnyItem, i: number): React.ReactNode {
   if (typeof item === "string") {
     return (
-      <li key={i} style={{ marginBottom: "0.3rem" }}>
+      <span key={i} style={{ marginBottom: "0.3rem" }}>
         {item}
-      </li>
+      </span>
     );
   }
   const obj = item as Record<string, unknown>;
@@ -201,11 +200,7 @@ function renderWordOrSentenceItem(item: AnyItem, i: number): React.ReactNode {
 
   const display = parts.length > 0 ? parts.join(" ") : JSON.stringify(obj);
 
-  return (
-    <li key={i} style={{ marginBottom: "0.3rem" }}>
-      {display}
-    </li>
-  );
+  return <span key={i}>{display}</span>;
 }
 
 function getKanaQuizItems(items: AnyItem[]): KanaQuizItem[] {
@@ -276,47 +271,43 @@ function isObjectItem(item: AnyItem): item is Record<string, unknown> {
   return typeof item === "object" && item !== null;
 }
 
-function matchKanaItem(target: KanaQuizItem, item: AnyItem): boolean {
-  if (!isObjectItem(item)) return false;
-  if (item.char !== target.char || item.romaji !== target.romaji || item.type !== target.type || item.mode !== target.mode) {
-    return false;
-  }
-  if (target.createdAt) {
-    return item.createdAt === target.createdAt;
-  }
-  return true;
+function getKanaWrongKey(item: AnyItem, includeCreatedAt?: boolean): string {
+  if (!isObjectItem(item)) return "";
+  const base = [
+    typeof item.char === "string" ? item.char : "",
+    typeof item.romaji === "string" ? item.romaji : "",
+    typeof item.type === "string" ? item.type : "",
+    typeof item.mode === "string" ? item.mode : "",
+  ].join("|");
+  const shouldIncludeCreatedAt = includeCreatedAt ?? typeof item.createdAt === "string";
+  if (!shouldIncludeCreatedAt) return base;
+  return `${base}|${typeof item.createdAt === "string" ? item.createdAt : ""}`;
 }
 
-function matchWordItem(target: WordQuizItem, item: AnyItem): boolean {
-  if (!isObjectItem(item)) return false;
-  if (
-    item.word !== target.word ||
-    item.meaning !== target.meaning ||
-    item.category !== target.category ||
-    item.quizType !== target.quizType
-  ) {
-    return false;
-  }
-  if (target.createdAt) {
-    return item.createdAt === target.createdAt;
-  }
-  return true;
+function getWordWrongKey(item: AnyItem, includeCreatedAt?: boolean): string {
+  if (!isObjectItem(item)) return "";
+  const base = [
+    typeof item.word === "string" ? item.word : "",
+    typeof item.meaning === "string" ? item.meaning : "",
+    typeof item.category === "string" ? item.category : "",
+    typeof item.quizType === "string" ? item.quizType : "",
+  ].join("|");
+  const shouldIncludeCreatedAt = includeCreatedAt ?? typeof item.createdAt === "string";
+  if (!shouldIncludeCreatedAt) return base;
+  return `${base}|${typeof item.createdAt === "string" ? item.createdAt : ""}`;
 }
 
-function matchSentenceItem(target: SentenceQuizItem, item: AnyItem): boolean {
-  if (!isObjectItem(item)) return false;
-  if (
-    item.japanese !== target.japanese ||
-    item.meaning !== target.meaning ||
-    item.category !== target.category ||
-    item.quizType !== target.quizType
-  ) {
-    return false;
-  }
-  if (target.createdAt) {
-    return item.createdAt === target.createdAt;
-  }
-  return true;
+function getSentenceWrongKey(item: AnyItem, includeCreatedAt?: boolean): string {
+  if (!isObjectItem(item)) return "";
+  const base = [
+    typeof item.japanese === "string" ? item.japanese : "",
+    typeof item.meaning === "string" ? item.meaning : "",
+    typeof item.category === "string" ? item.category : "",
+    typeof item.quizType === "string" ? item.quizType : "",
+  ].join("|");
+  const shouldIncludeCreatedAt = includeCreatedAt ?? typeof item.createdAt === "string";
+  if (!shouldIncludeCreatedAt) return base;
+  return `${base}|${typeof item.createdAt === "string" ? item.createdAt : ""}`;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -459,6 +450,72 @@ export default function ProgressPage() {
     });
   }
 
+  function removeWrongKanaItem(target: AnyItem) {
+    if (!isObjectItem(target)) return;
+    const useCreatedAt = typeof target.createdAt === "string";
+    const targetKey = getKanaWrongKey(target, useCreatedAt);
+
+    setData((prev) => {
+      let removed = false;
+      const updated = prev.wrongKana.filter((storedItem) => {
+        if (removed) return true;
+        const storedKey = getKanaWrongKey(storedItem, useCreatedAt);
+        if (storedKey === targetKey) {
+          removed = true;
+          return false;
+        }
+        return true;
+      });
+      saveToStorage("wrongKana", updated);
+      buildKanaQuiz(updated);
+      return { ...prev, wrongKana: updated };
+    });
+  }
+
+  function removeWrongWordItem(target: AnyItem) {
+    if (!isObjectItem(target)) return;
+    const useCreatedAt = typeof target.createdAt === "string";
+    const targetKey = getWordWrongKey(target, useCreatedAt);
+
+    setData((prev) => {
+      let removed = false;
+      const updated = prev.wrongWords.filter((storedItem) => {
+        if (removed) return true;
+        const storedKey = getWordWrongKey(storedItem, useCreatedAt);
+        if (storedKey === targetKey) {
+          removed = true;
+          return false;
+        }
+        return true;
+      });
+      saveToStorage("wrongWords", updated);
+      buildWordQuiz(updated);
+      return { ...prev, wrongWords: updated };
+    });
+  }
+
+  function removeWrongSentenceItem(target: AnyItem) {
+    if (!isObjectItem(target)) return;
+    const useCreatedAt = typeof target.createdAt === "string";
+    const targetKey = getSentenceWrongKey(target, useCreatedAt);
+
+    setData((prev) => {
+      let removed = false;
+      const updated = prev.wrongSentences.filter((storedItem) => {
+        if (removed) return true;
+        const storedKey = getSentenceWrongKey(storedItem, useCreatedAt);
+        if (storedKey === targetKey) {
+          removed = true;
+          return false;
+        }
+        return true;
+      });
+      saveToStorage("wrongSentences", updated);
+      buildSentenceQuiz(updated);
+      return { ...prev, wrongSentences: updated };
+    });
+  }
+
   // Kana quiz handlers
   function handleOptionSelect(opt: string) {
     if (selected !== null) return;
@@ -470,18 +527,7 @@ export default function ProgressPage() {
     setIsCorrect(correct);
 
     if (correct) {
-      setData((prev) => {
-        let removed = false;
-        const updated = prev.wrongKana.filter((item) => {
-          if (!removed && matchKanaItem(current, item)) {
-            removed = true;
-            return false;
-          }
-          return true;
-        });
-        saveToStorage("wrongKana", updated);
-        return { ...prev, wrongKana: updated };
-      });
+      removeWrongKanaItem(current);
       setQuizItems((prev) => prev.filter((_, i) => i !== quizIndex));
     }
   }
@@ -516,18 +562,7 @@ export default function ProgressPage() {
     setWordIsCorrect(correct);
 
     if (correct) {
-      setData((prev) => {
-        let removed = false;
-        const updated = prev.wrongWords.filter((item) => {
-          if (!removed && matchWordItem(current, item)) {
-            removed = true;
-            return false;
-          }
-          return true;
-        });
-        saveToStorage("wrongWords", updated);
-        return { ...prev, wrongWords: updated };
-      });
+      removeWrongWordItem(current);
       setWordQuizItems((prev) => prev.filter((_, i) => i !== wordQuizIndex));
     }
   }
@@ -567,18 +602,7 @@ export default function ProgressPage() {
     setSentenceIsCorrect(correct);
 
     if (correct) {
-      setData((prev) => {
-        let removed = false;
-        const updated = prev.wrongSentences.filter((item) => {
-          if (!removed && matchSentenceItem(current, item)) {
-            removed = true;
-            return false;
-          }
-          return true;
-        });
-        saveToStorage("wrongSentences", updated);
-        return { ...prev, wrongSentences: updated };
-      });
+      removeWrongSentenceItem(current);
       setSentenceQuizItems((prev) => prev.filter((_, i) => i !== sentenceQuizIndex));
     }
   }
@@ -1054,11 +1078,56 @@ export default function ProgressPage() {
               <p style={{ color: "#999", margin: 0 }}>아직 기록이 없습니다. {linkLabel.replace("다시 ", "")}을 시작해 보세요!</p>
             ) : key === "wrongKana" ? (
               <ul style={{ margin: 0, paddingLeft: 0 }}>
-                {items.map((item, i) => renderKanaItem(item, i))}
+                {items.map((item, i) => (
+                  <li key={`wrong-kana-item-${i}`} style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start", listStyle: "none" }}>
+                    <div style={{ flex: 1 }}>{renderKanaItem(item, i)}</div>
+                    <button
+                      onClick={() => removeWrongKanaItem(item)}
+                      style={{
+                        fontSize: "0.75rem",
+                        padding: "0.2rem 0.45rem",
+                        cursor: "pointer",
+                        background: "#fff",
+                        border: "1px solid #ddd",
+                        borderRadius: 4,
+                        color: "#c00",
+                        marginTop: "0.1rem",
+                      }}
+                    >
+                      삭제
+                    </button>
+                  </li>
+                ))}
               </ul>
             ) : (
               <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
-                {items.map((item, i) => renderWordOrSentenceItem(item, i))}
+                {items.map((item, i) => (
+                  <li key={`wrong-item-${key}-${i}`} style={{ marginBottom: "0.35rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", alignItems: "center" }}>
+                      <span style={{ flex: 1 }}>{renderWordOrSentenceItem(item, i)}</span>
+                      <button
+                        onClick={() => {
+                          if (key === "wrongWords") {
+                            removeWrongWordItem(item);
+                            return;
+                          }
+                          removeWrongSentenceItem(item);
+                        }}
+                        style={{
+                          fontSize: "0.75rem",
+                          padding: "0.2rem 0.45rem",
+                          cursor: "pointer",
+                          background: "#fff",
+                          border: "1px solid #ddd",
+                          borderRadius: 4,
+                          color: "#c00",
+                        }}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </li>
+                ))}
               </ul>
             )}
           </section>
