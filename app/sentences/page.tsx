@@ -137,6 +137,21 @@ interface QuizState {
   isCorrect: boolean | null;
 }
 
+type AppSettings = {
+  ttsRate: number;
+  repeatCount: number;
+  showKoreanPronunciation: boolean;
+  showReading: boolean;
+};
+
+const APP_SETTINGS_KEY = "japaneseAppSettings";
+const DEFAULT_SETTINGS: AppSettings = {
+  ttsRate: 1,
+  repeatCount: 1,
+  showKoreanPronunciation: true,
+  showReading: true,
+};
+
 function speakJapaneseFallback(text: string) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -208,10 +223,26 @@ function generateQuiz(pool: Sentence[]): QuizState {
 
 export default function SentencesPage() {
   const [savedSentences, setSavedSentences] = useState<Sentence[]>([]);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [mode, setMode] = useState<Mode>("학습");
   const [category, setCategory] = useState<Category>("전체");
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(APP_SETTINGS_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<AppSettings>;
+      setSettings({
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+      });
+    } catch {
+      setSettings(DEFAULT_SETTINGS);
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -376,14 +407,18 @@ export default function SentencesPage() {
               <li key={s.japanese} className="card" style={{ marginBottom: "14px" }}>
                 <div>
                   <div className="jp-text">{s.japanese}</div>
-                  <div style={{ marginTop: "8px", color: "#444", fontSize: "14px" }}>
-                    <span className="label" style={{ marginRight: "6px" }}>읽기</span>
-                    {s.reading}
-                  </div>
-                  <div style={{ marginTop: "4px", color: "#666", fontSize: "14px" }}>
-                    <span className="label" style={{ marginRight: "6px" }}>한글 발음 참고</span>
-                    {s.koreanPronunciation}
-                  </div>
+                  {settings.showReading && (
+                    <div style={{ marginTop: "8px", color: "#444", fontSize: "14px" }}>
+                      <span className="label" style={{ marginRight: "6px" }}>읽기</span>
+                      {s.reading}
+                    </div>
+                  )}
+                  {settings.showKoreanPronunciation && (
+                    <div style={{ marginTop: "4px", color: "#666", fontSize: "14px" }}>
+                      <span className="label" style={{ marginRight: "6px" }}>한글 발음 참고</span>
+                      {s.koreanPronunciation}
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ marginTop: "12px" }}>

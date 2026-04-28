@@ -59,6 +59,21 @@ const BASE_QUESTIONS: Question[] = [
 ];
 
 const CATEGORIES = ["전체", "여행", "업무", "친구", "일상"];
+const APP_SETTINGS_KEY = "japaneseAppSettings";
+
+type AppSettings = {
+  ttsRate: number;
+  repeatCount: number;
+  showKoreanPronunciation: boolean;
+  showReading: boolean;
+};
+
+const DEFAULT_SETTINGS: AppSettings = {
+  ttsRate: 1,
+  repeatCount: 1,
+  showKoreanPronunciation: true,
+  showReading: true,
+};
 
 function speakJapaneseFallback(text: string) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
@@ -89,6 +104,7 @@ async function speakJapanese(text: string) {
 
 export default function SpeakingPage() {
   const [allQuestions, setAllQuestions] = useState<Question[]>(BASE_QUESTIONS);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [activeCategory, setActiveCategory] = useState("전체");
   const [filtered, setFiltered] = useState<Question[]>(BASE_QUESTIONS);
   const [index, setIndex] = useState(0);
@@ -96,6 +112,21 @@ export default function SpeakingPage() {
   const [countdown, setCountdown] = useState(3);
   const [score, setScore] = useState({ correct: 0, wrong: 0 });
   const [answered, setAnswered] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(APP_SETTINGS_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<AppSettings>;
+      setSettings({
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+      });
+    } catch {
+      setSettings(DEFAULT_SETTINGS);
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -326,15 +357,15 @@ export default function SpeakingPage() {
             <p style={{ fontSize: "0.78rem", color: "#065f46", marginBottom: "0.25rem" }}>
               정답
             </p>
-            <p style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0, marginBottom: current.reading || current.koreanPronunciation ? "0.5rem" : 0 }}>
+            <p style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0, marginBottom: (settings.showReading && current.reading) || (settings.showKoreanPronunciation && current.koreanPronunciation) ? "0.5rem" : 0 }}>
               {current.japanese}
             </p>
-            {current.reading && (
-              <p style={{ fontSize: "0.95rem", color: "#065f46", margin: 0, marginBottom: current.koreanPronunciation ? "0.35rem" : 0 }}>
+            {settings.showReading && current.reading && (
+              <p style={{ fontSize: "0.95rem", color: "#065f46", margin: 0, marginBottom: settings.showKoreanPronunciation && current.koreanPronunciation ? "0.35rem" : 0 }}>
                 읽기: {current.reading}
               </p>
             )}
-            {current.koreanPronunciation && (
+            {settings.showKoreanPronunciation && current.koreanPronunciation && (
               <p style={{ fontSize: "0.9rem", color: "#047857", margin: 0 }}>
                 한글 발음 참고: {current.koreanPronunciation}
               </p>

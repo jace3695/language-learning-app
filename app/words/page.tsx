@@ -119,6 +119,21 @@ type WrongWord = {
   createdAt: string;
 };
 
+type AppSettings = {
+  ttsRate: number;
+  repeatCount: number;
+  showKoreanPronunciation: boolean;
+  showReading: boolean;
+};
+
+const APP_SETTINGS_KEY = "japaneseAppSettings";
+const DEFAULT_SETTINGS: AppSettings = {
+  ttsRate: 1,
+  repeatCount: 1,
+  showKoreanPronunciation: true,
+  showReading: true,
+};
+
 function getWordKey(w: Pick<Word, "word" | "meaning" | "category">) {
   return `${w.word}|${w.meaning}|${w.category}`;
 }
@@ -185,6 +200,7 @@ function getChoices(correct: Word, pool: Word[], quizType: QuizType): string[] {
 
 export default function WordsPage() {
   const [savedWords, setSavedWords] = useState<Word[]>([]);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [mode, setMode] = useState<PageMode>("study");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("전체");
 
@@ -194,6 +210,21 @@ export default function WordsPage() {
   const [choices, setChoices] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(APP_SETTINGS_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<AppSettings>;
+      setSettings({
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+      });
+    } catch {
+      setSettings(DEFAULT_SETTINGS);
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -364,12 +395,14 @@ export default function WordsPage() {
                   <span className="badge">{w.category}</span>
                 </div>
                 {w.reading && (
+                  settings.showReading &&
                   <div style={{ marginTop: "6px" }}>
                     <div className="label">읽기</div>
                     <div style={{ color: "#444", fontSize: "15px" }}>{w.reading}</div>
                   </div>
                 )}
                 {w.koreanPronunciation && (
+                  settings.showKoreanPronunciation &&
                   <div style={{ marginTop: "4px" }}>
                     <div className="label">한글 발음</div>
                     <div style={{ color: "#666", fontSize: "14px" }}>{w.koreanPronunciation}</div>
@@ -392,12 +425,14 @@ export default function WordsPage() {
                       </div>
                     )}
                     {w.exampleReading && (
+                      settings.showReading &&
                       <div style={{ marginTop: "4px" }}>
                         <div className="label">예문 읽기</div>
                         <div style={{ color: "#666", fontSize: "13px" }}>{w.exampleReading}</div>
                       </div>
                     )}
                     {w.exampleKoreanPronunciation && (
+                      settings.showKoreanPronunciation &&
                       <div style={{ marginTop: "4px" }}>
                         <div className="label">예문 한글 발음</div>
                         <div style={{ color: "#888", fontSize: "13px" }}>{w.exampleKoreanPronunciation}</div>
@@ -518,6 +553,7 @@ export default function WordsPage() {
                     {quizType === "kr-to-jp" ? currentWord.meaning : currentWord.word}
                   </div>
                   {quizType === "jp-to-kr" && currentWord.reading && (
+                    settings.showReading &&
                     <div
                       style={{
                         textAlign: "center",
@@ -530,6 +566,7 @@ export default function WordsPage() {
                     </div>
                   )}
                   {quizType === "jp-to-kr" && currentWord.koreanPronunciation && (
+                    settings.showKoreanPronunciation &&
                     <div
                       style={{
                         textAlign: "center",
