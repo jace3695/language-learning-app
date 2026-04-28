@@ -450,6 +450,17 @@ export default function ProgressPage() {
     });
   }
 
+  function handleClearSection(key: SectionKey) {
+    const confirmMessages: Record<SectionKey, string> = {
+      wrongKana: "헷갈린 글자 오답을 모두 삭제할까요?",
+      wrongWords: "틀린 단어 오답을 모두 삭제할까요?",
+      wrongSentences: "틀린 문장 오답을 모두 삭제할까요?",
+    };
+
+    if (!window.confirm(confirmMessages[key])) return;
+    clearSection(key);
+  }
+
   function removeWrongKanaItem(target: AnyItem) {
     if (!isObjectItem(target)) return;
     const useCreatedAt = typeof target.createdAt === "string";
@@ -1057,7 +1068,7 @@ export default function ProgressPage() {
                 </Link>
                 {items.length > 0 && (
                   <button
-                    onClick={() => clearSection(key)}
+                    onClick={() => handleClearSection(key)}
                     style={{
                       fontSize: "0.8rem",
                       padding: "0.25rem 0.6rem",
