@@ -7,6 +7,7 @@ import { WORDS, type WordItem as Word } from "@/data/words";
 const STORAGE_KEY = "savedWords";
 const WRONG_WORDS_KEY = "wrongWords";
 type CategoryFilter = "전체" | "여행" | "업무" | "일상" | "친구";
+type LevelFilter = "all" | "beginner" | "basic" | "practical";
 type QuizType = "jp-to-kr" | "kr-to-jp" | "jp-to-kor-pron";
 type PageMode = "study" | "quiz";
 
@@ -36,6 +37,10 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 function getWordKey(w: Pick<Word, "word" | "meaning" | "category">) {
   return `${w.word}|${w.meaning}|${w.category}`;
+}
+
+function getEffectiveLevel(word: Word): Exclude<LevelFilter, "all"> {
+  return word.level ?? "beginner";
 }
 
 function normalizeSavedWord(item: Partial<Word>): Word | null {
@@ -103,6 +108,7 @@ export default function WordsPage() {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [mode, setMode] = useState<PageMode>("study");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("전체");
+  const [levelFilter, setLevelFilter] = useState<LevelFilter>("all");
 
   // 퀴즈 상태
   const [quizType, setQuizType] = useState<QuizType>("jp-to-kr");
@@ -161,10 +167,15 @@ export default function WordsPage() {
       ? WORDS
       : WORDS.filter((w) => w.category === categoryFilter);
 
+  const filteredWordsByLevel =
+    levelFilter === "all"
+      ? filteredWords
+      : filteredWords.filter((w) => getEffectiveLevel(w) === levelFilter);
+
   const quizPool =
     quizType === "jp-to-kor-pron"
-      ? filteredWords.filter((w) => Boolean(w.koreanPronunciation))
-      : filteredWords;
+      ? filteredWordsByLevel.filter((w) => Boolean(w.koreanPronunciation))
+      : filteredWordsByLevel;
 
   const generateQuiz = useCallback(
     (pool: Word[], type: QuizType) => {
@@ -182,7 +193,7 @@ export default function WordsPage() {
       generateQuiz(quizPool, quizType);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, categoryFilter, quizType]);
+  }, [mode, categoryFilter, levelFilter, quizType]);
 
   const handleAnswer = (choice: string) => {
     if (selected !== null || !currentWord) return;
@@ -216,6 +227,12 @@ export default function WordsPage() {
     : "";
 
   const CATEGORIES: CategoryFilter[] = ["전체", "여행", "업무", "일상", "친구"];
+  const LEVELS: Array<{ label: string; value: LevelFilter }> = [
+    { label: "전체", value: "all" },
+    { label: "기초", value: "beginner" },
+    { label: "기본", value: "basic" },
+    { label: "실전", value: "practical" },
+  ];
 
   return (
     <section>
@@ -283,10 +300,33 @@ export default function WordsPage() {
         ))}
       </div>
 
+      {/* 난이도 필터 */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
+        {LEVELS.map((level) => (
+          <button
+            key={level.value}
+            className="btn"
+            onClick={() => {
+              setLevelFilter(level.value);
+              if (mode === "quiz") setScore({ correct: 0, total: 0 });
+            }}
+            style={{
+              background: levelFilter === level.value ? "#555" : "transparent",
+              color: levelFilter === level.value ? "#fff" : "#555",
+              border: "1.5px solid #ccc",
+              fontSize: "13px",
+              padding: "6px 14px",
+            }}
+          >
+            {level.label}
+          </button>
+        ))}
+      </div>
+
       {/* ===== 학습 모드 ===== */}
       {mode === "study" && (
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {filteredWords.map((w) => {
+          {filteredWordsByLevel.map((w) => {
             const saved = isSaved(w);
             return (
               <li key={getWordKey(w)} className="card" style={{ marginBottom: "14px" }}>

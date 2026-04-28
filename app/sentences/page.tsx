@@ -8,6 +8,7 @@ const STORAGE_KEY = "savedSentences";
 const WRONG_SENTENCES_KEY = "wrongSentences";
 
 type Category = "전체" | "여행" | "업무" | "친구" | "일상";
+type LevelFilter = "all" | "beginner" | "basic" | "practical";
 type Mode = "학습" | "퀴즈";
 type QuizType = "jp-to-kr" | "kr-to-jp";
 
@@ -115,11 +116,16 @@ function generateQuiz(pool: Sentence[]): QuizState {
   };
 }
 
+function getEffectiveLevel(sentence: Sentence): Exclude<LevelFilter, "all"> {
+  return sentence.level ?? "beginner";
+}
+
 export default function SentencesPage() {
   const [savedSentences, setSavedSentences] = useState<Sentence[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [mode, setMode] = useState<Mode>("학습");
   const [category, setCategory] = useState<Category>("전체");
+  const [levelFilter, setLevelFilter] = useState<LevelFilter>("all");
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
@@ -153,14 +159,20 @@ export default function SentencesPage() {
     (s) => category === "전체" || s.category === category
   );
 
+  const filteredSentencesByLevel = filteredSentences.filter(
+    (s) => levelFilter === "all" || getEffectiveLevel(s) === levelFilter
+  );
+
   const startQuiz = useCallback(() => {
     const pool = SENTENCES.filter(
-      (s) => category === "전체" || s.category === category
+      (s) =>
+        (category === "전체" || s.category === category) &&
+        (levelFilter === "all" || getEffectiveLevel(s) === levelFilter)
     );
     if (pool.length < 4) return;
     setQuiz(generateQuiz(pool));
     setScore({ correct: 0, total: 0 });
-  }, [category]);
+  }, [category, levelFilter]);
 
   useEffect(() => {
     if (mode === "퀴즈") {
@@ -236,13 +248,21 @@ export default function SentencesPage() {
 
   const handleNextQuiz = () => {
     const pool = SENTENCES.filter(
-      (s) => category === "전체" || s.category === category
+      (s) =>
+        (category === "전체" || s.category === category) &&
+        (levelFilter === "all" || getEffectiveLevel(s) === levelFilter)
     );
     if (pool.length < 4) return;
     setQuiz(generateQuiz(pool));
   };
 
   const CATEGORIES: Category[] = ["전체", "여행", "업무", "친구", "일상"];
+  const LEVELS: Array<{ label: string; value: LevelFilter }> = [
+    { label: "전체", value: "all" },
+    { label: "기초", value: "beginner" },
+    { label: "기본", value: "basic" },
+    { label: "실전", value: "practical" },
+  ];
 
   return (
     <section>
@@ -292,10 +312,30 @@ export default function SentencesPage() {
         ))}
       </div>
 
+      {/* 난이도 필터 */}
+      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "20px" }}>
+        {LEVELS.map((level) => (
+          <button
+            key={level.value}
+            onClick={() => setLevelFilter(level.value)}
+            className="btn"
+            style={{
+              fontSize: "13px",
+              padding: "4px 12px",
+              fontWeight: levelFilter === level.value ? 700 : 400,
+              background: levelFilter === level.value ? "#444" : undefined,
+              color: levelFilter === level.value ? "#fff" : undefined,
+            }}
+          >
+            {level.label}
+          </button>
+        ))}
+      </div>
+
       {/* 학습 모드 */}
       {mode === "학습" && (
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {filteredSentences.map((s) => {
+          {filteredSentencesByLevel.map((s) => {
             const saved = isSaved(s);
             return (
               <li key={s.japanese} className="card" style={{ marginBottom: "14px" }}>
@@ -347,7 +387,7 @@ export default function SentencesPage() {
               </li>
             );
           })}
-          {filteredSentences.length === 0 && (
+          {filteredSentencesByLevel.length === 0 && (
             <li style={{ color: "#888", textAlign: "center", padding: "32px 0" }}>
               해당 카테고리의 문장이 없습니다.
             </li>
