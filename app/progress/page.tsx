@@ -17,20 +17,26 @@ type AnyItem = string | Record<string, any>;
 interface KanaQuizItem {
   char: string;
   romaji: string;
-  originalIndex: number;
+  type?: string;
+  mode?: string;
+  createdAt?: string;
 }
 
 interface WordQuizItem {
   word: string;
   meaning: string;
-  originalIndex: number;
+  category?: string;
+  quizType?: string;
+  createdAt?: string;
   mode: "wordToMeaning" | "meaningToWord";
 }
 
 interface SentenceQuizItem {
   japanese: string;
   meaning: string;
-  originalIndex: number;
+  category?: string;
+  quizType?: string;
+  createdAt?: string;
   mode: "japaneseToMeaning" | "meaningToJapanese";
 }
 
@@ -204,11 +210,17 @@ function renderWordOrSentenceItem(item: AnyItem, i: number): React.ReactNode {
 
 function getKanaQuizItems(items: AnyItem[]): KanaQuizItem[] {
   const result: KanaQuizItem[] = [];
-  items.forEach((item, i) => {
+  items.forEach((item) => {
     if (typeof item === "object" && item !== null) {
       const obj = item as Record<string, unknown>;
       if (typeof obj.char === "string" && obj.char && typeof obj.romaji === "string" && obj.romaji) {
-        result.push({ char: obj.char, romaji: obj.romaji, originalIndex: i });
+        result.push({
+          char: obj.char,
+          romaji: obj.romaji,
+          type: typeof obj.type === "string" ? obj.type : undefined,
+          mode: typeof obj.mode === "string" ? obj.mode : undefined,
+          createdAt: typeof obj.createdAt === "string" ? obj.createdAt : undefined,
+        });
       }
     }
   });
@@ -217,12 +229,19 @@ function getKanaQuizItems(items: AnyItem[]): KanaQuizItem[] {
 
 function getWordQuizItems(items: AnyItem[]): WordQuizItem[] {
   const result: WordQuizItem[] = [];
-  items.forEach((item, i) => {
+  items.forEach((item) => {
     if (typeof item === "object" && item !== null) {
       const obj = item as Record<string, unknown>;
       if (typeof obj.word === "string" && obj.word && typeof obj.meaning === "string" && obj.meaning) {
         const mode: WordQuizItem["mode"] = Math.random() < 0.5 ? "wordToMeaning" : "meaningToWord";
-        result.push({ word: obj.word, meaning: obj.meaning, originalIndex: i, mode });
+        result.push({
+          word: obj.word,
+          meaning: obj.meaning,
+          category: typeof obj.category === "string" ? obj.category : undefined,
+          quizType: typeof obj.quizType === "string" ? obj.quizType : undefined,
+          createdAt: typeof obj.createdAt === "string" ? obj.createdAt : undefined,
+          mode,
+        });
       }
     }
   });
@@ -231,7 +250,7 @@ function getWordQuizItems(items: AnyItem[]): WordQuizItem[] {
 
 function getSentenceQuizItems(items: AnyItem[]): SentenceQuizItem[] {
   const result: SentenceQuizItem[] = [];
-  items.forEach((item, i) => {
+  items.forEach((item) => {
     if (typeof item === "object" && item !== null) {
       const obj = item as Record<string, unknown>;
       if (
@@ -239,11 +258,65 @@ function getSentenceQuizItems(items: AnyItem[]): SentenceQuizItem[] {
         typeof obj.meaning === "string" && obj.meaning
       ) {
         const mode: SentenceQuizItem["mode"] = Math.random() < 0.5 ? "japaneseToMeaning" : "meaningToJapanese";
-        result.push({ japanese: obj.japanese, meaning: obj.meaning, originalIndex: i, mode });
+        result.push({
+          japanese: obj.japanese,
+          meaning: obj.meaning,
+          category: typeof obj.category === "string" ? obj.category : undefined,
+          quizType: typeof obj.quizType === "string" ? obj.quizType : undefined,
+          createdAt: typeof obj.createdAt === "string" ? obj.createdAt : undefined,
+          mode,
+        });
       }
     }
   });
   return result;
+}
+
+function isObjectItem(item: AnyItem): item is Record<string, unknown> {
+  return typeof item === "object" && item !== null;
+}
+
+function matchKanaItem(target: KanaQuizItem, item: AnyItem): boolean {
+  if (!isObjectItem(item)) return false;
+  if (item.char !== target.char || item.romaji !== target.romaji || item.type !== target.type || item.mode !== target.mode) {
+    return false;
+  }
+  if (target.createdAt) {
+    return item.createdAt === target.createdAt;
+  }
+  return true;
+}
+
+function matchWordItem(target: WordQuizItem, item: AnyItem): boolean {
+  if (!isObjectItem(item)) return false;
+  if (
+    item.word !== target.word ||
+    item.meaning !== target.meaning ||
+    item.category !== target.category ||
+    item.quizType !== target.quizType
+  ) {
+    return false;
+  }
+  if (target.createdAt) {
+    return item.createdAt === target.createdAt;
+  }
+  return true;
+}
+
+function matchSentenceItem(target: SentenceQuizItem, item: AnyItem): boolean {
+  if (!isObjectItem(item)) return false;
+  if (
+    item.japanese !== target.japanese ||
+    item.meaning !== target.meaning ||
+    item.category !== target.category ||
+    item.quizType !== target.quizType
+  ) {
+    return false;
+  }
+  if (target.createdAt) {
+    return item.createdAt === target.createdAt;
+  }
+  return true;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -398,7 +471,14 @@ export default function ProgressPage() {
 
     if (correct) {
       setData((prev) => {
-        const updated = prev.wrongKana.filter((_, i) => i !== current.originalIndex);
+        let removed = false;
+        const updated = prev.wrongKana.filter((item) => {
+          if (!removed && matchKanaItem(current, item)) {
+            removed = true;
+            return false;
+          }
+          return true;
+        });
         saveToStorage("wrongKana", updated);
         return { ...prev, wrongKana: updated };
       });
@@ -437,7 +517,14 @@ export default function ProgressPage() {
 
     if (correct) {
       setData((prev) => {
-        const updated = prev.wrongWords.filter((_, i) => i !== current.originalIndex);
+        let removed = false;
+        const updated = prev.wrongWords.filter((item) => {
+          if (!removed && matchWordItem(current, item)) {
+            removed = true;
+            return false;
+          }
+          return true;
+        });
         saveToStorage("wrongWords", updated);
         return { ...prev, wrongWords: updated };
       });
@@ -481,7 +568,14 @@ export default function ProgressPage() {
 
     if (correct) {
       setData((prev) => {
-        const updated = prev.wrongSentences.filter((_, i) => i !== current.originalIndex);
+        let removed = false;
+        const updated = prev.wrongSentences.filter((item) => {
+          if (!removed && matchSentenceItem(current, item)) {
+            removed = true;
+            return false;
+          }
+          return true;
+        });
         saveToStorage("wrongSentences", updated);
         return { ...prev, wrongSentences: updated };
       });
