@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 type JapaneseAppSettings = {
   ttsRate: number;
@@ -51,17 +51,25 @@ function parseSettings(raw: string | null): JapaneseAppSettings {
 
     const parsedObj = parsed as Partial<JapaneseAppSettings>;
 
+    const mergedSettings: JapaneseAppSettings = {
+      ...DEFAULT_SETTINGS,
+      ...parsedObj,
+    };
+
     return {
-      ttsRate: isValidTtsRate(parsedObj.ttsRate) ? parsedObj.ttsRate : DEFAULT_SETTINGS.ttsRate,
-      repeatCount: isValidRepeatCount(parsedObj.repeatCount)
-        ? parsedObj.repeatCount
+      ...mergedSettings,
+      ttsRate: isValidTtsRate(mergedSettings.ttsRate) ? mergedSettings.ttsRate : DEFAULT_SETTINGS.ttsRate,
+      repeatCount: isValidRepeatCount(mergedSettings.repeatCount)
+        ? mergedSettings.repeatCount
         : DEFAULT_SETTINGS.repeatCount,
       showKoreanPronunciation:
-        typeof parsedObj.showKoreanPronunciation === "boolean"
-          ? parsedObj.showKoreanPronunciation
+        typeof mergedSettings.showKoreanPronunciation === "boolean"
+          ? mergedSettings.showKoreanPronunciation
           : DEFAULT_SETTINGS.showKoreanPronunciation,
       showReading:
-        typeof parsedObj.showReading === "boolean" ? parsedObj.showReading : DEFAULT_SETTINGS.showReading,
+        typeof mergedSettings.showReading === "boolean"
+          ? mergedSettings.showReading
+          : DEFAULT_SETTINGS.showReading,
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -70,7 +78,7 @@ function parseSettings(raw: string | null): JapaneseAppSettings {
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<JapaneseAppSettings>(DEFAULT_SETTINGS);
-  const hasLoadedFromStorageRef = useRef(false);
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -78,15 +86,15 @@ export default function SettingsPage() {
     const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
     const nextSettings = parseSettings(raw);
     setSettings(nextSettings);
-    hasLoadedFromStorageRef.current = true;
+    setIsSettingsLoaded(true);
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!hasLoadedFromStorageRef.current) return;
+    if (!isSettingsLoaded) return;
 
     window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-  }, [settings]);
+  }, [settings, isSettingsLoaded]);
 
   const handleResetSettings = () => {
     if (typeof window === "undefined") return;
