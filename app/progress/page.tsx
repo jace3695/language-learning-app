@@ -939,9 +939,8 @@ export default function ProgressPage() {
             </div>
 
             <div
+              className="grid grid-cols-1 sm:grid-cols-2"
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
                 gap: "0.5rem",
                 marginBottom: "0.75rem",
               }}
@@ -979,7 +978,8 @@ export default function ProgressPage() {
                       cursor: sentenceSelected !== null ? "default" : "pointer",
                       fontWeight: opt === correctVal && sentenceSelected !== null ? "bold" : "normal",
                       transition: "background 0.15s",
-                      wordBreak: "keep-all",
+                      wordBreak: "break-word",
+                      whiteSpace: "normal",
                       lineHeight: 1.4,
                       textAlign: "left",
                     }}

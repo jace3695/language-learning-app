@@ -448,7 +448,7 @@ export default function WordsPage() {
                     {score.correct} / {score.total}
                   </strong>
                 </div>
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end" }}>
                   <button
                     className="btn"
                     onClick={() => {
