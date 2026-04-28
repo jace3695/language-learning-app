@@ -152,18 +152,24 @@ const DEFAULT_SETTINGS: AppSettings = {
   showReading: true,
 };
 
-function speakJapaneseFallback(text: string) {
+async function speakJapaneseFallback(text: string, settings: AppSettings) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "ja-JP";
-  utter.rate = 0.9;
-  setTimeout(() => {
-    window.speechSynthesis.speak(utter);
-  }, 50);
+  for (let i = 0; i < settings.repeatCount; i += 1) {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "ja-JP";
+    utter.rate = settings.ttsRate;
+    await new Promise<void>((resolve) => {
+      utter.onend = () => resolve();
+      utter.onerror = () => resolve();
+      setTimeout(() => {
+        window.speechSynthesis.speak(utter);
+      }, 50);
+    });
+  }
 }
 
-async function speakJapanese(text: string) {
+async function speakJapanese(text: string, settings: AppSettings) {
   try {
     const res = await fetch("/api/tts", {
       method: "POST",
@@ -174,11 +180,17 @@ async function speakJapanese(text: string) {
     const { audioContent } = await res.json();
     if (!audioContent) throw new Error("No audioContent");
 
-    const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
-    audio.onerror = () => speakJapaneseFallback(text);
-    await audio.play();
+    for (let i = 0; i < settings.repeatCount; i += 1) {
+      const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+      audio.playbackRate = settings.ttsRate;
+      await new Promise<void>((resolve, reject) => {
+        audio.onended = () => resolve();
+        audio.onerror = () => reject(new Error("Audio playback failed"));
+        audio.play().catch(reject);
+      });
+    }
   } catch {
-    speakJapaneseFallback(text);
+    await speakJapaneseFallback(text, settings);
   }
 }
 
@@ -436,7 +448,7 @@ export default function SentencesPage() {
 
                 <div className="card-actions">
                   <button
-                    onClick={() => speakJapanese(s.japanese)}
+                    onClick={() => speakJapanese(s.japanese, settings)}
                     className="btn"
                     type="button"
                   >
@@ -517,7 +529,7 @@ export default function SentencesPage() {
                 <div style={{ marginBottom: "16px" }}>
                   <button
                     className="btn"
-                    onClick={() => speakJapanese(quiz.question.japanese)}
+                    onClick={() => speakJapanese(quiz.question.japanese, settings)}
                     type="button"
                   >
                     듣기
