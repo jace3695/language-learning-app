@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Situation = "카페" | "여행" | "일상" | "업무" | "친구";
 
@@ -22,13 +22,44 @@ type ChatMessage =
     };
 
 const SITUATIONS: Situation[] = ["카페", "여행", "일상", "업무", "친구"];
+const APP_SETTINGS_KEY = "japaneseAppSettings";
+
+type AppSettings = {
+  ttsRate: number;
+  repeatCount: number;
+  showKoreanPronunciation: boolean;
+  showReading: boolean;
+};
+
+const DEFAULT_SETTINGS: AppSettings = {
+  ttsRate: 1,
+  repeatCount: 1,
+  showKoreanPronunciation: true,
+  showReading: true,
+};
 
 export default function ConversationPage() {
   const [situation, setSituation] = useState<Situation>("일상");
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(APP_SETTINGS_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<AppSettings>;
+      setSettings({
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+      });
+    } catch {
+      setSettings(DEFAULT_SETTINGS);
+    }
+  }, []);
 
   const handleSend = async () => {
     const text = input.trim();
@@ -290,7 +321,7 @@ export default function ConversationPage() {
                     </div>
 
                     {/* 2) 읽기 */}
-                    {m.replyReading && (
+                    {settings.showReading && m.replyReading && (
                       <div style={sectionDividerStyle}>
                         <div style={sectionLabelStyle}>읽기</div>
                         <div style={readingTextStyle}>{m.replyReading}</div>
@@ -298,7 +329,7 @@ export default function ConversationPage() {
                     )}
 
                     {/* 3) 한글 발음 참고 */}
-                    {m.replyKoreanPronunciation && (
+                    {settings.showKoreanPronunciation && m.replyKoreanPronunciation && (
                       <div style={sectionDividerStyle}>
                         <div style={sectionLabelStyle}>한글 발음 참고</div>
                         <div style={readingTextStyle}>
@@ -327,7 +358,7 @@ export default function ConversationPage() {
                     )}
 
                     {/* 5) 교정 읽기 */}
-                    {m.correctionReading && (
+                    {settings.showReading && m.correctionReading && (
                       <div style={sectionDividerStyle}>
                         <div style={sectionLabelStyle}>교정 읽기</div>
                         <div style={readingTextStyle}>{m.correctionReading}</div>
@@ -335,7 +366,7 @@ export default function ConversationPage() {
                     )}
 
                     {/* 6) 교정 한글 발음 참고 */}
-                    {m.correctionKoreanPronunciation && (
+                    {settings.showKoreanPronunciation && m.correctionKoreanPronunciation && (
                       <div style={sectionDividerStyle}>
                         <div style={sectionLabelStyle}>교정 한글 발음 참고</div>
                         <div style={readingTextStyle}>
