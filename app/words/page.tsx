@@ -114,17 +114,40 @@ type WrongWord = {
   word: string;
   meaning: string;
   example: string;
-  category: string;
+  category: Word["category"];
   quizType: QuizType;
   createdAt: string;
 };
+
+function getWordKey(w: Pick<Word, "word" | "meaning" | "category">) {
+  return `${w.word}|${w.meaning}|${w.category}`;
+}
+
+function normalizeSavedWord(item: Partial<Word>): Word | null {
+  if (!item.word || !item.meaning || !item.example || !item.category) return null;
+
+  return {
+    word: item.word,
+    reading: item.reading,
+    koreanPronunciation: item.koreanPronunciation,
+    meaning: item.meaning,
+    example: item.example,
+    exampleReading: item.exampleReading,
+    exampleKoreanPronunciation: item.exampleKoreanPronunciation,
+    exampleMeaning: item.exampleMeaning,
+    category: item.category as Word["category"],
+  };
+}
 
 function saveWrongWord(w: Word, quizType: QuizType) {
   try {
     const raw = localStorage.getItem(WRONG_WORDS_KEY);
     const prev: WrongWord[] = raw ? JSON.parse(raw) : [];
+    const currentWordKey = getWordKey(w);
     const alreadyExists = prev.some(
-      (item) => item.word === w.word && item.quizType === quizType
+      (item) =>
+        getWordKey(item) === currentWordKey &&
+        item.quizType === quizType
     );
     if (alreadyExists) return;
     const next: WrongWord[] = [
@@ -152,7 +175,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function getChoices(correct: Word, pool: Word[], quizType: QuizType): string[] {
-  const others = pool.filter((w) => w.word !== correct.word);
+  const others = pool.filter((w) => getWordKey(w) !== getWordKey(correct));
   const shuffled = shuffle(others).slice(0, 3);
   const all = shuffle([...shuffled, correct]);
   if (quizType === "jp-to-kr") return all.map((w) => w.meaning);
@@ -175,15 +198,29 @@ export default function WordsPage() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setSavedWords(JSON.parse(raw) as Word[]);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<Word>[];
+      if (!Array.isArray(parsed)) return;
+
+      const next = parsed
+        .map((item) => normalizeSavedWord(item))
+        .filter((item): item is Word => item !== null);
+
+      setSavedWords(next);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {}
   }, []);
 
-  const isSaved = (w: Word) => savedWords.some((s) => s.word === w.word);
+  const isSaved = (w: Word) =>
+    savedWords.some((s) => getWordKey(s) === getWordKey(w));
 
-  const handleSave = (w: Word) => {
-    if (isSaved(w)) return;
-    const next = [...savedWords, w];
+  const handleSaveToggle = (w: Word) => {
+    const targetKey = getWordKey(w);
+    const next = isSaved(w)
+      ? savedWords.filter((saved) => getWordKey(saved) !== targetKey)
+      : [...savedWords, w];
+
     setSavedWords(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   };
@@ -321,7 +358,7 @@ export default function WordsPage() {
           {filteredWords.map((w) => {
             const saved = isSaved(w);
             return (
-              <li key={w.word} className="card" style={{ marginBottom: "14px" }}>
+              <li key={getWordKey(w)} className="card" style={{ marginBottom: "14px" }}>
                 <div className="card-top">
                   <div className="jp-text">{w.word}</div>
                   <span className="badge">{w.category}</span>
@@ -370,11 +407,10 @@ export default function WordsPage() {
                 )}
                 <div className="card-actions">
                   <button
-                    onClick={() => handleSave(w)}
-                    disabled={saved}
+                    onClick={() => handleSaveToggle(w)}
                     className="btn"
                   >
-                    {saved ? "저장됨" : "저장"}
+                    {saved ? "저장 취소" : "저장"}
                   </button>
                 </div>
               </li>
@@ -530,7 +566,7 @@ export default function WordsPage() {
                       marginTop: "16px",
                     }}
                   >
-                    {choices.map((choice) => {
+                    {choices.map((choice, idx) => {
                       const isCorrect = choice === correctAnswer;
                       const isSelected = choice === selected;
                       let bg = "transparent";
@@ -551,7 +587,7 @@ export default function WordsPage() {
 
                       return (
                         <button
-                          key={choice}
+                          key={`${choice}-${idx}`}
                           onClick={() => handleAnswer(choice)}
                           style={{
                             background: bg,
