@@ -90,6 +90,21 @@ type HandwritingFeedback = {
   exampleTip: string;
 };
 
+type AppSettings = {
+  ttsRate: number;
+  repeatCount: number;
+  showKoreanPronunciation: boolean;
+  showReading: boolean;
+};
+
+const APP_SETTINGS_KEY = "japaneseAppSettings";
+const DEFAULT_SETTINGS: AppSettings = {
+  ttsRate: 1,
+  repeatCount: 1,
+  showKoreanPronunciation: true,
+  showReading: true,
+};
+
 const hiraganaDetailedStrokeOrderData: Record<string, StrokeOrderInfo> = {
   あ: {
     totalStrokes: 3,
@@ -914,14 +929,19 @@ const katakanaStrokeOrderData: Record<string, StrokeOrderInfo> = Object.fromEntr
     .filter((entry): entry is [string, StrokeOrderInfo] => entry !== null)
 );
 
-function speakKanaFallback(char: string, onStart?: () => void, onEnd?: () => void) {
+async function speakKanaFallback(
+  char: string,
+  settings: AppSettings,
+  onStart?: () => void,
+  onEnd?: () => void
+) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
 
   const makeUtter = (text: string) => {
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = "ja-JP";
-    utter.rate = 0.75;
+    utter.rate = settings.ttsRate;
     utter.pitch = 1;
     utter.volume = 1;
     const voices = window.speechSynthesis.getVoices();
@@ -930,20 +950,26 @@ function speakKanaFallback(char: string, onStart?: () => void, onEnd?: () => voi
     return utter;
   };
 
-  const utter1 = makeUtter(char);
-  const utter2 = makeUtter(char);
+  for (let i = 0; i < settings.repeatCount; i += 1) {
+    const utter = makeUtter(char);
+    if (i === 0) {
+      utter.onstart = () => { if (onStart) onStart(); };
+    }
+    await new Promise<void>((resolve) => {
+      utter.onend = () => resolve();
+      utter.onerror = () => resolve();
+      setTimeout(() => {
+        window.speechSynthesis.speak(utter);
+      }, 80);
+    });
+  }
 
-  utter1.onstart = () => { if (onStart) onStart(); };
-  utter2.onend = () => { if (onEnd) onEnd(); };
-
-  setTimeout(() => {
-    window.speechSynthesis.speak(utter1);
-    window.speechSynthesis.speak(utter2);
-  }, 80);
+  if (onEnd) onEnd();
 }
 
 async function speakKana(
   char: string,
+  settings: AppSettings,
   onStart?: () => void,
   onEnd?: () => void
 ) {
@@ -958,15 +984,18 @@ async function speakKana(
     const { audioContent } = await res.json();
     if (!audioContent) throw new Error("No audioContent");
 
-    const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
-    audio.onended = () => { if (onEnd) onEnd(); };
-    audio.onerror = () => {
-      if (onEnd) onEnd();
-      speakKanaFallback(char, undefined, undefined);
-    };
-    await audio.play();
+    for (let i = 0; i < settings.repeatCount; i += 1) {
+      const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+      audio.playbackRate = settings.ttsRate;
+      await new Promise<void>((resolve, reject) => {
+        audio.onended = () => resolve();
+        audio.onerror = () => reject(new Error("Audio playback failed"));
+        audio.play().catch(reject);
+      });
+    }
+    if (onEnd) onEnd();
   } catch {
-    speakKanaFallback(char, onStart, onEnd);
+    await speakKanaFallback(char, settings, onStart, onEnd);
   }
 }
 
@@ -1053,7 +1082,23 @@ export default function KanaPage() {
 
   // 발음 재생 중 표시
   const [playingChar, setPlayingChar] = useState<string | null>(null);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const playingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(APP_SETTINGS_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<AppSettings>;
+      setSettings({
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+      });
+    } catch {
+      setSettings(DEFAULT_SETTINGS);
+    }
+  }, []);
 
   // 쓰기 연습 모드 상태
   const [writingSubMode, setWritingSubMode] = useState<"trace" | "quiz">("trace");
@@ -1077,6 +1122,7 @@ export default function KanaPage() {
     setPlayingChar(char);
     speakKana(
       char,
+      settings,
       () => { setPlayingChar(char); },
       () => {
         playingTimerRef.current = setTimeout(() => setPlayingChar(null), 300);
@@ -1084,7 +1130,7 @@ export default function KanaPage() {
     );
     // 최대 6초 후 강제 초기화 (onEnd 미발동 대비)
     playingTimerRef.current = setTimeout(() => setPlayingChar(null), 6000);
-  }, []);
+  }, [settings]);
 
   const loadNextQuestion = useCallback(
     (currentData: KanaItem[]) => {

@@ -75,15 +75,22 @@ const DEFAULT_SETTINGS: AppSettings = {
   showReading: true,
 };
 
-function speakJapaneseFallback(text: string) {
+async function speakJapaneseFallback(text: string, settings: AppSettings) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "ja-JP";
-  window.speechSynthesis.speak(utter);
+  for (let i = 0; i < settings.repeatCount; i += 1) {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "ja-JP";
+    utter.rate = settings.ttsRate;
+    await new Promise<void>((resolve) => {
+      utter.onend = () => resolve();
+      utter.onerror = () => resolve();
+      window.speechSynthesis.speak(utter);
+    });
+  }
 }
 
-async function speakJapanese(text: string) {
+async function speakJapanese(text: string, settings: AppSettings) {
   try {
     const res = await fetch("/api/tts", {
       method: "POST",
@@ -94,11 +101,17 @@ async function speakJapanese(text: string) {
     const { audioContent } = await res.json();
     if (!audioContent) throw new Error("No audioContent");
 
-    const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
-    audio.onerror = () => speakJapaneseFallback(text);
-    await audio.play();
+    for (let i = 0; i < settings.repeatCount; i += 1) {
+      const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+      audio.playbackRate = settings.ttsRate;
+      await new Promise<void>((resolve, reject) => {
+        audio.onended = () => resolve();
+        audio.onerror = () => reject(new Error("Audio playback failed"));
+        audio.play().catch(reject);
+      });
+    }
   } catch {
-    speakJapaneseFallback(text);
+    await speakJapaneseFallback(text, settings);
   }
 }
 
@@ -373,7 +386,7 @@ export default function SpeakingPage() {
           </div>
 
           <button
-            onClick={() => speakJapanese(current.japanese)}
+            onClick={() => speakJapanese(current.japanese, settings)}
             style={{ ...btnStyle("#0891b2", "#fff"), marginBottom: "1rem" }}
           >
             🔊 정답 듣기

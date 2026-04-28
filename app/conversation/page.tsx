@@ -38,6 +38,46 @@ const DEFAULT_SETTINGS: AppSettings = {
   showReading: true,
 };
 
+async function speakJapaneseFallback(text: string, settings: AppSettings) {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  for (let i = 0; i < settings.repeatCount; i += 1) {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "ja-JP";
+    utter.rate = settings.ttsRate;
+    await new Promise<void>((resolve) => {
+      utter.onend = () => resolve();
+      utter.onerror = () => resolve();
+      window.speechSynthesis.speak(utter);
+    });
+  }
+}
+
+async function speakJapanese(text: string, settings: AppSettings) {
+  try {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!res.ok) throw new Error("TTS API error");
+    const { audioContent } = await res.json();
+    if (!audioContent) throw new Error("No audioContent");
+
+    for (let i = 0; i < settings.repeatCount; i += 1) {
+      const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+      audio.playbackRate = settings.ttsRate;
+      await new Promise<void>((resolve, reject) => {
+        audio.onended = () => resolve();
+        audio.onerror = () => reject(new Error("Audio playback failed"));
+        audio.play().catch(reject);
+      });
+    }
+  } catch {
+    await speakJapaneseFallback(text, settings);
+  }
+}
+
 export default function ConversationPage() {
   const [situation, setSituation] = useState<Situation>("일상");
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
@@ -45,6 +85,7 @@ export default function ConversationPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [playingAudioKey, setPlayingAudioKey] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -138,6 +179,16 @@ export default function ConversationPage() {
 
   const isCorrectionDifferent = (original: string, corrected: string) =>
     corrected.trim() !== "" && corrected.trim() !== original.trim();
+
+  const handleSpeak = async (text: string, audioKey: string) => {
+    if (!text || playingAudioKey) return;
+    setPlayingAudioKey(audioKey);
+    try {
+      await speakJapanese(text, settings);
+    } finally {
+      setPlayingAudioKey(null);
+    }
+  };
 
   const sectionLabelStyle: React.CSSProperties = {
     fontSize: "11px",
@@ -308,6 +359,15 @@ export default function ConversationPage() {
                     {/* 1) AI 답변 */}
                     <div>
                       <div style={sectionLabelStyle}>답변</div>
+                      <button
+                        type="button"
+                        className="btn"
+                        onClick={() => handleSpeak(m.reply, `reply-${idx}`)}
+                        disabled={!m.reply || playingAudioKey !== null}
+                        style={{ marginBottom: "8px", fontSize: "12px", padding: "4px 8px" }}
+                      >
+                        {playingAudioKey === `reply-${idx}` ? "재생 중..." : "🔊 답변 듣기"}
+                      </button>
                       <div
                         style={{
                           fontSize: "16px",
@@ -344,6 +404,15 @@ export default function ConversationPage() {
                         <div style={sectionLabelStyle}>
                           교정 {corrected ? "(수정됨)" : "(자연스러움)"}
                         </div>
+                        <button
+                          type="button"
+                          className="btn"
+                          onClick={() => handleSpeak(m.correction, `correction-${idx}`)}
+                          disabled={!m.correction || playingAudioKey !== null}
+                          style={{ marginBottom: "8px", fontSize: "12px", padding: "4px 8px" }}
+                        >
+                          {playingAudioKey === `correction-${idx}` ? "재생 중..." : "🔊 교정 듣기"}
+                        </button>
                         <div
                           style={{
                             color: "#233223",
