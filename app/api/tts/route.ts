@@ -11,6 +11,13 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GOOGLE_TTS_API_KEY;
 
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "Google TTS API key is not configured" },
+        { status: 500 }
+      );
+    }
+
     const response = await fetch(
       `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
       {
