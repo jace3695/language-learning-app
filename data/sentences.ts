@@ -24,8 +24,8 @@ export const SENTENCES: SentenceItem[] = ([
   { level: "beginner", japanese: "これをください", koreanPronunciation: "코레오 쿠다사이", meaning: "이거 주세요", category: "여행", note: "가게나 식당에서 주문할 때" },
   { level: "beginner", japanese: "おすすめは何ですか？", rubySegments: [{ text: "おすすめは" }, { text: "何", reading: "なん" }, { text: "ですか？" }], koreanPronunciation: "오스스메와 난데스카?", meaning: "추천은 뭐예요?", category: "여행", note: "식당이나 가게에서 추천을 물을 때" },
   { level: "beginner", japanese: "お会計お願いします", rubySegments: [{ text: "お" }, { text: "会計", reading: "かいけい" }, { text: "お願いします" }], koreanPronunciation: "오카이케이 오네가이시마스", meaning: "계산 부탁합니다", category: "여행", note: "식당에서 계산을 요청할 때" },
-  { level: "basic", japanese: "カードは使えますか？", koreanPronunciation: "카아도와 츠카에마스카?", meaning: "카드 사용할 수 있나요?", category: "여행", note: "결제 가능 여부를 확인할 때" },
-  { level: "basic", japanese: "現金だけですか？", koreanPronunciation: "겐킨다케데스카?", meaning: "현금만 되나요?", category: "여행", note: "카드 결제가 안 되는지 확인할 때" },
+  { level: "basic", japanese: "カードは使えますか？", rubySegments: [{ text: "カードは" }, { text: "使", reading: "つか" }, { text: "えますか？" }], koreanPronunciation: "카아도와 츠카에마스카?", meaning: "카드 사용할 수 있나요?", category: "여행", note: "결제 가능 여부를 확인할 때" },
+  { level: "basic", japanese: "現金だけですか？", rubySegments: [{ text: "現金", reading: "げんきん" }, { text: "だけですか？" }], koreanPronunciation: "겐킨다케데스카?", meaning: "현금만 되나요?", category: "여행", note: "카드 결제가 안 되는지 확인할 때" },
   { level: "basic", japanese: "水をください", koreanPronunciation: "미즈오 쿠다사이", meaning: "물 주세요", category: "여행", note: "식당에서 물을 요청할 때" },
   { level: "practical", japanese: "トイレはどこですか？", koreanPronunciation: "토이레와 도코데스카?", meaning: "화장실은 어디예요?", category: "여행", note: "화장실 위치를 물을 때" },
   { level: "practical", japanese: "駅はどこですか？", reading: "えきはどこですか？", rubySegments: [{ text: "駅", reading: "えき" }, { text: "はどこですか？" }], koreanPronunciation: "에키와 도코데스카?", meaning: "역은 어디예요?", category: "여행", note: "역 위치를 물을 때" },
@@ -94,7 +94,7 @@ export const SENTENCES: SentenceItem[] = ([
   { japanese: "気分が悪いです", reading: "きぶんがわるいです", koreanPronunciation: "키분가 와루이데스", meaning: "몸 상태가 안 좋아요", category: "여행", note: "몸이 좋지 않을 때", description: "병원 방문 전 증상을 간단히 전달할 때" },
 
   // ===== 업무 =====
-  { level: "beginner", japanese: "ご確認お願いします", koreanPronunciation: "고카쿠닌 오네가이시마스", meaning: "확인 부탁드립니다", category: "업무", note: "메일이나 업무 대화에서 확인을 요청할 때" },
+  { level: "beginner", japanese: "ご確認お願いします", rubySegments: [{ text: "ご" }, { text: "確認", reading: "かくにん" }, { text: "お願いします" }], koreanPronunciation: "고카쿠닌 오네가이시마스", meaning: "확인 부탁드립니다", category: "업무", note: "메일이나 업무 대화에서 확인을 요청할 때" },
   { level: "beginner", japanese: "ご連絡ありがとうございます", koreanPronunciation: "고렌라쿠 아리가토오 고자이마스", meaning: "연락 감사합니다", category: "업무", note: "상대의 연락에 감사할 때" },
   { level: "beginner", japanese: "資料を送付いたします", koreanPronunciation: "시료오 소오후 이타시마스", meaning: "자료를 송부드립니다", category: "업무", note: "자료를 보낼 때" },
   { level: "basic", japanese: "納期はいつですか？", koreanPronunciation: "노오키와 이츠데스카?", meaning: "납기는 언제입니까?", category: "업무", note: "납기 일정을 확인할 때" },
