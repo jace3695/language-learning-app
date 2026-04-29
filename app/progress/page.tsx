@@ -3,6 +3,9 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
+import { WORDS } from "@/data/words";
+import { SENTENCES } from "@/data/sentences";
+
 type SectionKey = "wrongKana" | "wrongWords" | "wrongSentences";
 
 const SECTIONS: { key: SectionKey; label: string; href: string; linkLabel: string }[] = [
@@ -327,16 +330,22 @@ function generateKanaOptions(correct: string, allItems: KanaQuizItem[]): string[
   return shuffle([correct, ...wrongs]);
 }
 
-function generateWordOptions(correct: string, allItems: WordQuizItem[], field: "meaning" | "word"): string[] {
-  const others = allItems.map((x) => x[field]).filter((v) => v !== correct);
+function generateWordOptions(correct: string, allItems: WordQuizItem[], field: "meaning" | "word", basePool?: string[]): string[] {
+  const others = [
+    ...(basePool ?? []),
+    ...allItems.map((x) => x[field]),
+  ].filter((v) => v !== correct);
   const unique = Array.from(new Set(others));
   const shuffled = shuffle(unique);
   const wrongs = shuffled.slice(0, 3);
   return shuffle([correct, ...wrongs]);
 }
 
-function generateSentenceOptions(correct: string, allItems: SentenceQuizItem[], field: "meaning" | "japanese"): string[] {
-  const others = allItems.map((x) => x[field]).filter((v) => v !== correct);
+function generateSentenceOptions(correct: string, allItems: SentenceQuizItem[], field: "meaning" | "japanese", basePool?: string[]): string[] {
+  const others = [
+    ...(basePool ?? []),
+    ...allItems.map((x) => x[field]),
+  ].filter((v) => v !== correct);
   const unique = Array.from(new Set(others));
   const shuffled = shuffle(unique);
   const wrongs = shuffled.slice(0, 3);
@@ -349,6 +358,17 @@ export default function ProgressPage() {
     wrongWords: [],
     wrongSentences: [],
   });
+
+
+  const wordOptionPool = {
+    meaning: Array.from(new Set(WORDS.map((item) => item.meaning).filter(Boolean))),
+    word: Array.from(new Set(WORDS.map((item) => item.word).filter(Boolean))),
+  };
+
+  const sentenceOptionPool = {
+    meaning: Array.from(new Set(SENTENCES.map((item) => item.meaning).filter(Boolean))),
+    japanese: Array.from(new Set(SENTENCES.map((item) => item.japanese).filter(Boolean))),
+  };
 
   // Kana Quiz state
   const [quizItems, setQuizItems] = useState<KanaQuizItem[]>([]);
@@ -396,7 +416,7 @@ export default function ProgressPage() {
       const first = shuffled[0];
       const correctVal = first.mode === "wordToMeaning" ? first.meaning : first.word;
       const field: "meaning" | "word" = first.mode === "wordToMeaning" ? "meaning" : "word";
-      setWordOptions(generateWordOptions(correctVal, shuffled, field));
+      setWordOptions(generateWordOptions(correctVal, shuffled, field, wordOptionPool[field]));
     } else {
       setWordOptions([]);
     }
@@ -413,7 +433,7 @@ export default function ProgressPage() {
       const first = shuffled[0];
       const correctVal = first.mode === "japaneseToMeaning" ? first.meaning : first.japanese;
       const field: "meaning" | "japanese" = first.mode === "japaneseToMeaning" ? "meaning" : "japanese";
-      setSentenceOptions(generateSentenceOptions(correctVal, shuffled, field));
+      setSentenceOptions(generateSentenceOptions(correctVal, shuffled, field, sentenceOptionPool[field]));
     } else {
       setSentenceOptions([]);
     }
@@ -594,7 +614,7 @@ export default function ProgressPage() {
         if (item) {
           const field: "meaning" | "word" = item.mode === "wordToMeaning" ? "meaning" : "word";
           const correctVal = item.mode === "wordToMeaning" ? item.meaning : item.word;
-          setWordOptions(generateWordOptions(correctVal, prev, field));
+          setWordOptions(generateWordOptions(correctVal, prev, field, wordOptionPool[field]));
         }
       }
       return prev;
@@ -634,7 +654,7 @@ export default function ProgressPage() {
         if (item) {
           const field: "meaning" | "japanese" = item.mode === "japaneseToMeaning" ? "meaning" : "japanese";
           const correctVal = item.mode === "japaneseToMeaning" ? item.meaning : item.japanese;
-          setSentenceOptions(generateSentenceOptions(correctVal, prev, field));
+          setSentenceOptions(generateSentenceOptions(correctVal, prev, field, sentenceOptionPool[field]));
         }
       }
       return prev;
@@ -880,8 +900,8 @@ export default function ProgressPage() {
                     padding: "0.5rem 1.2rem",
                     fontSize: "0.9rem",
                     borderRadius: 6,
-                    border: "1px solid #6ee7b7",
-                    background: "#059669",
+                    border: wordIsCorrect ? "1px solid #34d399" : "1px solid #6ee7b7",
+                    background: wordIsCorrect ? "#16a34a" : "#059669",
                     color: "#fff",
                     cursor: "pointer",
                     fontWeight: 500,
@@ -1014,8 +1034,8 @@ export default function ProgressPage() {
                     padding: "0.5rem 1.2rem",
                     fontSize: "0.9rem",
                     borderRadius: 6,
-                    border: "1px solid #fbbf24",
-                    background: "#d97706",
+                    border: sentenceIsCorrect ? "1px solid #34d399" : "1px solid #fbbf24",
+                    background: sentenceIsCorrect ? "#16a34a" : "#d97706",
                     color: "#fff",
                     cursor: "pointer",
                     fontWeight: 500,
