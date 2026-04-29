@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 
 import { SENTENCES, type SentenceItem as Sentence } from "@/data/sentences";
+import FuriganaText from "@/components/FuriganaText";
 import type { RubySegment } from "@/data/sentences";
 
 const STORAGE_KEY = "savedSentences";
@@ -152,9 +153,7 @@ function JapaneseTextBlock({
   return (
     <div style={{ lineHeight: 1.5 }}>
       <div className="jp-text" style={{ whiteSpace: "normal", wordBreak: "break-word" }}>
-        {!showReading || !hasKanji || !rubySegments?.length ? japanese : rubySegments.map((segment, index) => (
-          segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over", rubyAlign: "center" }}>{segment.text}<rt style={{ fontSize: "0.58em", color: "#7b8c7b" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
-        ))}
+        <FuriganaText text={japanese} rubySegments={rubySegments} showReading={showReading} />
       </div>
       {showKoreanPronunciation && koreanPronunciation && (
         <div style={{ marginTop: "2px", color: "#7b867b", fontSize: "13px" }}>{koreanPronunciation}</div>

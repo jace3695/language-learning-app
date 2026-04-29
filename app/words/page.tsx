@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 
 import { WORDS, type WordItem as Word } from "@/data/words";
+import FuriganaText from "@/components/FuriganaText";
 import type { RubySegment } from "@/data/words";
 
 const STORAGE_KEY = "savedWords";
@@ -108,23 +109,6 @@ function getChoices(correct: Word, pool: Word[], quizType: QuizType): string[] {
   const all = shuffle([...shuffled, correct]);
   if (quizType === "jp-to-kr") return all.map((w) => w.meaning);
   return all.map((w) => w.word);
-}
-
-function RubyText({ text, segments, showReading }: { text: string; segments?: RubySegment[]; showReading: boolean }) {
-  const hasKanji = /[\u3400-\u9FFF]/.test(text);
-  if (!showReading || !hasKanji) return <>{text}</>;
-  if (!segments?.length) return <>{text}</>;
-  return (
-    <span style={{ whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.5 }}>
-      {segments.map((segment, index) =>
-        segment.reading ? (
-          <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over", rubyAlign: "center" }}>
-            {segment.text}<rt style={{ fontSize: "0.58em", color: "#7b8c7b" }}>{segment.reading}</rt>
-          </ruby>
-        ) : <span key={`${segment.text}-${index}`}>{segment.text}</span>
-      )}
-    </span>
-  );
 }
 
 export default function WordsPage() {
@@ -384,7 +368,7 @@ export default function WordsPage() {
             return (
               <li key={getWordKey(w)} className="card" style={{ marginBottom: "14px" }}>
                 <div className="card-top">
-                  <div className="jp-text"><RubyText text={w.word} segments={w.rubySegments} showReading={settings.showReading} /></div>
+                  <div className="jp-text"><FuriganaText text={w.word} rubySegments={w.rubySegments} showReading={settings.showReading} /></div>
                   <span className="badge">{w.category}</span>
                 </div>
                 {w.koreanPronunciation && (
@@ -402,7 +386,7 @@ export default function WordsPage() {
                   <>
                     <div style={{ marginTop: "10px" }}>
                       <div className="label">예문</div>
-                      <div style={{ color: "#555" }}><RubyText text={w.example} segments={w.exampleRubySegments} showReading={settings.showReading} /></div>
+                      <div style={{ color: "#555" }}><FuriganaText text={w.example} rubySegments={w.exampleRubySegments} showReading={settings.showReading} /></div>
                     </div>
                     {w.exampleMeaning && (
                       <div style={{ marginTop: "4px" }}>
@@ -500,7 +484,7 @@ export default function WordsPage() {
                       letterSpacing: "2px",
                     }}
                   >
-                    {quizType === "kr-to-jp" ? currentWord.meaning : <RubyText text={currentWord.word} segments={currentWord.rubySegments} showReading={settings.showReading} />}
+                    {quizType === "kr-to-jp" ? currentWord.meaning : <FuriganaText text={currentWord.word} rubySegments={currentWord.rubySegments} showReading={settings.showReading} />}
                   </div>
                   {quizType === "jp-to-kr" && currentWord.koreanPronunciation && (
                     showQuizKoreanPronunciation &&
@@ -575,7 +559,7 @@ export default function WordsPage() {
                         >
                           {quizType === "kr-to-jp" ? (
                             <>
-                              <div><RubyText text={choice} segments={quizPool.find((w) => w.word === choice)?.rubySegments} showReading={settings.showReading} /></div>
+                              <div><FuriganaText text={choice} rubySegments={quizPool.find((w) => w.word === choice)?.rubySegments} showReading={settings.showReading} /></div>
                               {(() => {
                                 const choiceWord = quizPool.find((w) => w.word === choice);
                                 return (
@@ -611,7 +595,7 @@ export default function WordsPage() {
                       {selected === correctAnswer ? "정답! 🎉" : `오답 — 정답: ${correctAnswer}`}
                       {selected !== correctAnswer && currentWord && quizType === "kr-to-jp" && (
                         <div style={{ marginTop: "8px", fontSize: "14px", color: "#444" }}>
-                          <RubyText text={currentWord.word} segments={currentWord.rubySegments} showReading={settings.showReading} />
+                          <FuriganaText text={currentWord.word} rubySegments={currentWord.rubySegments} showReading={settings.showReading} />
                           {showQuizKoreanPronunciation && currentWord.koreanPronunciation && (
                             <div style={{ fontSize: "12px", color: "#888" }}>{currentWord.koreanPronunciation}</div>
                           )}
