@@ -266,6 +266,9 @@ export default function WordsPage() {
     { label: "실전", value: "practical" },
   ];
 
+  const getReadingByWord = (word: string) =>
+    quizPool.find((item) => item.word === word)?.reading;
+
   return (
     <section>
       <div className="page-header">
@@ -366,12 +369,8 @@ export default function WordsPage() {
                   <div className="jp-text">{w.word}</div>
                   <span className="badge">{w.category}</span>
                 </div>
-                {w.reading && (
-                  settings.showReading &&
-                  <div style={{ marginTop: "6px" }}>
-                    <div className="label">읽기</div>
-                    <div style={{ color: "#444", fontSize: "15px" }}>{w.reading}</div>
-                  </div>
+                {settings.showReading && w.reading && (
+                  <div style={{ marginTop: "4px", color: "#5f6b5f", fontSize: "14px", lineHeight: 1.5 }}>{w.reading}</div>
                 )}
                 {w.koreanPronunciation && (
                   settings.showKoreanPronunciation &&
@@ -396,12 +395,8 @@ export default function WordsPage() {
                         <div style={{ color: "#666", fontSize: "13px" }}>{w.exampleMeaning}</div>
                       </div>
                     )}
-                    {w.exampleReading && (
-                      settings.showReading &&
-                      <div style={{ marginTop: "4px" }}>
-                        <div className="label">예문 읽기</div>
-                        <div style={{ color: "#666", fontSize: "13px" }}>{w.exampleReading}</div>
-                      </div>
+                    {settings.showReading && w.exampleReading && (
+                      <div style={{ marginTop: "4px", color: "#6b746b", fontSize: "13px", lineHeight: 1.5 }}>{w.exampleReading}</div>
                     )}
                     {w.exampleKoreanPronunciation && (
                       settings.showKoreanPronunciation &&

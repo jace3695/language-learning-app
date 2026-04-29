@@ -134,6 +134,32 @@ function getEffectiveLevel(sentence: Sentence): Exclude<LevelFilter, "all"> {
   return sentence.level ?? "beginner";
 }
 
+function JapaneseTextBlock({
+  japanese,
+  reading,
+  koreanPronunciation,
+  showReading,
+  showKoreanPronunciation,
+}: {
+  japanese: string;
+  reading?: string;
+  koreanPronunciation?: string;
+  showReading: boolean;
+  showKoreanPronunciation: boolean;
+}) {
+  return (
+    <div style={{ lineHeight: 1.5 }}>
+      <div className="jp-text" style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{japanese}</div>
+      {showReading && reading && (
+        <div style={{ marginTop: "4px", color: "#5f6b5f", fontSize: "14px" }}>{reading}</div>
+      )}
+      {showKoreanPronunciation && koreanPronunciation && (
+        <div style={{ marginTop: "2px", color: "#7b867b", fontSize: "13px" }}>{koreanPronunciation}</div>
+      )}
+    </div>
+  );
+}
+
 export default function SentencesPage() {
   const [savedSentences, setSavedSentences] = useState<Sentence[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
@@ -369,19 +395,13 @@ export default function SentencesPage() {
             return (
               <li key={s.japanese} className="card" style={{ marginBottom: "14px" }}>
                 <div>
-                  <div className="jp-text">{s.japanese}</div>
-                  {settings.showReading && (
-                    <div style={{ marginTop: "8px", color: "#444", fontSize: "14px" }}>
-                      <span className="label" style={{ marginRight: "6px" }}>읽기</span>
-                      {s.reading}
-                    </div>
-                  )}
-                  {settings.showKoreanPronunciation && (
-                    <div style={{ marginTop: "4px", color: "#666", fontSize: "14px" }}>
-                      <span className="label" style={{ marginRight: "6px" }}>한글 발음 참고</span>
-                      {s.koreanPronunciation}
-                    </div>
-                  )}
+                  <JapaneseTextBlock
+                    japanese={s.japanese}
+                    reading={s.reading}
+                    koreanPronunciation={s.koreanPronunciation}
+                    showReading={settings.showReading}
+                    showKoreanPronunciation={settings.showKoreanPronunciation}
+                  />
                 </div>
 
                 <div style={{ marginTop: "12px" }}>
@@ -473,6 +493,16 @@ export default function SentencesPage() {
                   ? quiz.question.japanese
                   : quiz.question.meaning}
               </div>
+              {quiz.quizType === "jp-to-kr" && settings.showReading && quiz.question.reading && (
+                <div style={{ marginTop: "-8px", marginBottom: "12px", color: "#5f6b5f", fontSize: "14px" }}>
+                  {quiz.question.reading}
+                </div>
+              )}
+              {quiz.quizType === "jp-to-kr" && settings.showKoreanPronunciation && quiz.question.koreanPronunciation && (
+                <div style={{ marginTop: "-8px", marginBottom: "12px", color: "#7b867b", fontSize: "13px" }}>
+                  {quiz.question.koreanPronunciation}
+                </div>
+              )}
 
               {/* TTS (일본어 문제일 때) */}
               {quiz.quizType === "jp-to-kr" && (
@@ -543,7 +573,12 @@ export default function SentencesPage() {
                       <span style={{ opacity: 0.5, marginRight: "6px" }}>
                         {idx + 1}.
                       </span>
-                      {choice}
+                      <span>{choice}</span>
+                      {quiz.quizType === "kr-to-jp" && settings.showReading && (
+                        <div style={{ marginTop: "4px", fontSize: "12px", color: "#6b746b" }}>
+                          {SENTENCES.find((item) => item.japanese === choice)?.reading}
+                        </div>
+                      )}
                     </button>
                   );
                 })}

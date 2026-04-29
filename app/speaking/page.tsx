@@ -396,13 +396,13 @@ export default function SpeakingPage() {
               {current.japanese}
             </p>
             {settings.showReading && current.reading && (
-              <p style={{ fontSize: "0.95rem", color: "#065f46", margin: 0, marginBottom: settings.showKoreanPronunciation && current.koreanPronunciation ? "0.35rem" : 0 }}>
-                읽기: {current.reading}
+              <p style={{ fontSize: "0.95rem", color: "#2f6f57", margin: 0, marginBottom: settings.showKoreanPronunciation && current.koreanPronunciation ? "0.35rem" : 0, lineHeight: 1.5, wordBreak: "break-word" }}>
+                {current.reading}
               </p>
             )}
             {settings.showKoreanPronunciation && current.koreanPronunciation && (
-              <p style={{ fontSize: "0.9rem", color: "#047857", margin: 0 }}>
-                한글 발음 참고: {current.koreanPronunciation}
+              <p style={{ fontSize: "0.85rem", color: "#3d8a6a", margin: 0, lineHeight: 1.5, wordBreak: "break-word" }}>
+                {current.koreanPronunciation}
               </p>
             )}
           </div>
