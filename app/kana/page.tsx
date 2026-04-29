@@ -93,6 +93,7 @@ type HandwritingFeedback = {
 type AppSettings = {
   ttsRate: number;
   repeatCount: number;
+  repeatDelayMs: number;
   showKoreanPronunciation: boolean;
   showReading: boolean;
 };
@@ -101,9 +102,11 @@ const APP_SETTINGS_KEY = "japaneseAppSettings";
 const DEFAULT_SETTINGS: AppSettings = {
   ttsRate: 1,
   repeatCount: 1,
+  repeatDelayMs: 500,
   showKoreanPronunciation: true,
   showReading: true,
 };
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const hiraganaDetailedStrokeOrderData: Record<string, StrokeOrderInfo> = {
   あ: {
@@ -962,6 +965,9 @@ async function speakKanaFallback(
         window.speechSynthesis.speak(utter);
       }, 80);
     });
+    if (i < settings.repeatCount - 1 && settings.repeatDelayMs > 0) {
+      await wait(settings.repeatDelayMs);
+    }
   }
 
   if (onEnd) onEnd();
@@ -992,6 +998,9 @@ async function speakKana(
         audio.onerror = () => reject(new Error("Audio playback failed"));
         audio.play().catch(reject);
       });
+      if (i < settings.repeatCount - 1 && settings.repeatDelayMs > 0) {
+        await wait(settings.repeatDelayMs);
+      }
     }
     if (onEnd) onEnd();
   } catch {
