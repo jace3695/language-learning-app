@@ -209,6 +209,16 @@ export default function ConversationPage() {
   const isCorrectionDifferent = (original: string, corrected: string) =>
     corrected.trim() !== "" && corrected.trim() !== original.trim();
 
+  const getSafeText = (value: unknown) => {
+    if (typeof value !== "string") return "";
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    if (trimmed === "0") return "";
+    if (trimmed.includes("한글 발음 참고를 생성하지 못했습니다")) return "";
+    return trimmed;
+  };
+
+
   const handleSpeak = async (text: string, audioKey: string) => {
     if (!text || playingAudioKey) return;
     setPlayingAudioKey(audioKey);
@@ -344,9 +354,13 @@ export default function ConversationPage() {
                 );
               }
 
-              const corrected = isCorrectionDifferent(
+              const replyText = getSafeText(m.reply);
+              const correctionText = getSafeText(m.correction);
+              const correctedKoreanPronunciation = getSafeText(m.correctionKoreanPronunciation);
+              const hasCorrection = correctionText.length > 0;
+              const corrected = hasCorrection && isCorrectionDifferent(
                 m.originalUserText,
-                m.correction
+                correctionText
               );
 
               // AI 메시지: 왼쪽 정렬, 답변/교정/설명 섹션 구분
@@ -400,7 +414,7 @@ export default function ConversationPage() {
                         }}
                       >
                         {!settings.showReading || !/[\u3400-\u9FFF]/.test(m.reply || "") || !m.replyRubySegments?.length
-                          ? (m.reply || "—")
+                          ? (replyText || "—")
                           : m.replyRubySegments.map((segment, index) => (
                             segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over", rubyAlign: "center" }}>{segment.text}<rt style={{ fontSize: "0.58em", color: "#7b8c7b" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
                           ))}
@@ -413,7 +427,7 @@ export default function ConversationPage() {
                     )}
 
                     {/* 4) 교정 */}
-                    {m.correction && (
+                    {hasCorrection ? (
                       <div style={sectionDividerStyle}>
                         <div style={sectionLabelStyle}>
                           교정 {corrected ? "(수정됨)" : "(자연스러움)"}
@@ -421,8 +435,8 @@ export default function ConversationPage() {
                         <button
                           type="button"
                           className="btn"
-                          onClick={() => handleSpeak(m.correction, `correction-${idx}`)}
-                          disabled={!m.correction || playingAudioKey !== null}
+                          onClick={() => handleSpeak(correctionText, `correction-${idx}`)}
+                          disabled={!hasCorrection || playingAudioKey !== null}
                           style={{ marginBottom: "8px", fontSize: "12px", padding: "4px 8px" }}
                         >
                           {playingAudioKey === `correction-${idx}` ? "재생 중..." : "🔊 교정 듣기"}
@@ -436,16 +450,16 @@ export default function ConversationPage() {
                           }}
                         >
                           {!settings.showReading || !/[\u3400-\u9FFF]/.test(m.correction || "") || !m.correctionRubySegments?.length
-                            ? m.correction
+                            ? correctionText
                             : m.correctionRubySegments.map((segment, index) => (
                               segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over", rubyAlign: "center" }}>{segment.text}<rt style={{ fontSize: "0.58em", color: "#7b8c7b" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
                             ))}
                         </div>
                       </div>
-                    )}
-                    {settings.showKoreanPronunciation && m.correctionKoreanPronunciation && (
+                    ) : null}
+                    {settings.showKoreanPronunciation && hasCorrection && correctedKoreanPronunciation && (
                       <div style={{ marginTop: "2px", color: "#728172", fontSize: "12px", lineHeight: 1.5, wordBreak: "break-word" }}>
-                        {m.correctionKoreanPronunciation}
+                        {correctedKoreanPronunciation}
                       </div>
                     )}
 
