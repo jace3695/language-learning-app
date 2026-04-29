@@ -592,33 +592,29 @@ export default function ProgressPage() {
     setWordSelected(opt);
     setWordIsCorrect(correct);
 
-    if (correct) {
-      removeWrongWordItem(current);
-      setWordQuizItems((prev) => prev.filter((_, i) => i !== wordQuizIndex));
-    }
   }
 
   function handleWordNext() {
+    const wasCorrect = wordIsCorrect;
+    const current = wordQuizItems[wordQuizIndex];
+
+    if (wasCorrect && current) {
+      removeWrongWordItem(current);
+      return;
+    }
+
+    const nextIndex = (wordQuizIndex + 1) % Math.max(wordQuizItems.length, 1);
+    const nextItem = wordQuizItems[nextIndex];
+
     setWordSelected(null);
     setWordIsCorrect(null);
+    setWordQuizIndex(nextIndex);
 
-    setWordQuizItems((prev) => {
-      const nextIndex = wordIsCorrect
-        ? wordQuizIndex >= prev.length ? prev.length - 1 : wordQuizIndex
-        : (wordQuizIndex + 1) % Math.max(prev.length, 1);
-      const clampedIndex = Math.min(nextIndex, prev.length - 1);
-
-      setWordQuizIndex(clampedIndex);
-      if (prev.length > 0) {
-        const item = prev[clampedIndex];
-        if (item) {
-          const field: "meaning" | "word" = item.mode === "wordToMeaning" ? "meaning" : "word";
-          const correctVal = item.mode === "wordToMeaning" ? item.meaning : item.word;
-          setWordOptions(generateWordOptions(correctVal, prev, field, wordOptionPool[field]));
-        }
-      }
-      return prev;
-    });
+    if (nextItem) {
+      const field: "meaning" | "word" = nextItem.mode === "wordToMeaning" ? "meaning" : "word";
+      const correctVal = nextItem.mode === "wordToMeaning" ? nextItem.meaning : nextItem.word;
+      setWordOptions(generateWordOptions(correctVal, wordQuizItems, field, wordOptionPool[field]));
+    }
   }
 
   // Sentence quiz handlers
@@ -632,33 +628,29 @@ export default function ProgressPage() {
     setSentenceSelected(opt);
     setSentenceIsCorrect(correct);
 
-    if (correct) {
-      removeWrongSentenceItem(current);
-      setSentenceQuizItems((prev) => prev.filter((_, i) => i !== sentenceQuizIndex));
-    }
   }
 
   function handleSentenceNext() {
+    const wasCorrect = sentenceIsCorrect;
+    const current = sentenceQuizItems[sentenceQuizIndex];
+
+    if (wasCorrect && current) {
+      removeWrongSentenceItem(current);
+      return;
+    }
+
+    const nextIndex = (sentenceQuizIndex + 1) % Math.max(sentenceQuizItems.length, 1);
+    const nextItem = sentenceQuizItems[nextIndex];
+
     setSentenceSelected(null);
     setSentenceIsCorrect(null);
+    setSentenceQuizIndex(nextIndex);
 
-    setSentenceQuizItems((prev) => {
-      const nextIndex = sentenceIsCorrect
-        ? sentenceQuizIndex >= prev.length ? prev.length - 1 : sentenceQuizIndex
-        : (sentenceQuizIndex + 1) % Math.max(prev.length, 1);
-      const clampedIndex = Math.min(nextIndex, prev.length - 1);
-
-      setSentenceQuizIndex(clampedIndex);
-      if (prev.length > 0) {
-        const item = prev[clampedIndex];
-        if (item) {
-          const field: "meaning" | "japanese" = item.mode === "japaneseToMeaning" ? "meaning" : "japanese";
-          const correctVal = item.mode === "japaneseToMeaning" ? item.meaning : item.japanese;
-          setSentenceOptions(generateSentenceOptions(correctVal, prev, field, sentenceOptionPool[field]));
-        }
-      }
-      return prev;
-    });
+    if (nextItem) {
+      const field: "meaning" | "japanese" = nextItem.mode === "japaneseToMeaning" ? "meaning" : "japanese";
+      const correctVal = nextItem.mode === "japaneseToMeaning" ? nextItem.meaning : nextItem.japanese;
+      setSentenceOptions(generateSentenceOptions(correctVal, sentenceQuizItems, field, sentenceOptionPool[field]));
+    }
   }
 
   const currentQuiz = quizItems[quizIndex] ?? null;
@@ -845,9 +837,9 @@ export default function ProgressPage() {
                 let color = "#111";
                 if (wordSelected !== null) {
                   if (opt === correctVal) {
-                    bg = "#d1fae5";
-                    border = "1px solid #34d399";
-                    color = "#065f46";
+                    bg = "#16a34a";
+                    border = "1px solid #16a34a";
+                    color = "#ffffff";
                   } else if (opt === wordSelected && !wordIsCorrect) {
                     bg = "#fee2e2";
                     border = "1px solid #f87171";
@@ -882,7 +874,7 @@ export default function ProgressPage() {
               <div style={{ marginBottom: "0.75rem", textAlign: "center" }}>
                 {wordIsCorrect ? (
                   <span style={{ color: "#065f46", fontWeight: "bold", fontSize: "0.95rem" }}>
-                    ✅ 정답입니다! wrongWords에서 제거했습니다.
+                    ✅ 정답입니다!
                   </span>
                 ) : (
                   <span style={{ color: "#991b1b", fontWeight: "bold", fontSize: "0.95rem" }}>
@@ -900,7 +892,7 @@ export default function ProgressPage() {
                     padding: "0.5rem 1.2rem",
                     fontSize: "0.9rem",
                     borderRadius: 6,
-                    border: wordIsCorrect ? "1px solid #34d399" : "1px solid #6ee7b7",
+                    border: wordIsCorrect ? "1px solid #16a34a" : "1px solid #6ee7b7",
                     background: wordIsCorrect ? "#16a34a" : "#059669",
                     color: "#fff",
                     cursor: "pointer",
@@ -974,9 +966,9 @@ export default function ProgressPage() {
                 let color = "#111";
                 if (sentenceSelected !== null) {
                   if (opt === correctVal) {
-                    bg = "#d1fae5";
-                    border = "1px solid #34d399";
-                    color = "#065f46";
+                    bg = "#16a34a";
+                    border = "1px solid #16a34a";
+                    color = "#ffffff";
                   } else if (opt === sentenceSelected && !sentenceIsCorrect) {
                     bg = "#fee2e2";
                     border = "1px solid #f87171";
@@ -1014,7 +1006,7 @@ export default function ProgressPage() {
               <div style={{ marginBottom: "0.75rem", textAlign: "center" }}>
                 {sentenceIsCorrect ? (
                   <span style={{ color: "#065f46", fontWeight: "bold", fontSize: "0.95rem" }}>
-                    ✅ 정답입니다! wrongSentences에서 제거했습니다.
+                    ✅ 정답입니다!
                   </span>
                 ) : (
                   <span style={{ color: "#991b1b", fontWeight: "bold", fontSize: "0.95rem" }}>
@@ -1034,7 +1026,7 @@ export default function ProgressPage() {
                     padding: "0.5rem 1.2rem",
                     fontSize: "0.9rem",
                     borderRadius: 6,
-                    border: sentenceIsCorrect ? "1px solid #34d399" : "1px solid #fbbf24",
+                    border: sentenceIsCorrect ? "1px solid #16a34a" : "1px solid #fbbf24",
                     background: sentenceIsCorrect ? "#16a34a" : "#d97706",
                     color: "#fff",
                     cursor: "pointer",

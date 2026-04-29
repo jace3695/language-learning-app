@@ -180,12 +180,19 @@ export default function SentencesPage() {
     }
   }, [mode, startQuiz]);
 
+  const isSameSentence = (a: Sentence, b: Sentence) =>
+    a.japanese === b.japanese &&
+    a.meaning === b.meaning &&
+    a.category === b.category;
+
   const isSaved = (s: Sentence) =>
-    savedSentences.some((x) => x.japanese === s.japanese);
+    savedSentences.some((x) => isSameSentence(x, s));
 
   const handleSave = (s: Sentence) => {
-    if (isSaved(s)) return;
-    const next = [...savedSentences, s];
+    const next = isSaved(s)
+      ? savedSentences.filter((x) => !isSameSentence(x, s))
+      : [...savedSentences, s];
+
     setSavedSentences(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   };
@@ -378,10 +385,9 @@ export default function SentencesPage() {
                   </button>
                   <button
                     onClick={() => handleSave(s)}
-                    disabled={saved}
                     className="btn"
                   >
-                    {saved ? "저장됨" : "저장"}
+                    {saved ? "저장 취소" : "저장"}
                   </button>
                 </div>
               </li>
