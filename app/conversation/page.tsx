@@ -225,12 +225,6 @@ export default function ConversationPage() {
     borderTop: "1px solid #dce8dc",
   };
 
-  const readingTextStyle: React.CSSProperties = {
-    color: "#4f5b4f",
-    fontSize: "13px",
-    lineHeight: 1.5,
-  };
-
   return (
     <section>
       <div className="page-header">
@@ -402,21 +396,14 @@ export default function ConversationPage() {
                       </div>
                     </div>
 
-                    {/* 2) 읽기 */}
                     {settings.showReading && m.replyReading && (
-                      <div style={sectionDividerStyle}>
-                        <div style={sectionLabelStyle}>읽기</div>
-                        <div style={readingTextStyle}>{m.replyReading}</div>
+                      <div style={{ marginTop: "2px", color: "#4f5b4f", fontSize: "13px", lineHeight: 1.5, wordBreak: "break-word" }}>
+                        {m.replyReading}
                       </div>
                     )}
-
-                    {/* 3) 한글 발음 참고 */}
                     {settings.showKoreanPronunciation && m.replyKoreanPronunciation && (
-                      <div style={sectionDividerStyle}>
-                        <div style={sectionLabelStyle}>한글 발음 참고</div>
-                        <div style={readingTextStyle}>
-                          {m.replyKoreanPronunciation}
-                        </div>
+                      <div style={{ marginTop: "2px", color: "#728172", fontSize: "12px", lineHeight: 1.5, wordBreak: "break-word" }}>
+                        {m.replyKoreanPronunciation}
                       </div>
                     )}
 
@@ -448,21 +435,14 @@ export default function ConversationPage() {
                       </div>
                     )}
 
-                    {/* 5) 교정 읽기 */}
                     {settings.showReading && m.correctionReading && (
-                      <div style={sectionDividerStyle}>
-                        <div style={sectionLabelStyle}>교정 읽기</div>
-                        <div style={readingTextStyle}>{m.correctionReading}</div>
+                      <div style={{ marginTop: "2px", color: "#4f5b4f", fontSize: "13px", lineHeight: 1.5, wordBreak: "break-word" }}>
+                        {m.correctionReading}
                       </div>
                     )}
-
-                    {/* 6) 교정 한글 발음 참고 */}
                     {settings.showKoreanPronunciation && m.correctionKoreanPronunciation && (
-                      <div style={sectionDividerStyle}>
-                        <div style={sectionLabelStyle}>교정 한글 발음 참고</div>
-                        <div style={readingTextStyle}>
-                          {m.correctionKoreanPronunciation}
-                        </div>
+                      <div style={{ marginTop: "2px", color: "#728172", fontSize: "12px", lineHeight: 1.5, wordBreak: "break-word" }}>
+                        {m.correctionKoreanPronunciation}
                       </div>
                     )}
 
