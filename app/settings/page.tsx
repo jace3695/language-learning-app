@@ -2,15 +2,40 @@
 
 import { useEffect, useState } from "react";
 
+type LearningScope = "kana" | "words" | "sentences" | "speaking" | "conversation";
+type ScopeSettingKey = "ttsRate" | "repeatCount" | "repeatDelayMs" | "showKoreanPronunciation" | "showReading";
+
+type SettingsScopes = Record<ScopeSettingKey, LearningScope[]>;
+
 type JapaneseAppSettings = {
   ttsRate: number;
   repeatCount: number;
   repeatDelayMs: number;
   showKoreanPronunciation: boolean;
   showReading: boolean;
+  scopes: SettingsScopes;
 };
 
 const SETTINGS_STORAGE_KEY = "japaneseAppSettings";
+
+const ALL_SCOPES: LearningScope[] = ["kana", "words", "sentences", "speaking", "conversation"];
+const NON_KANA_SCOPES: LearningScope[] = ["words", "sentences", "speaking", "conversation"];
+
+const SCOPE_LABELS: Record<LearningScope, string> = {
+  kana: "가나",
+  words: "단어",
+  sentences: "문장",
+  speaking: "말하기",
+  conversation: "AI 회화",
+};
+
+const DEFAULT_SCOPES: SettingsScopes = {
+  ttsRate: [...ALL_SCOPES],
+  repeatCount: [...ALL_SCOPES],
+  repeatDelayMs: [...ALL_SCOPES],
+  showKoreanPronunciation: [...NON_KANA_SCOPES],
+  showReading: [...NON_KANA_SCOPES],
+};
 
 const DEFAULT_SETTINGS: JapaneseAppSettings = {
   ttsRate: 1,
@@ -18,6 +43,7 @@ const DEFAULT_SETTINGS: JapaneseAppSettings = {
   repeatDelayMs: 500,
   showKoreanPronunciation: true,
   showReading: true,
+  scopes: DEFAULT_SCOPES,
 };
 
 const TTS_RATE_OPTIONS: Array<{ value: JapaneseAppSettings["ttsRate"]; label: string }> = [
@@ -58,6 +84,23 @@ function isValidRepeatDelayMs(value: unknown): value is JapaneseAppSettings["rep
   return value === 0 || value === 300 || value === 500 || value === 1000 || value === 1500 || value === 2000;
 }
 
+function sanitizeScopes(scopes: Partial<SettingsScopes> | undefined): SettingsScopes {
+  return {
+    ttsRate: sanitizeScopeList(scopes?.ttsRate, DEFAULT_SCOPES.ttsRate),
+    repeatCount: sanitizeScopeList(scopes?.repeatCount, DEFAULT_SCOPES.repeatCount),
+    repeatDelayMs: sanitizeScopeList(scopes?.repeatDelayMs, DEFAULT_SCOPES.repeatDelayMs),
+    showKoreanPronunciation: sanitizeScopeList(scopes?.showKoreanPronunciation, DEFAULT_SCOPES.showKoreanPronunciation),
+    showReading: sanitizeScopeList(scopes?.showReading, DEFAULT_SCOPES.showReading),
+  };
+}
+
+function sanitizeScopeList(value: unknown, fallback: LearningScope[]): LearningScope[] {
+  if (!Array.isArray(value)) return fallback;
+
+  const uniqueValid = Array.from(new Set(value.filter((scope): scope is LearningScope => ALL_SCOPES.includes(scope as LearningScope))));
+  return uniqueValid.length > 0 ? uniqueValid : fallback;
+}
+
 function parseSettings(raw: string | null): JapaneseAppSettings {
   if (!raw) {
     return DEFAULT_SETTINGS;
@@ -69,11 +112,15 @@ function parseSettings(raw: string | null): JapaneseAppSettings {
       return DEFAULT_SETTINGS;
     }
 
-    const parsedObj = parsed as Partial<JapaneseAppSettings>;
+    const parsedObj = parsed as Partial<JapaneseAppSettings> & { scopes?: Partial<SettingsScopes> };
 
     const mergedSettings: JapaneseAppSettings = {
       ...DEFAULT_SETTINGS,
       ...parsedObj,
+      scopes: sanitizeScopes({
+        ...DEFAULT_SCOPES,
+        ...(parsedObj.scopes ?? {}),
+      }),
     };
 
     return {
@@ -93,6 +140,7 @@ function parseSettings(raw: string | null): JapaneseAppSettings {
         typeof mergedSettings.showReading === "boolean"
           ? mergedSettings.showReading
           : DEFAULT_SETTINGS.showReading,
+      scopes: sanitizeScopes(mergedSettings.scopes),
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -118,6 +166,72 @@ export default function SettingsPage() {
 
     window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
   }, [settings, isSettingsLoaded]);
+
+  const toggleScope = (settingKey: ScopeSettingKey, scope: LearningScope) => {
+    setSettings((prev) => {
+      const currentScopes = prev.scopes[settingKey];
+      const hasScope = currentScopes.includes(scope);
+
+      if (hasScope) {
+        if (currentScopes.length <= 1) {
+          return prev;
+        }
+        return {
+          ...prev,
+          scopes: {
+            ...prev.scopes,
+            [settingKey]: currentScopes.filter((item) => item !== scope),
+          },
+        };
+      }
+
+      return {
+        ...prev,
+        scopes: {
+          ...prev.scopes,
+          [settingKey]: [...currentScopes, scope],
+        },
+      };
+    });
+  };
+
+  const renderScopeOptions = (settingKey: ScopeSettingKey, scopes: LearningScope[]) => (
+    <div style={{ marginTop: "10px" }}>
+      <p className="muted" style={{ margin: "0 0 6px" }}>적용 범위</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))", gap: "8px" }}>
+        {scopes.map((scope) => {
+          const inputId = `${settingKey}-scope-${scope}`;
+          const checked = settings.scopes[settingKey].includes(scope);
+          return (
+            <label
+              key={scope}
+              htmlFor={inputId}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "8px 10px",
+                borderRadius: "8px",
+                border: checked ? "1px solid var(--primary, #2563eb)" : "1px solid var(--border, #e5e7eb)",
+                backgroundColor: checked ? "rgba(37, 99, 235, 0.08)" : "transparent",
+                cursor: "pointer",
+              }}
+            >
+              <input
+                id={inputId}
+                type="checkbox"
+                checked={checked}
+                onChange={() => {
+                  toggleScope(settingKey, scope);
+                }}
+              />
+              {SCOPE_LABELS[scope]}
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   const handleResetSettings = () => {
     if (typeof window === "undefined") return;
@@ -159,6 +273,7 @@ export default function SettingsPage() {
               </option>
             ))}
           </select>
+          {renderScopeOptions("ttsRate", ALL_SCOPES)}
         </div>
 
         <div>
@@ -181,6 +296,7 @@ export default function SettingsPage() {
               </option>
             ))}
           </select>
+          {renderScopeOptions("repeatDelayMs", ALL_SCOPES)}
         </div>
 
         <div>
@@ -203,6 +319,7 @@ export default function SettingsPage() {
               </option>
             ))}
           </select>
+          {renderScopeOptions("repeatCount", ALL_SCOPES)}
         </div>
 
         <div>
@@ -224,6 +341,7 @@ export default function SettingsPage() {
           <p className="muted" style={{ margin: "6px 0 0" }}>
             단어/문장/말하기 등에서 한글 발음 참고를 표시할 때 사용할 설정입니다.
           </p>
+          {renderScopeOptions("showKoreanPronunciation", NON_KANA_SCOPES)}
         </div>
 
         <div>
@@ -242,6 +360,7 @@ export default function SettingsPage() {
           <p className="muted" style={{ margin: "6px 0 0" }}>
             reading/요미가나 표시를 보여줄 때 사용할 설정입니다.
           </p>
+          {renderScopeOptions("showReading", NON_KANA_SCOPES)}
         </div>
       </div>
 
