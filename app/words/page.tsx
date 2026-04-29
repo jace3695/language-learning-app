@@ -8,7 +8,7 @@ const STORAGE_KEY = "savedWords";
 const WRONG_WORDS_KEY = "wrongWords";
 type CategoryFilter = "전체" | "여행" | "업무" | "일상" | "친구";
 type LevelFilter = "all" | "beginner" | "basic" | "practical";
-type QuizType = "jp-to-kr" | "kr-to-jp" | "jp-to-kor-pron";
+type QuizType = "jp-to-kr" | "kr-to-jp";
 type PageMode = "study" | "quiz";
 
 type WrongWord = {
@@ -99,8 +99,7 @@ function getChoices(correct: Word, pool: Word[], quizType: QuizType): string[] {
   const shuffled = shuffle(others).slice(0, 3);
   const all = shuffle([...shuffled, correct]);
   if (quizType === "jp-to-kr") return all.map((w) => w.meaning);
-  if (quizType === "kr-to-jp") return all.map((w) => w.word);
-  return all.map((w) => w.koreanPronunciation ?? "");
+  return all.map((w) => w.word);
 }
 
 export default function WordsPage() {
@@ -112,6 +111,9 @@ export default function WordsPage() {
 
   // 퀴즈 상태
   const [quizType, setQuizType] = useState<QuizType>("jp-to-kr");
+  const [showQuizKoreanPronunciation, setShowQuizKoreanPronunciation] = useState(
+    DEFAULT_SETTINGS.showKoreanPronunciation
+  );
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [choices, setChoices] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -131,6 +133,10 @@ export default function WordsPage() {
       setSettings(DEFAULT_SETTINGS);
     }
   }, []);
+
+  useEffect(() => {
+    setShowQuizKoreanPronunciation(settings.showKoreanPronunciation);
+  }, [settings.showKoreanPronunciation]);
 
   useEffect(() => {
     try {
@@ -172,17 +178,16 @@ export default function WordsPage() {
       ? filteredWords
       : filteredWords.filter((w) => getEffectiveLevel(w) === levelFilter);
 
-  const quizPool =
-    quizType === "jp-to-kor-pron"
-      ? filteredWordsByLevel.filter((w) => Boolean(w.koreanPronunciation))
-      : filteredWordsByLevel;
+  const quizPool = filteredWordsByLevel;
 
   const generateQuiz = useCallback(
-    (pool: Word[], type: QuizType) => {
+    (pool: Word[]) => {
       if (pool.length < 4) return;
       const word = pool[Math.floor(Math.random() * pool.length)];
+      const randomQuizType: QuizType = Math.random() < 0.5 ? "jp-to-kr" : "kr-to-jp";
+      setQuizType(randomQuizType);
       setCurrentWord(word);
-      setChoices(getChoices(word, pool, type));
+      setChoices(getChoices(word, pool, randomQuizType));
       setSelected(null);
     },
     []
@@ -190,10 +195,10 @@ export default function WordsPage() {
 
   useEffect(() => {
     if (mode === "quiz") {
-      generateQuiz(quizPool, quizType);
+      generateQuiz(quizPool);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, categoryFilter, levelFilter, quizType]);
+  }, [mode, categoryFilter, levelFilter]);
 
   const handleAnswer = (choice: string) => {
     if (selected !== null || !currentWord) return;
@@ -201,9 +206,7 @@ export default function WordsPage() {
     const correctAnswer =
       quizType === "jp-to-kr"
         ? currentWord.meaning
-        : quizType === "kr-to-jp"
-          ? currentWord.word
-          : currentWord.koreanPronunciation ?? "";
+        : currentWord.word;
     const isCorrect = choice === correctAnswer;
     if (!isCorrect) {
       saveWrongWord(currentWord, quizType);
@@ -215,16 +218,30 @@ export default function WordsPage() {
   };
 
   const handleNext = () => {
-    generateQuiz(quizPool, quizType);
+    generateQuiz(quizPool);
   };
 
   const correctAnswer = currentWord
     ? quizType === "jp-to-kr"
       ? currentWord.meaning
-      : quizType === "kr-to-jp"
-        ? currentWord.word
-        : currentWord.koreanPronunciation ?? ""
+      : currentWord.word
     : "";
+
+  const speakJapaneseText = useCallback(
+    (text: string) => {
+      if (typeof window === "undefined" || !window.speechSynthesis || !text) return;
+      window.speechSynthesis.cancel();
+      for (let i = 0; i < settings.repeatCount; i += 1) {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "ja-JP";
+        utter.rate = settings.ttsRate;
+        setTimeout(() => {
+          window.speechSynthesis.speak(utter);
+        }, i * 350);
+      }
+    },
+    [settings.repeatCount, settings.ttsRate]
+  );
 
   const CATEGORIES: CategoryFilter[] = ["전체", "여행", "업무", "일상", "친구"];
   const LEVELS: Array<{ label: string; value: LevelFilter }> = [
@@ -382,6 +399,12 @@ export default function WordsPage() {
                 )}
                 <div className="card-actions">
                   <button
+                    onClick={() => speakJapaneseText(w.word)}
+                    className="btn"
+                  >
+                    🔊 단어 듣기
+                  </button>
+                  <button
                     onClick={() => handleSaveToggle(w)}
                     className="btn"
                   >
@@ -402,9 +425,7 @@ export default function WordsPage() {
               className="card"
               style={{ textAlign: "center", color: "#888", padding: "40px 20px" }}
             >
-              {quizType === "jp-to-kor-pron"
-                ? "발음 퀴즈를 위해 한글 발음이 있는 단어가 4개 이상 필요합니다."
-                : "퀴즈를 위해 해당 카테고리에 단어가 4개 이상 필요합니다."}
+              퀴즈를 위해 해당 카테고리에 단어가 4개 이상 필요합니다.
             </div>
           ) : (
             <>
@@ -427,50 +448,17 @@ export default function WordsPage() {
                   <button
                     className="btn"
                     onClick={() => {
-                      setQuizType("jp-to-kr");
-                      setScore({ correct: 0, total: 0 });
+                      setShowQuizKoreanPronunciation((prev) => !prev);
                     }}
                     style={{
                       fontSize: "12px",
                       padding: "5px 10px",
-                      background: quizType === "jp-to-kr" ? "#222" : "transparent",
-                      color: quizType === "jp-to-kr" ? "#fff" : "#222",
+                      background: "transparent",
+                      color: "#222",
                       border: "1.5px solid #222",
                     }}
                   >
-                    일→뜻
-                  </button>
-                  <button
-                    className="btn"
-                    onClick={() => {
-                      setQuizType("kr-to-jp");
-                      setScore({ correct: 0, total: 0 });
-                    }}
-                    style={{
-                      fontSize: "12px",
-                      padding: "5px 10px",
-                      background: quizType === "kr-to-jp" ? "#222" : "transparent",
-                      color: quizType === "kr-to-jp" ? "#fff" : "#222",
-                      border: "1.5px solid #222",
-                    }}
-                  >
-                    뜻→일
-                  </button>
-                  <button
-                    className="btn"
-                    onClick={() => {
-                      setQuizType("jp-to-kor-pron");
-                      setScore({ correct: 0, total: 0 });
-                    }}
-                    style={{
-                      fontSize: "12px",
-                      padding: "5px 10px",
-                      background: quizType === "jp-to-kor-pron" ? "#222" : "transparent",
-                      color: quizType === "jp-to-kor-pron" ? "#fff" : "#222",
-                      border: "1.5px solid #222",
-                    }}
-                  >
-                    일→발음
+                    한글 발음 {showQuizKoreanPronunciation ? "숨김" : "표시"}
                   </button>
                 </div>
               </div>
@@ -506,7 +494,7 @@ export default function WordsPage() {
                     </div>
                   )}
                   {quizType === "jp-to-kr" && currentWord.koreanPronunciation && (
-                    settings.showKoreanPronunciation &&
+                    showQuizKoreanPronunciation &&
                     <div
                       style={{
                         textAlign: "center",
@@ -528,10 +516,8 @@ export default function WordsPage() {
                     }}
                   >
                     {quizType === "jp-to-kr"
-                      ? "이 단어의 뜻은?"
-                      : quizType === "kr-to-jp"
-                        ? "이 뜻의 일본어는?"
-                        : "이 단어의 한글 발음 참고를 고르세요"}
+                      ? "일본어에 맞는 뜻을 고르세요"
+                      : "뜻에 맞는 일본어를 고르세요"}
                   </div>
 
                   {/* 보기 */}
@@ -578,7 +564,30 @@ export default function WordsPage() {
                             transition: "all 0.15s",
                           }}
                         >
-                          {choice}
+                          {quizType === "kr-to-jp" ? (
+                            <>
+                              <div>{choice}</div>
+                              {(() => {
+                                const choiceWord = quizPool.find((w) => w.word === choice);
+                                return (
+                                  <>
+                                    {choiceWord?.reading && (
+                                      <div style={{ fontSize: "13px", color: "#666", marginTop: "4px" }}>
+                                        {choiceWord.reading}
+                                      </div>
+                                    )}
+                                    {showQuizKoreanPronunciation && choiceWord?.koreanPronunciation && (
+                                      <div style={{ fontSize: "12px", color: "#888", marginTop: "2px" }}>
+                                        {choiceWord.koreanPronunciation}
+                                      </div>
+                                    )}
+                                  </>
+                                );
+                              })()}
+                            </>
+                          ) : (
+                            choice
+                          )}
                         </button>
                       );
                     })}
@@ -596,6 +605,17 @@ export default function WordsPage() {
                       }}
                     >
                       {selected === correctAnswer ? "정답! 🎉" : `오답 — 정답: ${correctAnswer}`}
+                      {selected !== correctAnswer && currentWord && quizType === "kr-to-jp" && (
+                        <div style={{ marginTop: "8px", fontSize: "14px", color: "#444" }}>
+                          {currentWord.word}
+                          {currentWord.reading && (
+                            <div style={{ fontSize: "13px", color: "#666" }}>{currentWord.reading}</div>
+                          )}
+                          {showQuizKoreanPronunciation && currentWord.koreanPronunciation && (
+                            <div style={{ fontSize: "12px", color: "#888" }}>{currentWord.koreanPronunciation}</div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
