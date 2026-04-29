@@ -492,9 +492,14 @@ export default function SentencesPage() {
                 }}
               >
                 {quiz.quizType === "jp-to-kr"
-                  ? (!settings.showReading || !/[\u3400-\u9FFF]/.test(quiz.question.japanese) || !quiz.question.rubySegments?.length ? quiz.question.japanese : quiz.question.rubySegments.map((segment, index) => (
-                    segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over", rubyAlign: "center" }}>{segment.text}<rt style={{ fontSize: "0.58em", color: "#7b8c7b" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
-                  )))
+                  ? (
+                    <FuriganaText
+                      text={quiz.question.japanese}
+                      reading={quiz.question.reading}
+                      rubySegments={quiz.question.rubySegments}
+                      showReading={settings.showReading}
+                    />
+                  )
                   : quiz.question.meaning}
               </div>
               {quiz.quizType === "jp-to-kr" && settings.showKoreanPronunciation && quiz.question.koreanPronunciation && (
@@ -572,9 +577,17 @@ export default function SentencesPage() {
                       <span style={{ opacity: 0.5, marginRight: "6px" }}>
                         {idx + 1}.
                       </span>
-                      <span>{quiz.quizType === "kr-to-jp" && settings.showReading && /[\u3400-\u9FFF]/.test(choice) && SENTENCES.find((item) => item.japanese === choice)?.rubySegments?.length ? SENTENCES.find((item) => item.japanese === choice)?.rubySegments?.map((segment, index) => (
-                        segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over", rubyAlign: "center" }}>{segment.text}<rt style={{ fontSize: "0.58em", color: "#7b8c7b" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
-                      )) : choice}</span>
+                      <span>{quiz.quizType === "kr-to-jp" ? (() => {
+                        const choiceSentence = SENTENCES.find((item) => item.japanese === choice);
+                        return (
+                          <FuriganaText
+                            text={choice}
+                            reading={choiceSentence?.reading}
+                            rubySegments={choiceSentence?.rubySegments}
+                            showReading={settings.showReading}
+                          />
+                        );
+                      })() : choice}</span>
                     </button>
                   );
                 })}

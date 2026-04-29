@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import FuriganaText from "@/components/FuriganaText";
 import type { RubySegment } from "@/data/sentences";
 
 type Question = {
@@ -397,9 +398,12 @@ export default function SpeakingPage() {
               정답
             </p>
             <p style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0, marginBottom: settings.showKoreanPronunciation && current.koreanPronunciation ? "0.5rem" : 0 }}>
-              {!settings.showReading || !/[\u3400-\u9FFF]/.test(current.japanese) || !current.rubySegments?.length ? current.japanese : current.rubySegments.map((segment, index) => (
-                segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over", rubyAlign: "center" }}>{segment.text}<rt style={{ fontSize: "0.58em", color: "#7b8c7b" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
-              ))}
+              <FuriganaText
+                text={current.japanese}
+                reading={current.reading}
+                rubySegments={current.rubySegments}
+                showReading={settings.showReading}
+              />
             </p>
             {settings.showKoreanPronunciation && current.koreanPronunciation && (
               <p style={{ fontSize: "0.85rem", color: "#3d8a6a", margin: 0, lineHeight: 1.5, wordBreak: "break-word" }}>
