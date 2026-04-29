@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 
 import { SENTENCES, type SentenceItem as Sentence } from "@/data/sentences";
+import type { RubySegment } from "@/data/sentences";
 
 const STORAGE_KEY = "savedSentences";
 const WRONG_SENTENCES_KEY = "wrongSentences";
@@ -140,16 +141,22 @@ function JapaneseTextBlock({
   koreanPronunciation,
   showReading,
   showKoreanPronunciation,
+  rubySegments,
 }: {
   japanese: string;
   reading?: string;
   koreanPronunciation?: string;
   showReading: boolean;
   showKoreanPronunciation: boolean;
+  rubySegments?: RubySegment[];
 }) {
   return (
     <div style={{ lineHeight: 1.5 }}>
-      <div className="jp-text" style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{japanese}</div>
+      <div className="jp-text" style={{ whiteSpace: "normal", wordBreak: "break-word" }}>
+        {!showReading || !rubySegments?.length ? japanese : rubySegments.map((segment, index) => (
+          segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over" }}>{segment.text}<rt style={{ fontSize: "0.58em" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
+        ))}
+      </div>
       {showReading && reading && (
         <div style={{ marginTop: "4px", color: "#5f6b5f", fontSize: "14px" }}>{reading}</div>
       )}
@@ -399,6 +406,7 @@ export default function SentencesPage() {
                     japanese={s.japanese}
                     reading={s.reading}
                     koreanPronunciation={s.koreanPronunciation}
+                    rubySegments={s.rubySegments}
                     showReading={settings.showReading}
                     showKoreanPronunciation={settings.showKoreanPronunciation}
                   />
@@ -490,7 +498,9 @@ export default function SentencesPage() {
                 }}
               >
                 {quiz.quizType === "jp-to-kr"
-                  ? quiz.question.japanese
+                  ? (!settings.showReading || !quiz.question.rubySegments?.length ? quiz.question.japanese : quiz.question.rubySegments.map((segment, index) => (
+                    segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over" }}>{segment.text}<rt style={{ fontSize: "0.58em" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
+                  )))
                   : quiz.question.meaning}
               </div>
               {quiz.quizType === "jp-to-kr" && settings.showReading && quiz.question.reading && (
@@ -573,7 +583,9 @@ export default function SentencesPage() {
                       <span style={{ opacity: 0.5, marginRight: "6px" }}>
                         {idx + 1}.
                       </span>
-                      <span>{choice}</span>
+                      <span>{quiz.quizType === "kr-to-jp" && settings.showReading && SENTENCES.find((item) => item.japanese === choice)?.rubySegments?.length ? SENTENCES.find((item) => item.japanese === choice)?.rubySegments?.map((segment, index) => (
+                        segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over" }}>{segment.text}<rt style={{ fontSize: "0.58em" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
+                      )) : choice}</span>
                       {quiz.quizType === "kr-to-jp" && settings.showReading && (
                         <div style={{ marginTop: "4px", fontSize: "12px", color: "#6b746b" }}>
                           {SENTENCES.find((item) => item.japanese === choice)?.reading}
