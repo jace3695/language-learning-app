@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { RubySegment } from "@/data/sentences";
 
 type Question = {
   korean: string;
@@ -9,6 +10,7 @@ type Question = {
   note?: string;
   reading?: string;
   koreanPronunciation?: string;
+  rubySegments?: RubySegment[];
 };
 
 type SavedSentence = {
@@ -18,6 +20,7 @@ type SavedSentence = {
   note?: string;
   reading?: string;
   koreanPronunciation?: string;
+  rubySegments?: RubySegment[];
 };
 
 const BASE_QUESTIONS: Question[] = [
@@ -175,6 +178,7 @@ export default function SpeakingPage() {
           note: s.note,
           reading: s.reading,
           koreanPronunciation: s.koreanPronunciation,
+          rubySegments: s.rubySegments,
         }));
         setAllQuestions([...BASE_QUESTIONS, ...converted]);
       }
@@ -393,7 +397,9 @@ export default function SpeakingPage() {
               정답
             </p>
             <p style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0, marginBottom: (settings.showReading && current.reading) || (settings.showKoreanPronunciation && current.koreanPronunciation) ? "0.5rem" : 0 }}>
-              {current.japanese}
+              {!settings.showReading || !current.rubySegments?.length ? current.japanese : current.rubySegments.map((segment, index) => (
+                segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over" }}>{segment.text}<rt style={{ fontSize: "0.58em" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
+              ))}
             </p>
             {settings.showReading && current.reading && (
               <p style={{ fontSize: "0.95rem", color: "#2f6f57", margin: 0, marginBottom: settings.showKoreanPronunciation && current.koreanPronunciation ? "0.35rem" : 0, lineHeight: 1.5, wordBreak: "break-word" }}>

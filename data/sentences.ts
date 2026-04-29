@@ -7,10 +7,16 @@ export type SentenceItem = {
   level?: LearningLevel;
   japanese: string;
   reading?: string;
+  rubySegments?: RubySegment[];
   koreanPronunciation?: string;
   meaning: string;
   note: string;
   description?: string;
+};
+
+export type RubySegment = {
+  text: string;
+  reading?: string;
 };
 
 export const SENTENCES: SentenceItem[] = ([
@@ -22,13 +28,13 @@ export const SENTENCES: SentenceItem[] = ([
   { level: "basic", japanese: "現金だけですか？", koreanPronunciation: "겐킨다케데스카?", meaning: "현금만 되나요?", category: "여행", note: "카드 결제가 안 되는지 확인할 때" },
   { level: "basic", japanese: "水をください", koreanPronunciation: "미즈오 쿠다사이", meaning: "물 주세요", category: "여행", note: "식당에서 물을 요청할 때" },
   { level: "practical", japanese: "トイレはどこですか？", koreanPronunciation: "토이레와 도코데스카?", meaning: "화장실은 어디예요?", category: "여행", note: "화장실 위치를 물을 때" },
-  { level: "practical", japanese: "駅はどこですか？", koreanPronunciation: "에키와 도코데스카?", meaning: "역은 어디예요?", category: "여행", note: "역 위치를 물을 때" },
+  { level: "practical", japanese: "駅はどこですか？", reading: "えきはどこですか？", rubySegments: [{ text: "駅", reading: "えき" }, { text: "はどこですか？" }], koreanPronunciation: "에키와 도코데스카?", meaning: "역은 어디예요?", category: "여행", note: "역 위치를 물을 때" },
   { level: "practical", japanese: "ここから遠いですか？", koreanPronunciation: "코코카라 토오이데스카?", meaning: "여기서 멀어요?", category: "여행", note: "거리감을 물을 때" },
   { japanese: "歩いて行けますか？", koreanPronunciation: "아루이테 이케마스카?", meaning: "걸어서 갈 수 있어요?", category: "여행", note: "도보 이동 가능 여부를 물을 때" },
-  { japanese: "予約しています", koreanPronunciation: "요야쿠시테이마스", meaning: "예약했습니다", category: "여행", note: "호텔이나 식당에서 예약 사실을 말할 때" },
+  { japanese: "予約しています", reading: "よやくしています", rubySegments: [{ text: "予", reading: "よ" }, { text: "約", reading: "やく" }, { text: "しています" }], koreanPronunciation: "요야쿠시테이마스", meaning: "예약했습니다", category: "여행", note: "호텔이나 식당에서 예약 사실을 말할 때" },
   { japanese: "チェックインお願いします", koreanPronunciation: "첵쿠인 오네가이시마스", meaning: "체크인 부탁합니다", category: "여행", note: "호텔 체크인할 때" },
   { japanese: "チェックアウトは何時ですか？", koreanPronunciation: "첵쿠아우토와 난지데스카?", meaning: "체크아웃은 몇 시예요?", category: "여행", note: "호텔 체크아웃 시간을 물을 때" },
-  { japanese: "荷物を預けたいです", koreanPronunciation: "니모츠오 아즈케타이데스", meaning: "짐을 맡기고 싶어요", category: "여행", note: "호텔이나 역에서 짐을 맡길 때" },
+  { japanese: "荷物を預けたいです", reading: "にもつをあずけたいです", rubySegments: [{ text: "荷", reading: "に" }, { text: "物", reading: "もつ" }, { text: "を" }, { text: "預", reading: "あず" }, { text: "けたいです" }], koreanPronunciation: "니모츠오 아즈케타이데스", meaning: "짐을 맡기고 싶어요", category: "여행", note: "호텔이나 역에서 짐을 맡길 때" },
   { japanese: "英語は話せますか？", koreanPronunciation: "에이고와 하나세마스카?", meaning: "영어 할 수 있어요?", category: "여행", note: "의사소통 가능 언어를 물을 때" },
   { japanese: "日本語が少しできます", koreanPronunciation: "니혼고가 스코시 데키마스", meaning: "일본어를 조금 할 수 있어요", category: "여행", note: "자신의 일본어 수준을 말할 때" },
   { japanese: "ゆっくり話してください", koreanPronunciation: "윳쿠리 하나시테 쿠다사이", meaning: "천천히 말해 주세요", category: "여행", note: "상대 말이 빠를 때" },
@@ -36,7 +42,7 @@ export const SENTENCES: SentenceItem[] = ([
   { japanese: "写真を撮ってもいいですか？", koreanPronunciation: "샤신오 톳테모 이이데스카?", meaning: "사진 찍어도 돼요?", category: "여행", note: "촬영 가능 여부를 물을 때" },
   { japanese: "これはいくらですか？", koreanPronunciation: "코레와 이쿠라데스카?", meaning: "이거 얼마예요?", category: "여행", note: "가격을 물을 때" },
   { japanese: "切符を買いたいです", koreanPronunciation: "킷푸오 카이타이데스", meaning: "표를 사고 싶어요", category: "여행", note: "교통권이나 입장권을 살 때" },
-  { japanese: "この電車はどこに行きますか？", koreanPronunciation: "코노 덴샤와 도코니 이키마스카?", meaning: "이 전철은 어디로 가나요?", category: "여행", note: "전철 방향을 확인할 때" },
+  { japanese: "この電車はどこに行きますか？", reading: "このでんしゃはどこにいきますか？", rubySegments: [{ text: "この" }, { text: "電", reading: "でん" }, { text: "車", reading: "しゃ" }, { text: "はどこに" }, { text: "行", reading: "い" }, { text: "きますか？" }], koreanPronunciation: "코노 덴샤와 도코니 이키마스카?", meaning: "이 전철은 어디로 가나요?", category: "여행", note: "전철 방향을 확인할 때" },
   { japanese: "次の駅で降ります", koreanPronunciation: "츠기노 에키데 오리마스", meaning: "다음 역에서 내립니다", category: "여행", note: "하차 위치를 말할 때" },
   { japanese: "この近くにコンビニはありますか？", koreanPronunciation: "코노 치카쿠니 콘비니와 아리마스카?", meaning: "이 근처에 편의점이 있나요?", category: "여행", note: "근처 편의시설을 찾을 때" },
   { japanese: "道に迷いました", koreanPronunciation: "미치니 마요이마시타", meaning: "길을 잃었어요", category: "여행", note: "길을 잃었을 때 도움을 요청할 때" },

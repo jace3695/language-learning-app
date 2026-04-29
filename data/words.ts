@@ -7,21 +7,28 @@ export type WordItem = {
   level?: LearningLevel;
   word: string;
   reading?: string;
+  rubySegments?: RubySegment[];
   koreanPronunciation?: string;
   meaning: string;
   example: string;
   exampleMeaning?: string;
   exampleReading?: string;
+  exampleRubySegments?: RubySegment[];
   exampleKoreanPronunciation?: string;
+};
+
+export type RubySegment = {
+  text: string;
+  reading?: string;
 };
 
 export const WORDS: WordItem[] = [
   // ===== 여행 =====
-  { level: "beginner", word: "入口", reading: "いりぐち", koreanPronunciation: "이리구치", meaning: "입구", example: "入口はどこですか？", exampleReading: "いりぐちはどこですか？", exampleKoreanPronunciation: "이리구치와 도코데스카?", exampleMeaning: "입구가 어디인가요?", category: "여행" },
-  { level: "beginner", word: "出口", reading: "でぐち", koreanPronunciation: "데구치", meaning: "출구", example: "出口はこちらです", exampleMeaning: "출구는 이쪽입니다", exampleReading: "でぐちはこちらです", exampleKoreanPronunciation: "데구치와 고치라데스", category: "여행" },
-  { level: "beginner", word: "会計", reading: "かいけい", koreanPronunciation: "카이케이", meaning: "계산", example: "会計お願いします", exampleMeaning: "계산 부탁드립니다", exampleReading: "かいけいおねがいします", exampleKoreanPronunciation: "카이케이 오네가이시마스", category: "여행" },
-  { level: "basic", word: "予約", reading: "よやく", koreanPronunciation: "요야쿠", meaning: "예약", example: "予約しています", exampleMeaning: "예약했습니다", exampleReading: "よやくしています", exampleKoreanPronunciation: "요야쿠시테이마스", category: "여행" },
-  { level: "basic", word: "注文", reading: "ちゅうもん", koreanPronunciation: "츄몬", meaning: "주문", example: "注文いいですか？", exampleMeaning: "주문해도 될까요?", exampleReading: "ちゅうもんいいですか？", exampleKoreanPronunciation: "츄몬 이이데스카?", category: "여행" },
+  { level: "beginner", word: "入口", reading: "いりぐち", rubySegments: [{ text: "入", reading: "い" }, { text: "り" }, { text: "口", reading: "ぐち" }], koreanPronunciation: "이리구치", meaning: "입구", example: "入口はどこですか？", exampleReading: "いりぐちはどこですか？", exampleRubySegments: [{ text: "入", reading: "い" }, { text: "り" }, { text: "口", reading: "ぐち" }, { text: "はどこですか？" }], exampleKoreanPronunciation: "이리구치와 도코데스카?", exampleMeaning: "입구가 어디인가요?", category: "여행" },
+  { level: "beginner", word: "出口", reading: "でぐち", rubySegments: [{ text: "出", reading: "で" }, { text: "口", reading: "ぐち" }], koreanPronunciation: "데구치", meaning: "출구", example: "出口はこちらです", exampleMeaning: "출구는 이쪽입니다", exampleReading: "でぐちはこちらです", exampleRubySegments: [{ text: "出", reading: "で" }, { text: "口", reading: "ぐち" }, { text: "はこちらです" }], exampleKoreanPronunciation: "데구치와 고치라데스", category: "여행" },
+  { level: "beginner", word: "会計", reading: "かいけい", rubySegments: [{ text: "会", reading: "かい" }, { text: "計", reading: "けい" }], koreanPronunciation: "카이케이", meaning: "계산", example: "会計お願いします", exampleMeaning: "계산 부탁드립니다", exampleReading: "かいけいおねがいします", exampleRubySegments: [{ text: "会", reading: "かい" }, { text: "計", reading: "けい" }, { text: "お願いします" }], exampleKoreanPronunciation: "카이케이 오네가이시마스", category: "여행" },
+  { level: "basic", word: "予約", reading: "よやく", rubySegments: [{ text: "予", reading: "よ" }, { text: "約", reading: "やく" }], koreanPronunciation: "요야쿠", meaning: "예약", example: "予約しています", exampleMeaning: "예약했습니다", exampleReading: "よやくしています", exampleRubySegments: [{ text: "予", reading: "よ" }, { text: "約", reading: "やく" }, { text: "しています" }], exampleKoreanPronunciation: "요야쿠시테이마스", category: "여행" },
+  { level: "basic", word: "注文", reading: "ちゅうもん", rubySegments: [{ text: "注", reading: "ちゅう" }, { text: "文", reading: "もん" }], koreanPronunciation: "츄몬", meaning: "주문", example: "注文いいですか？", exampleMeaning: "주문해도 될까요?", exampleReading: "ちゅうもんいいですか？", exampleRubySegments: [{ text: "注", reading: "ちゅう" }, { text: "文", reading: "もん" }, { text: "いいですか？" }], exampleKoreanPronunciation: "츄몬 이이데스카?", category: "여행" },
   { level: "basic", word: "おすすめ", reading: "おすすめ", koreanPronunciation: "오스스메", meaning: "추천", example: "おすすめは何ですか？", exampleMeaning: "추천 메뉴는 무엇인가요?", exampleReading: "おすすめはなんですか？", exampleKoreanPronunciation: "오스스메와 난데스카?", category: "여행" },
   { level: "practical", word: "水", reading: "みず", koreanPronunciation: "미즈", meaning: "물", example: "水をください", exampleMeaning: "물 주세요", exampleReading: "みずをください", exampleKoreanPronunciation: "미즈오 구다사이", category: "여행" },
   { level: "practical", word: "お茶", reading: "おちゃ", koreanPronunciation: "오챠", meaning: "차", example: "お茶お願いします", exampleMeaning: "차 부탁드립니다", exampleReading: "おちゃおねがいします", exampleKoreanPronunciation: "오챠 오네가이시마스", category: "여행" },

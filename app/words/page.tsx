@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 
 import { WORDS, type WordItem as Word } from "@/data/words";
+import type { RubySegment } from "@/data/words";
 
 const STORAGE_KEY = "savedWords";
 const WRONG_WORDS_KEY = "wrongWords";
@@ -107,6 +108,21 @@ function getChoices(correct: Word, pool: Word[], quizType: QuizType): string[] {
   const all = shuffle([...shuffled, correct]);
   if (quizType === "jp-to-kr") return all.map((w) => w.meaning);
   return all.map((w) => w.word);
+}
+
+function RubyText({ text, segments, showReading }: { text: string; segments?: RubySegment[]; showReading: boolean }) {
+  if (!showReading || !segments?.length) return <>{text}</>;
+  return (
+    <>
+      {segments.map((segment, index) =>
+        segment.reading ? (
+          <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over" }}>
+            {segment.text}<rt style={{ fontSize: "0.58em" }}>{segment.reading}</rt>
+          </ruby>
+        ) : <span key={`${segment.text}-${index}`}>{segment.text}</span>
+      )}
+    </>
+  );
 }
 
 export default function WordsPage() {
@@ -366,7 +382,7 @@ export default function WordsPage() {
             return (
               <li key={getWordKey(w)} className="card" style={{ marginBottom: "14px" }}>
                 <div className="card-top">
-                  <div className="jp-text">{w.word}</div>
+                  <div className="jp-text"><RubyText text={w.word} segments={w.rubySegments} showReading={settings.showReading} /></div>
                   <span className="badge">{w.category}</span>
                 </div>
                 {settings.showReading && w.reading && (
@@ -387,7 +403,7 @@ export default function WordsPage() {
                   <>
                     <div style={{ marginTop: "10px" }}>
                       <div className="label">예문</div>
-                      <div style={{ color: "#555" }}>{w.example}</div>
+                      <div style={{ color: "#555" }}><RubyText text={w.example} segments={w.exampleRubySegments} showReading={settings.showReading} /></div>
                     </div>
                     {w.exampleMeaning && (
                       <div style={{ marginTop: "4px" }}>
@@ -488,7 +504,7 @@ export default function WordsPage() {
                       letterSpacing: "2px",
                     }}
                   >
-                    {quizType === "kr-to-jp" ? currentWord.meaning : currentWord.word}
+                    {quizType === "kr-to-jp" ? currentWord.meaning : <RubyText text={currentWord.word} segments={currentWord.rubySegments} showReading={settings.showReading} />}
                   </div>
                   {quizType === "jp-to-kr" && currentWord.reading && (
                     settings.showReading &&
@@ -576,7 +592,7 @@ export default function WordsPage() {
                         >
                           {quizType === "kr-to-jp" ? (
                             <>
-                              <div>{choice}</div>
+                              <div><RubyText text={choice} segments={quizPool.find((w) => w.word === choice)?.rubySegments} showReading={settings.showReading} /></div>
                               {(() => {
                                 const choiceWord = quizPool.find((w) => w.word === choice);
                                 return (

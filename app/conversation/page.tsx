@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { RubySegment } from "@/data/sentences";
 
 type Situation = "카페" | "여행" | "일상" | "업무" | "친구";
 
@@ -13,9 +14,11 @@ type ChatMessage =
       role: "assistant";
       reply: string;
       replyReading: string;
+      replyRubySegments?: RubySegment[];
       replyKoreanPronunciation: string;
       correction: string;
       correctionReading: string;
+      correctionRubySegments?: RubySegment[];
       correctionKoreanPronunciation: string;
       explanation: string;
       originalUserText: string; // 어떤 입력에 대한 교정인지 비교용
@@ -160,9 +163,11 @@ export default function ConversationPage() {
       const ai = data as {
         reply?: string;
         replyReading?: string;
+        replyRubySegments?: RubySegment[];
         replyKoreanPronunciation?: string;
         correction?: string;
         correctionReading?: string;
+        correctionRubySegments?: RubySegment[];
         correctionKoreanPronunciation?: string;
         explanation?: string;
       };
@@ -171,9 +176,11 @@ export default function ConversationPage() {
         role: "assistant",
         reply: ai.reply ?? "",
         replyReading: ai.replyReading ?? "",
+        replyRubySegments: ai.replyRubySegments,
         replyKoreanPronunciation: ai.replyKoreanPronunciation ?? "",
         correction: ai.correction ?? "",
         correctionReading: ai.correctionReading ?? "",
+        correctionRubySegments: ai.correctionRubySegments,
         correctionKoreanPronunciation: ai.correctionKoreanPronunciation ?? "",
         explanation: ai.explanation ?? "",
         originalUserText: text,
@@ -392,7 +399,11 @@ export default function ConversationPage() {
                           lineHeight: 1.55,
                         }}
                       >
-                        {m.reply || "—"}
+                        {!settings.showReading || !m.replyRubySegments?.length
+                          ? (m.reply || "—")
+                          : m.replyRubySegments.map((segment, index) => (
+                            segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over" }}>{segment.text}<rt style={{ fontSize: "0.58em" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
+                          ))}
                       </div>
                     </div>
 
@@ -430,7 +441,11 @@ export default function ConversationPage() {
                             lineHeight: 1.55,
                           }}
                         >
-                          {m.correction}
+                          {!settings.showReading || !m.correctionRubySegments?.length
+                            ? m.correction
+                            : m.correctionRubySegments.map((segment, index) => (
+                              segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over" }}>{segment.text}<rt style={{ fontSize: "0.58em" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
+                            ))}
                         </div>
                       </div>
                     )}
