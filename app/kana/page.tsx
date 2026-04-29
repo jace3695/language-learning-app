@@ -90,21 +90,22 @@ type HandwritingFeedback = {
   exampleTip: string;
 };
 
-type AppSettings = {
+type SectionSettings = {
   ttsRate: number;
   repeatCount: number;
   repeatDelayMs: number;
-  showKoreanPronunciation: boolean;
-  showReading: boolean;
+};
+type AppSettings = Partial<SectionSettings> & {
+  sections?: {
+    kana?: Partial<SectionSettings>;
+  };
 };
 
 const APP_SETTINGS_KEY = "japaneseAppSettings";
-const DEFAULT_SETTINGS: AppSettings = {
+const DEFAULT_SETTINGS: SectionSettings = {
   ttsRate: 1,
   repeatCount: 1,
   repeatDelayMs: 500,
-  showKoreanPronunciation: true,
-  showReading: true,
 };
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -934,7 +935,7 @@ const katakanaStrokeOrderData: Record<string, StrokeOrderInfo> = Object.fromEntr
 
 async function speakKanaFallback(
   char: string,
-  settings: AppSettings,
+  settings: SectionSettings,
   onStart?: () => void,
   onEnd?: () => void
 ) {
@@ -975,7 +976,7 @@ async function speakKanaFallback(
 
 async function speakKana(
   char: string,
-  settings: AppSettings,
+  settings: SectionSettings,
   onStart?: () => void,
   onEnd?: () => void
 ) {
@@ -1091,7 +1092,7 @@ export default function KanaPage() {
 
   // 발음 재생 중 표시
   const [playingChar, setPlayingChar] = useState<string | null>(null);
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<SectionSettings>(DEFAULT_SETTINGS);
   const playingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -1099,10 +1100,16 @@ export default function KanaPage() {
       const raw = localStorage.getItem(APP_SETTINGS_KEY);
       if (!raw) return;
 
-      const parsed = JSON.parse(raw) as Partial<AppSettings>;
-      setSettings({
+      const parsed = JSON.parse(raw) as AppSettings;
+      const sectionSettings = {
         ...DEFAULT_SETTINGS,
         ...parsed,
+        ...(parsed.sections?.kana ?? {}),
+      };
+      setSettings({
+        ttsRate: sectionSettings.ttsRate,
+        repeatCount: sectionSettings.repeatCount,
+        repeatDelayMs: sectionSettings.repeatDelayMs,
       });
     } catch {
       setSettings(DEFAULT_SETTINGS);

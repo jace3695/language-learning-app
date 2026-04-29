@@ -27,6 +27,11 @@ type AppSettings = {
   showKoreanPronunciation: boolean;
   showReading: boolean;
 };
+type SettingsPayload = Partial<AppSettings> & {
+  sections?: {
+    sentences?: Partial<AppSettings>;
+  };
+};
 
 const APP_SETTINGS_KEY = "japaneseAppSettings";
 const DEFAULT_SETTINGS: AppSettings = {
@@ -143,10 +148,18 @@ export default function SentencesPage() {
       const raw = localStorage.getItem(APP_SETTINGS_KEY);
       if (!raw) return;
 
-      const parsed = JSON.parse(raw) as Partial<AppSettings>;
-      setSettings({
+      const parsed = JSON.parse(raw) as SettingsPayload;
+      const sectionSettings = {
         ...DEFAULT_SETTINGS,
         ...parsed,
+        ...(parsed.sections?.sentences ?? {}),
+      };
+      setSettings({
+        ttsRate: sectionSettings.ttsRate,
+        repeatCount: sectionSettings.repeatCount,
+        repeatDelayMs: sectionSettings.repeatDelayMs,
+        showKoreanPronunciation: sectionSettings.showKoreanPronunciation,
+        showReading: sectionSettings.showReading,
       });
     } catch {
       setSettings(DEFAULT_SETTINGS);

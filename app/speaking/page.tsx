@@ -68,6 +68,11 @@ type AppSettings = {
   showKoreanPronunciation: boolean;
   showReading: boolean;
 };
+type SettingsPayload = Partial<AppSettings> & {
+  sections?: {
+    speaking?: Partial<AppSettings>;
+  };
+};
 
 const DEFAULT_SETTINGS: AppSettings = {
   ttsRate: 1,
@@ -140,10 +145,18 @@ export default function SpeakingPage() {
       const raw = localStorage.getItem(APP_SETTINGS_KEY);
       if (!raw) return;
 
-      const parsed = JSON.parse(raw) as Partial<AppSettings>;
-      setSettings({
+      const parsed = JSON.parse(raw) as SettingsPayload;
+      const sectionSettings = {
         ...DEFAULT_SETTINGS,
         ...parsed,
+        ...(parsed.sections?.speaking ?? {}),
+      };
+      setSettings({
+        ttsRate: sectionSettings.ttsRate,
+        repeatCount: sectionSettings.repeatCount,
+        repeatDelayMs: sectionSettings.repeatDelayMs,
+        showKoreanPronunciation: sectionSettings.showKoreanPronunciation,
+        showReading: sectionSettings.showReading,
       });
     } catch {
       setSettings(DEFAULT_SETTINGS);
