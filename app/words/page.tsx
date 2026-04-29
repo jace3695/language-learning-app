@@ -111,17 +111,19 @@ function getChoices(correct: Word, pool: Word[], quizType: QuizType): string[] {
 }
 
 function RubyText({ text, segments, showReading }: { text: string; segments?: RubySegment[]; showReading: boolean }) {
-  if (!showReading || !segments?.length) return <>{text}</>;
+  const hasKanji = /[\u3400-\u9FFF]/.test(text);
+  if (!showReading || !hasKanji) return <>{text}</>;
+  if (!segments?.length) return <>{text}</>;
   return (
-    <>
+    <span style={{ whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.5 }}>
       {segments.map((segment, index) =>
         segment.reading ? (
-          <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over" }}>
-            {segment.text}<rt style={{ fontSize: "0.58em" }}>{segment.reading}</rt>
+          <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over", rubyAlign: "center" }}>
+            {segment.text}<rt style={{ fontSize: "0.58em", color: "#7b8c7b" }}>{segment.reading}</rt>
           </ruby>
         ) : <span key={`${segment.text}-${index}`}>{segment.text}</span>
       )}
-    </>
+    </span>
   );
 }
 
@@ -385,9 +387,6 @@ export default function WordsPage() {
                   <div className="jp-text"><RubyText text={w.word} segments={w.rubySegments} showReading={settings.showReading} /></div>
                   <span className="badge">{w.category}</span>
                 </div>
-                {settings.showReading && w.reading && (
-                  <div style={{ marginTop: "4px", color: "#5f6b5f", fontSize: "14px", lineHeight: 1.5 }}>{w.reading}</div>
-                )}
                 {w.koreanPronunciation && (
                   settings.showKoreanPronunciation &&
                   <div style={{ marginTop: "4px" }}>
@@ -410,9 +409,6 @@ export default function WordsPage() {
                         <div className="label">예문 뜻</div>
                         <div style={{ color: "#666", fontSize: "13px" }}>{w.exampleMeaning}</div>
                       </div>
-                    )}
-                    {settings.showReading && w.exampleReading && (
-                      <div style={{ marginTop: "4px", color: "#6b746b", fontSize: "13px", lineHeight: 1.5 }}>{w.exampleReading}</div>
                     )}
                     {w.exampleKoreanPronunciation && (
                       settings.showKoreanPronunciation &&
@@ -506,19 +502,6 @@ export default function WordsPage() {
                   >
                     {quizType === "kr-to-jp" ? currentWord.meaning : <RubyText text={currentWord.word} segments={currentWord.rubySegments} showReading={settings.showReading} />}
                   </div>
-                  {quizType === "jp-to-kr" && currentWord.reading && (
-                    settings.showReading &&
-                    <div
-                      style={{
-                        textAlign: "center",
-                        fontSize: "14px",
-                        color: "#666",
-                        marginBottom: "2px",
-                      }}
-                    >
-                      {currentWord.reading}
-                    </div>
-                  )}
                   {quizType === "jp-to-kr" && currentWord.koreanPronunciation && (
                     showQuizKoreanPronunciation &&
                     <div
@@ -597,11 +580,6 @@ export default function WordsPage() {
                                 const choiceWord = quizPool.find((w) => w.word === choice);
                                 return (
                                   <>
-                                    {choiceWord?.reading && (
-                                      <div style={{ fontSize: "13px", color: "#666", marginTop: "4px" }}>
-                                        {choiceWord.reading}
-                                      </div>
-                                    )}
                                     {showQuizKoreanPronunciation && choiceWord?.koreanPronunciation && (
                                       <div style={{ fontSize: "12px", color: "#888", marginTop: "2px" }}>
                                         {choiceWord.koreanPronunciation}
@@ -633,10 +611,7 @@ export default function WordsPage() {
                       {selected === correctAnswer ? "정답! 🎉" : `오답 — 정답: ${correctAnswer}`}
                       {selected !== correctAnswer && currentWord && quizType === "kr-to-jp" && (
                         <div style={{ marginTop: "8px", fontSize: "14px", color: "#444" }}>
-                          {currentWord.word}
-                          {currentWord.reading && (
-                            <div style={{ fontSize: "13px", color: "#666" }}>{currentWord.reading}</div>
-                          )}
+                          <RubyText text={currentWord.word} segments={currentWord.rubySegments} showReading={settings.showReading} />
                           {showQuizKoreanPronunciation && currentWord.koreanPronunciation && (
                             <div style={{ fontSize: "12px", color: "#888" }}>{currentWord.koreanPronunciation}</div>
                           )}

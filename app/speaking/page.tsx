@@ -396,16 +396,11 @@ export default function SpeakingPage() {
             <p style={{ fontSize: "0.78rem", color: "#065f46", marginBottom: "0.25rem" }}>
               정답
             </p>
-            <p style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0, marginBottom: (settings.showReading && current.reading) || (settings.showKoreanPronunciation && current.koreanPronunciation) ? "0.5rem" : 0 }}>
-              {!settings.showReading || !current.rubySegments?.length ? current.japanese : current.rubySegments.map((segment, index) => (
-                segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over" }}>{segment.text}<rt style={{ fontSize: "0.58em" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
+            <p style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0, marginBottom: settings.showKoreanPronunciation && current.koreanPronunciation ? "0.5rem" : 0 }}>
+              {!settings.showReading || !/[\u3400-\u9FFF]/.test(current.japanese) || !current.rubySegments?.length ? current.japanese : current.rubySegments.map((segment, index) => (
+                segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over", rubyAlign: "center" }}>{segment.text}<rt style={{ fontSize: "0.58em", color: "#7b8c7b" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
               ))}
             </p>
-            {settings.showReading && current.reading && (
-              <p style={{ fontSize: "0.95rem", color: "#2f6f57", margin: 0, marginBottom: settings.showKoreanPronunciation && current.koreanPronunciation ? "0.35rem" : 0, lineHeight: 1.5, wordBreak: "break-word" }}>
-                {current.reading}
-              </p>
-            )}
             {settings.showKoreanPronunciation && current.koreanPronunciation && (
               <p style={{ fontSize: "0.85rem", color: "#3d8a6a", margin: 0, lineHeight: 1.5, wordBreak: "break-word" }}>
                 {current.koreanPronunciation}
