@@ -368,7 +368,7 @@ export default function SentencesPage() {
                   <div style={{ color: "#555" }}>{s.note}</div>
                 </div>
 
-                <div className="card-actions">
+                <div className="card-actions" style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                   <button
                     onClick={() => speakJapanese(s.japanese, settings)}
                     className="btn"
