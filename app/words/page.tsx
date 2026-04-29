@@ -23,6 +23,7 @@ type WrongWord = {
 type AppSettings = {
   ttsRate: number;
   repeatCount: number;
+  repeatDelayMs: number;
   showKoreanPronunciation: boolean;
   showReading: boolean;
 };
@@ -31,6 +32,7 @@ const APP_SETTINGS_KEY = "japaneseAppSettings";
 const DEFAULT_SETTINGS: AppSettings = {
   ttsRate: 1,
   repeatCount: 1,
+  repeatDelayMs: 500,
   showKoreanPronunciation: true,
   showReading: true,
 };
@@ -237,10 +239,10 @@ export default function WordsPage() {
         utter.rate = settings.ttsRate;
         setTimeout(() => {
           window.speechSynthesis.speak(utter);
-        }, i * 350);
+        }, i * (settings.repeatDelayMs + 350));
       }
     },
-    [settings.repeatCount, settings.ttsRate]
+    [settings.repeatCount, settings.repeatDelayMs, settings.ttsRate]
   );
 
   const CATEGORIES: CategoryFilter[] = ["전체", "여행", "업무", "일상", "친구"];

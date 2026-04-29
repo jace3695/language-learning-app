@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 type JapaneseAppSettings = {
   ttsRate: number;
   repeatCount: number;
+  repeatDelayMs: number;
   showKoreanPronunciation: boolean;
   showReading: boolean;
 };
@@ -14,13 +15,19 @@ const SETTINGS_STORAGE_KEY = "japaneseAppSettings";
 const DEFAULT_SETTINGS: JapaneseAppSettings = {
   ttsRate: 1,
   repeatCount: 1,
+  repeatDelayMs: 500,
   showKoreanPronunciation: true,
   showReading: true,
 };
 
 const TTS_RATE_OPTIONS: Array<{ value: JapaneseAppSettings["ttsRate"]; label: string }> = [
+  { value: 0.5, label: "0.5 아주 느리게" },
+  { value: 0.6, label: "0.6" },
+  { value: 0.7, label: "0.7" },
   { value: 0.8, label: "0.8 느리게" },
+  { value: 0.9, label: "0.9" },
   { value: 1, label: "1.0 보통" },
+  { value: 1.1, label: "1.1" },
   { value: 1.2, label: "1.2 빠르게" },
 ];
 
@@ -30,12 +37,25 @@ const REPEAT_COUNT_OPTIONS: Array<{ value: JapaneseAppSettings["repeatCount"]; l
   { value: 3, label: "3회" },
 ];
 
+const REPEAT_DELAY_OPTIONS: Array<{ value: JapaneseAppSettings["repeatDelayMs"]; label: string }> = [
+  { value: 0, label: "바로 반복" },
+  { value: 300, label: "0.3초" },
+  { value: 500, label: "0.5초" },
+  { value: 1000, label: "1초" },
+  { value: 1500, label: "1.5초" },
+  { value: 2000, label: "2초" },
+];
+
 function isValidTtsRate(value: unknown): value is JapaneseAppSettings["ttsRate"] {
-  return value === 0.8 || value === 1 || value === 1.2;
+  return value === 0.5 || value === 0.6 || value === 0.7 || value === 0.8 || value === 0.9 || value === 1 || value === 1.1 || value === 1.2;
 }
 
 function isValidRepeatCount(value: unknown): value is JapaneseAppSettings["repeatCount"] {
   return value === 1 || value === 2 || value === 3;
+}
+
+function isValidRepeatDelayMs(value: unknown): value is JapaneseAppSettings["repeatDelayMs"] {
+  return value === 0 || value === 300 || value === 500 || value === 1000 || value === 1500 || value === 2000;
 }
 
 function parseSettings(raw: string | null): JapaneseAppSettings {
@@ -62,6 +82,9 @@ function parseSettings(raw: string | null): JapaneseAppSettings {
       repeatCount: isValidRepeatCount(mergedSettings.repeatCount)
         ? mergedSettings.repeatCount
         : DEFAULT_SETTINGS.repeatCount,
+      repeatDelayMs: isValidRepeatDelayMs(mergedSettings.repeatDelayMs)
+        ? mergedSettings.repeatDelayMs
+        : DEFAULT_SETTINGS.repeatDelayMs,
       showKoreanPronunciation:
         typeof mergedSettings.showKoreanPronunciation === "boolean"
           ? mergedSettings.showKoreanPronunciation
@@ -131,6 +154,28 @@ export default function SettingsPage() {
             style={{ width: "100%" }}
           >
             {TTS_RATE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="repeat-delay" style={{ display: "block", fontWeight: 600, marginBottom: "6px" }}>
+            반복 재생 간격
+          </label>
+          <select
+            id="repeat-delay"
+            value={settings.repeatDelayMs}
+            onChange={(event) => {
+              const value = Number(event.target.value);
+              if (!isValidRepeatDelayMs(value)) return;
+              setSettings((prev) => ({ ...prev, repeatDelayMs: value }));
+            }}
+            style={{ width: "100%" }}
+          >
+            {REPEAT_DELAY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>

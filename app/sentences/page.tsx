@@ -23,6 +23,7 @@ interface QuizState {
 type AppSettings = {
   ttsRate: number;
   repeatCount: number;
+  repeatDelayMs: number;
   showKoreanPronunciation: boolean;
   showReading: boolean;
 };
@@ -31,9 +32,11 @@ const APP_SETTINGS_KEY = "japaneseAppSettings";
 const DEFAULT_SETTINGS: AppSettings = {
   ttsRate: 1,
   repeatCount: 1,
+  repeatDelayMs: 500,
   showKoreanPronunciation: true,
   showReading: true,
 };
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 async function speakJapaneseFallback(text: string, settings: AppSettings) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
@@ -49,6 +52,9 @@ async function speakJapaneseFallback(text: string, settings: AppSettings) {
         window.speechSynthesis.speak(utter);
       }, 50);
     });
+    if (i < settings.repeatCount - 1 && settings.repeatDelayMs > 0) {
+      await wait(settings.repeatDelayMs);
+    }
   }
 }
 
@@ -71,6 +77,9 @@ async function speakJapanese(text: string, settings: AppSettings) {
         audio.onerror = () => reject(new Error("Audio playback failed"));
         audio.play().catch(reject);
       });
+      if (i < settings.repeatCount - 1 && settings.repeatDelayMs > 0) {
+        await wait(settings.repeatDelayMs);
+      }
     }
   } catch {
     await speakJapaneseFallback(text, settings);
