@@ -37,6 +37,7 @@ const BASE_QUESTIONS: Question[] = [
     japanese: "ご確認お願いします",
     category: "업무",
     reading: "ごかくにんおねがいします",
+    rubySegments: [{ text: "ご" }, { text: "確認", reading: "かくにん" }, { text: "お願いします" }],
     koreanPronunciation: "고카쿠닌 오네가이시마스",
   },
   {
@@ -58,6 +59,7 @@ const BASE_QUESTIONS: Question[] = [
     japanese: "ゆっくり話してください",
     category: "여행",
     reading: "ゆっくりはなしてください",
+    rubySegments: [{ text: "ゆっくり" }, { text: "話", reading: "はな" }, { text: "してください" }],
     koreanPronunciation: "윳쿠리 하나시테 쿠다사이",
   },
 ];
