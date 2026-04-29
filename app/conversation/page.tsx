@@ -399,19 +399,13 @@ export default function ConversationPage() {
                           lineHeight: 1.55,
                         }}
                       >
-                        {!settings.showReading || !m.replyRubySegments?.length
+                        {!settings.showReading || !/[\u3400-\u9FFF]/.test(m.reply || "") || !m.replyRubySegments?.length
                           ? (m.reply || "—")
                           : m.replyRubySegments.map((segment, index) => (
-                            segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over" }}>{segment.text}<rt style={{ fontSize: "0.58em" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
+                            segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over", rubyAlign: "center" }}>{segment.text}<rt style={{ fontSize: "0.58em", color: "#7b8c7b" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
                           ))}
                       </div>
                     </div>
-
-                    {settings.showReading && m.replyReading && (
-                      <div style={{ marginTop: "2px", color: "#4f5b4f", fontSize: "13px", lineHeight: 1.5, wordBreak: "break-word" }}>
-                        {m.replyReading}
-                      </div>
-                    )}
                     {settings.showKoreanPronunciation && m.replyKoreanPronunciation && (
                       <div style={{ marginTop: "2px", color: "#728172", fontSize: "12px", lineHeight: 1.5, wordBreak: "break-word" }}>
                         {m.replyKoreanPronunciation}
@@ -441,18 +435,12 @@ export default function ConversationPage() {
                             lineHeight: 1.55,
                           }}
                         >
-                          {!settings.showReading || !m.correctionRubySegments?.length
+                          {!settings.showReading || !/[\u3400-\u9FFF]/.test(m.correction || "") || !m.correctionRubySegments?.length
                             ? m.correction
                             : m.correctionRubySegments.map((segment, index) => (
-                              segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over" }}>{segment.text}<rt style={{ fontSize: "0.58em" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
+                              segment.reading ? <ruby key={`${segment.text}-${index}`} style={{ rubyPosition: "over", rubyAlign: "center" }}>{segment.text}<rt style={{ fontSize: "0.58em", color: "#7b8c7b" }}>{segment.reading}</rt></ruby> : <span key={`${segment.text}-${index}`}>{segment.text}</span>
                             ))}
                         </div>
-                      </div>
-                    )}
-
-                    {settings.showReading && m.correctionReading && (
-                      <div style={{ marginTop: "2px", color: "#4f5b4f", fontSize: "13px", lineHeight: 1.5, wordBreak: "break-word" }}>
-                        {m.correctionReading}
                       </div>
                     )}
                     {settings.showKoreanPronunciation && m.correctionKoreanPronunciation && (
