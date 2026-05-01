@@ -45,6 +45,7 @@ const BASE_QUESTIONS: Question[] = [
     japanese: "今何してる？",
     category: "친구",
     reading: "いまなにしてる？",
+    rubySegments: [{ text: "今", reading: "いま" }, { text: "何", reading: "なに" }, { text: "してる？" }],
     koreanPronunciation: "이마 나니 시테루",
   },
   {
@@ -52,6 +53,7 @@ const BASE_QUESTIONS: Question[] = [
     japanese: "一緒に行こう",
     category: "친구",
     reading: "いっしょにいこう",
+    rubySegments: [{ text: "一緒", reading: "いっしょ" }, { text: "に" }, { text: "行", reading: "い" }, { text: "こう" }],
     koreanPronunciation: "잇쇼니 이코오",
   },
   {
