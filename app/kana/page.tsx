@@ -1724,7 +1724,7 @@ export default function KanaPage() {
                   fontWeight: 600,
                 }}
               >
-                🔊 발음
+                🔊 발음 듣기
               </button>
             </div>
           </div>
