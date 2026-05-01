@@ -10,6 +10,7 @@ const STORAGE_KEY = "savedWords";
 const WRONG_WORDS_KEY = "wrongWords";
 type CategoryFilter = "전체" | "여행" | "업무" | "일상" | "친구";
 type LevelFilter = "all" | "beginner" | "basic" | "practical";
+type PartOfSpeechFilter = "all" | "noun" | "verb" | "i_adjective" | "na_adjective" | "adverb" | "expression";
 type QuizType = "jp-to-kr" | "kr-to-jp";
 type PageMode = "study" | "quiz";
 
@@ -117,6 +118,7 @@ export default function WordsPage() {
   const [mode, setMode] = useState<PageMode>("study");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("전체");
   const [levelFilter, setLevelFilter] = useState<LevelFilter>("all");
+  const [partOfSpeechFilter, setPartOfSpeechFilter] = useState<PartOfSpeechFilter>("all");
 
   // 퀴즈 상태
   const [quizType, setQuizType] = useState<QuizType>("jp-to-kr");
@@ -195,7 +197,12 @@ export default function WordsPage() {
       ? filteredWords
       : filteredWords.filter((w) => getEffectiveLevel(w) === levelFilter);
 
-  const quizPool = filteredWordsByLevel;
+  const filteredWordsByPartOfSpeech =
+    partOfSpeechFilter === "all"
+      ? filteredWordsByLevel
+      : filteredWordsByLevel.filter((w) => w.partOfSpeech === partOfSpeechFilter);
+
+  const quizPool = filteredWordsByPartOfSpeech;
 
   const generateQuiz = useCallback(
     (pool: Word[]) => {
@@ -215,7 +222,7 @@ export default function WordsPage() {
       generateQuiz(quizPool);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, categoryFilter, levelFilter]);
+  }, [mode, categoryFilter, levelFilter, partOfSpeechFilter]);
 
   const handleAnswer = (choice: string) => {
     if (selected !== null || !currentWord) return;
@@ -268,8 +275,30 @@ export default function WordsPage() {
     { label: "실전", value: "practical" },
   ];
 
-  const getReadingByWord = (word: string) =>
-    quizPool.find((item) => item.word === word)?.reading;
+
+
+  const PARTS_OF_SPEECH: Array<{ label: string; value: PartOfSpeechFilter }> = [
+    { label: "전체", value: "all" },
+    { label: "명사", value: "noun" },
+    { label: "동사", value: "verb" },
+    { label: "い형용사", value: "i_adjective" },
+    { label: "な형용사", value: "na_adjective" },
+    { label: "부사", value: "adverb" },
+    { label: "표현", value: "expression" },
+  ];
+
+  const getPartOfSpeechLabel = (partOfSpeech?: Word["partOfSpeech"]) => {
+    if (!partOfSpeech) return null;
+    const labels: Record<Exclude<PartOfSpeechFilter, "all">, string> = {
+      noun: "명사",
+      verb: "동사",
+      i_adjective: "い형용사",
+      na_adjective: "な형용사",
+      adverb: "부사",
+      expression: "표현",
+    };
+    return labels[partOfSpeech];
+  };
 
   return (
     <section>
@@ -360,16 +389,46 @@ export default function WordsPage() {
         ))}
       </div>
 
+      {/* 품사 필터 */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
+        {PARTS_OF_SPEECH.map((part) => (
+          <button
+            key={part.value}
+            className="btn"
+            onClick={() => {
+              setPartOfSpeechFilter(part.value);
+              if (mode === "quiz") setScore({ correct: 0, total: 0 });
+            }}
+            style={{
+              background: partOfSpeechFilter === part.value ? "#555" : "transparent",
+              color: partOfSpeechFilter === part.value ? "#fff" : "#555",
+              border: "1.5px solid #ccc",
+              fontSize: "13px",
+              padding: "6px 14px",
+            }}
+          >
+            {part.label}
+          </button>
+        ))}
+      </div>
+
       {/* ===== 학습 모드 ===== */}
       {mode === "study" && (
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {filteredWordsByLevel.map((w) => {
+          {filteredWordsByPartOfSpeech.length === 0 ? (
+            <li className="card" style={{ textAlign: "center", color: "#888", padding: "24px 16px" }}>
+              해당 조건의 단어가 없습니다.
+            </li>
+          ) : filteredWordsByPartOfSpeech.map((w) => {
             const saved = isSaved(w);
             return (
               <li key={getWordKey(w)} className="card" style={{ marginBottom: "14px" }}>
                 <div className="card-top">
                   <div className="jp-text"><FuriganaText text={w.word} rubySegments={w.rubySegments} showReading={settings.showReading} /></div>
-                  <span className="badge">{w.category}</span>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                    <span className="badge">{w.category}</span>
+                    {w.partOfSpeech && <span className="badge">{getPartOfSpeechLabel(w.partOfSpeech)}</span>}
+                  </div>
                 </div>
                 {w.koreanPronunciation && (
                   settings.showKoreanPronunciation &&
@@ -479,7 +538,10 @@ export default function WordsPage() {
               {currentWord && (
                 <div className="card" style={{ marginBottom: "20px" }}>
                   <div style={{ marginBottom: "8px" }}>
-                    <span className="badge">{currentWord.category}</span>
+                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                      <span className="badge">{currentWord.category}</span>
+                      {currentWord.partOfSpeech && <span className="badge">{getPartOfSpeechLabel(currentWord.partOfSpeech)}</span>}
+                    </div>
                   </div>
                   <div
                     style={{
