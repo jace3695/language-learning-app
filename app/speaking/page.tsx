@@ -341,7 +341,7 @@ export default function SpeakingPage() {
         <p style={{ fontSize: "1.4rem", fontWeight: 700, margin: 0 }}>{current.korean}</p>
         {current.note && (
           <p style={{ fontSize: "0.8rem", color: "#888", marginTop: "0.5rem", marginBottom: 0 }}>
-            📝 {current.note}
+            {current.note}
           </p>
         )}
       </div>
