@@ -403,12 +403,18 @@ export default function WordsPage() {
                     )}
                   </>
                 )}
-                <div className="card-actions">
+                <div className="card-actions" style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                   <button
                     onClick={() => speakJapaneseText(w.word)}
                     className="btn"
                   >
                     🔊 단어 듣기
+                  </button>
+                  <button
+                    onClick={() => speakJapaneseText(w.example)}
+                    className="btn"
+                  >
+                    🔊 예문 듣기
                   </button>
                   <button
                     onClick={() => handleSaveToggle(w)}

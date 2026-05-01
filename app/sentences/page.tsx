@@ -425,7 +425,7 @@ export default function SentencesPage() {
                     className="btn"
                     type="button"
                   >
-                    듣기
+                    🔊 문장 듣기
                   </button>
                   <button
                     onClick={() => handleSave(s)}
@@ -516,7 +516,7 @@ export default function SentencesPage() {
                     onClick={() => speakJapanese(quiz.question.japanese, settings)}
                     type="button"
                   >
-                    듣기
+                    🔊 문장 듣기
                   </button>
                 </div>
               )}
