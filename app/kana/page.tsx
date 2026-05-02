@@ -150,6 +150,15 @@ type KanaSvgGuide = {
   labels: { x: number; y: number; text: string }[];
 };
 
+type KanaDemoStroke = {
+  path: string;
+};
+
+type KanaDemo = {
+  viewBox: string;
+  strokes: KanaDemoStroke[];
+};
+
 const kanaSvgGuides: Record<string, KanaSvgGuide> = {
   あ: {
     viewBox: "0 0 200 200",
@@ -241,6 +250,14 @@ const kanaSvgGuides: Record<string, KanaSvgGuide> = {
 };
 
 const traceBasedGuideChars = new Set(["あ", "い", "う", "え", "お"]);
+
+const kanaWritingDemos: Record<string, KanaDemo> = {
+  あ: { viewBox: "0 0 200 200", strokes: [{ path: "M55 58 C86 52 122 51 151 55" }, { path: "M106 41 C102 75 98 116 97 158" }, { path: "M73 113 C95 90 134 89 153 113 C173 139 144 170 99 170 C68 170 53 148 62 129 C69 113 84 102 104 98" }] },
+  い: { viewBox: "0 0 200 200", strokes: [{ path: "M67 59 C58 90 58 124 73 149 C80 161 88 157 99 137" }, { path: "M132 67 C149 93 157 118 159 148" }] },
+  う: { viewBox: "0 0 200 200", strokes: [{ path: "M81 60 C101 51 123 53 142 64" }, { path: "M63 106 C91 83 140 83 154 114 C166 143 140 169 94 171" }] },
+  え: { viewBox: "0 0 200 200", strokes: [{ path: "M80 57 C103 50 124 52 140 63" }, { path: "M67 97 C96 88 126 87 152 95" }, { path: "M106 95 C92 118 80 141 64 168 C89 150 106 138 121 132 C131 128 134 137 138 150 C142 162 152 164 166 154" }] },
+  お: { viewBox: "0 0 200 200", strokes: [{ path: "M56 66 C84 62 114 60 142 63" }, { path: "M98 47 C98 81 96 118 94 154" }, { path: "M71 116 C89 104 114 98 136 106 C158 114 166 136 154 154 C142 173 110 173 91 159 C78 149 80 133 95 125" }, { path: "M140 87 C154 95 165 106 173 119" }] },
+};
 
 type HandwritingFeedback = {
   summary: string;
@@ -1311,9 +1328,14 @@ export default function KanaPage() {
   const [writingFeedbackLoading, setWritingFeedbackLoading] = useState(false);
   const [writingFeedbackError, setWritingFeedbackError] = useState<string | null>(null);
   const writingCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const demoSvgRef = useRef<SVGSVGElement | null>(null);
   const writingAreaRef = useRef<HTMLDivElement | null>(null);
   const writingIsDrawingRef = useRef(false);
   const writingLastPointRef = useRef<{ x: number; y: number } | null>(null);
+  const [demoReplayTick, setDemoReplayTick] = useState(0);
+  const [demoVisibleStrokeCount, setDemoVisibleStrokeCount] = useState(0);
+  const [demoAnimatingStrokeIndex, setDemoAnimatingStrokeIndex] = useState<number | null>(null);
+  const [demoAnimationState, setDemoAnimationState] = useState<"idle" | "playing" | "done">("idle");
 
   const handleSpeak = useCallback((char: string) => {
     if (playingTimerRef.current) clearTimeout(playingTimerRef.current);
@@ -1464,6 +1486,9 @@ export default function KanaPage() {
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentSvgGuide = currentWritingItem ? kanaSvgGuides[currentWritingItem.char] : undefined;
+  const currentKanaDemo = currentWritingItem ? kanaWritingDemos[currentWritingItem.char] : undefined;
+  const isWritingViewMode = writingSubMode === "trace" && writingGuideMode === "follow";
+  const isDemoSupported = !!currentKanaDemo;
   const useSvgGuide = writingSubMode === "trace" && !!currentSvgGuide;
   const useTraceBasedGuideOnly = !!(currentWritingItem && traceBasedGuideChars.has(currentWritingItem.char));
   const showSvgGuidePaths = useSvgGuide && writingGuideMode !== "blank" && !useTraceBasedGuideOnly;
@@ -1484,10 +1509,40 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "follow"
-    ? "흐린 글자와 보조선을 따라 천천히 써보세요. 번호는 쓰기 순서 참고용입니다."
+    ? "글자가 써지는 모습을 보고, 흐린 글자와 빈칸 쓰기로 직접 연습해 보세요."
     : writingGuideMode === "faint"
-      ? "글자 모양을 보며 직접 써보세요."
-      : "가이드 없이 기억해서 써보세요.";
+      ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
+      : "이제 기억해서 빈칸에 다시 써보세요.";
+
+  useEffect(() => {
+    if (!isWritingViewMode || !currentKanaDemo) return;
+    setDemoAnimationState("playing");
+    setDemoVisibleStrokeCount(0);
+    setDemoAnimatingStrokeIndex(null);
+
+    const svg = demoSvgRef.current;
+    if (!svg) return;
+    const pathElements = Array.from(svg.querySelectorAll<SVGPathElement>("[data-demo-stroke='true']"));
+    if (pathElements.length === 0) return;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let elapsed = 120;
+    pathElements.forEach((pathEl, idx) => {
+      const length = pathEl.getTotalLength();
+      const duration = Math.min(950, Math.max(500, length * 4.5));
+      timers.push(setTimeout(() => {
+        setDemoVisibleStrokeCount(idx + 1);
+        setDemoAnimatingStrokeIndex(idx);
+      }, elapsed));
+      elapsed += duration + 140;
+    });
+    timers.push(setTimeout(() => {
+      setDemoAnimatingStrokeIndex(null);
+      setDemoAnimationState("done");
+    }, elapsed));
+
+    return () => timers.forEach((timer) => clearTimeout(timer));
+  }, [isWritingViewMode, currentWritingItem?.char, demoReplayTick, currentKanaDemo]);
 
   const loadNextWritingQuizQuestion = useCallback(() => {
     setWritingQuizQuestion(getWritingQuizQuestion(data));
@@ -1910,7 +1965,7 @@ export default function KanaPage() {
                 fontSize: "0.875rem",
               }}
             >
-              따라 쓰기
+              쓰기 보기
             </button>
             <button
               onClick={() => {
@@ -1980,8 +2035,8 @@ export default function KanaPage() {
 
           {writingSubMode === "trace" && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem", marginBottom: "0.75rem" }}>
-              {([
-                { id: "follow", label: "따라 쓰기" },
+                {([
+                { id: "follow", label: "쓰기 보기" },
                 { id: "faint", label: "흐린 글자" },
                 { id: "blank", label: "빈칸 쓰기" },
               ] as const).map((modeBtn) => {
@@ -2058,7 +2113,7 @@ export default function KanaPage() {
             >
               {showFaintGuide ? currentWritingItem.char : ""}
             </div>
-            {writingSubMode === "trace" && writingGuideMode === "follow" && !useSvgGuide && (
+            {writingSubMode === "trace" && writingGuideMode === "follow" && !isDemoSupported && !useSvgGuide && (
               <div
                 style={{
                   position: "absolute",
@@ -2075,7 +2130,54 @@ export default function KanaPage() {
                 {currentWritingItem.char}
               </div>
             )}
-            {useSvgGuide && currentSvgGuide && (
+            {isWritingViewMode && isDemoSupported && currentKanaDemo && (
+              <svg
+                ref={demoSvgRef}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 3 }}
+                viewBox={currentKanaDemo.viewBox}
+                preserveAspectRatio="xMidYMid meet"
+              >
+                {currentKanaDemo.strokes.map((stroke, idx) => (
+                  <g key={`demo-stroke-${idx}`}>
+                    {demoVisibleStrokeCount > idx && (
+                      <path
+                        d={stroke.path}
+                        fill="none"
+                        stroke="rgba(124, 58, 237, 0.2)"
+                        strokeWidth={10}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    )}
+                    <path
+                      data-demo-stroke="true"
+                      d={stroke.path}
+                      fill="none"
+                      stroke="rgba(124, 58, 237, 0.85)"
+                      strokeWidth={10}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      pathLength={100}
+                      strokeDasharray={100}
+                      strokeDashoffset={demoAnimatingStrokeIndex === idx ? 0 : 100}
+                      style={{
+                        opacity: demoVisibleStrokeCount > idx || demoAnimatingStrokeIndex === idx ? 1 : 0,
+                        transition: demoAnimatingStrokeIndex === idx ? "stroke-dashoffset 0.8s ease-out" : "none",
+                      }}
+                    />
+                    {currentSvgGuide?.labels?.[idx] && (
+                      <g transform={`translate(${currentSvgGuide.labels[idx].x}, ${currentSvgGuide.labels[idx].y})`}>
+                        <circle r="9.5" fill="rgba(124, 58, 237, 0.18)" />
+                        <text textAnchor="middle" dominantBaseline="central" fill="rgba(109, 40, 217, 0.8)" fontSize="11" fontWeight="700">
+                          {currentSvgGuide.labels[idx].text}
+                        </text>
+                      </g>
+                    )}
+                  </g>
+                ))}
+              </svg>
+            )}
+            {useSvgGuide && currentSvgGuide && !isWritingViewMode && (
               <svg
                 style={{
                   position: "absolute",
@@ -2129,6 +2231,7 @@ export default function KanaPage() {
                 ))}
               </svg>
             )}
+            {!isWritingViewMode && (
             <canvas
               ref={writingCanvasRef}
               onPointerDown={(e) => {
@@ -2167,7 +2270,25 @@ export default function KanaPage() {
                 zIndex: 4,
               }}
             />
+            )}
           </div>
+          {isWritingViewMode && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "-0.4rem", marginBottom: "0.75rem", gap: "0.75rem", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.82rem", color: "#6b7280" }}>
+                {isDemoSupported
+                  ? `쓰기 보기 상태: ${demoAnimationState === "playing" ? "재생 중" : demoAnimationState === "done" ? "재생 완료" : "대기"}`
+                  : "이 글자는 곧 쓰기 보기 지원 예정입니다. 흐린 글자 모드에서 먼저 연습해 보세요."}
+              </span>
+              {isDemoSupported && (
+                <button
+                  onClick={() => setDemoReplayTick((prev) => prev + 1)}
+                  style={{ padding: "0.45rem 0.7rem", borderRadius: "8px", border: "1px solid #d1d5db", background: "#fff", cursor: "pointer", color: "#374151", fontWeight: 600 }}
+                >
+                  다시보기
+                </button>
+              )}
+            </div>
+          )}
 
           {writingSubMode === "trace" ? (
             <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
