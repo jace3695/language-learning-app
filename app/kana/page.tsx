@@ -1460,8 +1460,20 @@ export default function KanaPage() {
   const isTracingGuideDisabled = !!currentTracingGuide?.disabled;
   const showStrokeNumberGuide = writingSubMode === "trace" && writingGuideMode === "follow" && !!currentTracingGuide && !isTracingGuideDisabled;
   const showFaintGuide = writingSubMode === "trace" && writingGuideMode !== "blank";
+  const kanaGuideTextStyle = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "13rem",
+    fontWeight: 700,
+    fontFamily: "inherit",
+    lineHeight: 1,
+    userSelect: "none" as const,
+    WebkitUserSelect: "none" as const,
+    pointerEvents: "none" as const,
+  };
   const writingGuideMessage = writingGuideMode === "follow"
-    ? "번호는 쓰기 순서 참고용입니다. 흐린 글자 위에 따라 써보세요."
+    ? "흐린 글자와 보조선을 따라 천천히 써보세요. 번호는 쓰기 순서 참고용입니다."
     : writingGuideMode === "faint"
       ? "글자 모양을 보며 직접 써보세요."
       : "가이드 없이 기억해서 써보세요.";
@@ -2028,27 +2040,35 @@ export default function KanaPage() {
               style={{
                 position: "absolute",
                 inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "13rem",
-                fontWeight: 700,
+                zIndex: 1,
                 color: "rgba(17, 24, 39, 0.08)",
-                pointerEvents: "none",
-                userSelect: "none",
-                WebkitUserSelect: "none",
-                lineHeight: 1,
+                ...kanaGuideTextStyle,
               }}
             >
               {showFaintGuide ? currentWritingItem.char : ""}
             </div>
+            {writingSubMode === "trace" && writingGuideMode === "follow" && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  zIndex: 2,
+                  color: "transparent",
+                  WebkitTextStroke: "1.8px rgba(124, 58, 237, 0.45)",
+                  textShadow: "0 0 1px rgba(124, 58, 237, 0.18)",
+                  ...kanaGuideTextStyle,
+                }}
+              >
+                {currentWritingItem.char}
+              </div>
+            )}
             {showStrokeNumberGuide && currentTracingGuide && (
               <div
                 style={{
                   position: "absolute",
                   inset: 0,
                   pointerEvents: "none",
-                  zIndex: 2,
+                  zIndex: 3,
                 }}
               >
                 {currentTracingGuide.labels.map((label, idx) => (
@@ -2111,6 +2131,7 @@ export default function KanaPage() {
                 width: "100%",
                 height: "100%",
                 touchAction: "none",
+                zIndex: 4,
               }}
             />
           </div>
