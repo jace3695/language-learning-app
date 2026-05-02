@@ -151,7 +151,16 @@ type KanaStrokeDemo = {
   }[];
 };
 
-const kanaStrokeDemos: Record<string, KanaStrokeDemo> = {};
+const kanaStrokeDemos: Record<string, KanaStrokeDemo> = {
+  "あ": {
+    viewBox: "0 0 109 109",
+    strokes: [
+      { path: "M18 26 L91 26", duration: 800 },
+      { path: "M54.5 18 L54.5 72", duration: 900 },
+      { path: "M30 72 Q54.5 90 79 72", duration: 1200 },
+    ],
+  },
+};
 
 type HandwritingFeedback = {
   summary: string;
