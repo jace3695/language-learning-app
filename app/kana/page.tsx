@@ -143,6 +143,52 @@ type StrokeOrderInfo = {
 
 type WritingGuideMode = "follow" | "faint" | "blank";
 
+type KanaRevealStep = {
+  label: string;
+  clipPath: string;
+};
+
+type KanaRevealDemo = {
+  steps: KanaRevealStep[];
+};
+
+const kanaRevealDemos: Record<string, KanaRevealDemo> = {
+  あ: {
+    steps: [
+      { label: "1", clipPath: "polygon(0 0, 100% 0, 100% 34%, 0 34%)" },
+      { label: "2", clipPath: "polygon(36% 0, 62% 0, 62% 100%, 36% 100%)" },
+      { label: "3", clipPath: "polygon(0 34%, 100% 34%, 100% 100%, 0 100%)" },
+    ],
+  },
+  い: {
+    steps: [
+      { label: "1", clipPath: "polygon(0 0, 52% 0, 52% 100%, 0 100%)" },
+      { label: "2", clipPath: "polygon(48% 0, 100% 0, 100% 100%, 48% 100%)" },
+    ],
+  },
+  う: {
+    steps: [
+      { label: "1", clipPath: "polygon(8% 0, 100% 0, 100% 36%, 8% 36%)" },
+      { label: "2", clipPath: "polygon(0 24%, 100% 24%, 100% 100%, 0 100%)" },
+    ],
+  },
+  え: {
+    steps: [
+      { label: "1", clipPath: "polygon(0 0, 100% 0, 100% 30%, 0 30%)" },
+      { label: "2", clipPath: "polygon(14% 20%, 100% 20%, 100% 64%, 14% 64%)" },
+      { label: "3", clipPath: "polygon(0 52%, 100% 52%, 100% 100%, 0 100%)" },
+    ],
+  },
+  お: {
+    steps: [
+      { label: "1", clipPath: "polygon(0 0, 76% 0, 76% 28%, 0 28%)" },
+      { label: "2", clipPath: "polygon(0 20%, 56% 20%, 56% 100%, 0 100%)" },
+      { label: "3", clipPath: "polygon(0 38%, 80% 38%, 80% 100%, 0 100%)" },
+      { label: "4", clipPath: "polygon(72% 0, 100% 0, 100% 70%, 72% 70%)" },
+    ],
+  },
+};
+
 type HandwritingFeedback = {
   summary: string;
   goodPoints: string[] | string;
@@ -1211,10 +1257,13 @@ export default function KanaPage() {
   const [writingFeedback, setWritingFeedback] = useState<HandwritingFeedback | null>(null);
   const [writingFeedbackLoading, setWritingFeedbackLoading] = useState(false);
   const [writingFeedbackError, setWritingFeedbackError] = useState<string | null>(null);
+  const [activeRevealStep, setActiveRevealStep] = useState(0);
+  const [isDemoPlaying, setIsDemoPlaying] = useState(false);
   const writingCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const writingAreaRef = useRef<HTMLDivElement | null>(null);
   const writingIsDrawingRef = useRef(false);
   const writingLastPointRef = useRef<{ x: number; y: number } | null>(null);
+  const revealTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const handleSpeak = useCallback((char: string) => {
     if (playingTimerRef.current) clearTimeout(playingTimerRef.current);
@@ -1366,6 +1415,8 @@ export default function KanaPage() {
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const isWritingViewMode = writingSubMode === "trace" && writingGuideMode === "follow";
   const showFaintGuide = writingSubMode === "trace" && writingGuideMode === "faint";
+  const currentRevealDemo = currentWritingItem ? kanaRevealDemos[currentWritingItem.char] : undefined;
+  const hasRevealDemo = Boolean(currentRevealDemo);
   const kanaGuideTextStyle = {
     display: "flex",
     alignItems: "center",
@@ -1379,10 +1430,42 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "follow"
-    ? "글자 모습을 보고, 아래 모드에서 직접 연습해 보세요."
+    ? "글자가 나타나는 흐름을 보고, 흐린 글자와 빈칸 쓰기로 직접 연습해 보세요."
     : writingGuideMode === "faint"
       ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
       : "이제 기억해서 빈칸에 다시 써보세요.";
+
+  const restartRevealDemo = useCallback(() => {
+    revealTimersRef.current.forEach((timer) => clearTimeout(timer));
+    revealTimersRef.current = [];
+
+    if (!isWritingViewMode || !currentRevealDemo) {
+      setActiveRevealStep(0);
+      setIsDemoPlaying(false);
+      return;
+    }
+
+    setActiveRevealStep(0);
+    setIsDemoPlaying(true);
+    currentRevealDemo.steps.forEach((_, index) => {
+      const timer = setTimeout(() => {
+        setActiveRevealStep(index + 1);
+      }, 360 * (index + 1));
+      revealTimersRef.current.push(timer);
+    });
+    const doneTimer = setTimeout(() => {
+      setIsDemoPlaying(false);
+    }, 360 * (currentRevealDemo.steps.length + 1));
+    revealTimersRef.current.push(doneTimer);
+  }, [currentRevealDemo, isWritingViewMode]);
+
+  useEffect(() => {
+    restartRevealDemo();
+    return () => {
+      revealTimersRef.current.forEach((timer) => clearTimeout(timer));
+      revealTimersRef.current = [];
+    };
+  }, [restartRevealDemo, currentWritingItem?.char, writingGuideMode, writingSubMode]);
 
 
   const loadNextWritingQuizQuestion = useCallback(() => {
@@ -1907,6 +1990,13 @@ export default function KanaPage() {
           {writingSubMode === "trace" && (
             <div style={{ marginBottom: "0.75rem", fontSize: "0.88rem", color: "#4b5563" }}>{writingGuideMessage}</div>
           )}
+          {isWritingViewMode && (
+            <div style={{ marginBottom: "0.75rem", fontSize: "0.84rem", color: "#6b7280" }}>
+              {hasRevealDemo
+                ? `쓰기 보기 상태: ${isDemoPlaying ? "재생 중" : "재생 완료"}`
+                : "이 글자는 쓰기 보기 애니메이션을 준비 중입니다. 흐린 글자 모드에서 먼저 연습해 보세요."}
+            </div>
+          )}
 
           <div
             ref={writingAreaRef}
@@ -1962,11 +2052,41 @@ export default function KanaPage() {
                   position: "absolute",
                   inset: 0,
                   zIndex: 2,
-                  color: "#111827",
                   ...kanaGuideTextStyle,
                 }}
               >
-                {currentWritingItem.char}
+                <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                  <div style={{ position: "absolute", inset: 0, color: "rgba(107, 114, 128, 0.26)", ...kanaGuideTextStyle }}>
+                    {currentWritingItem.char}
+                  </div>
+                  {hasRevealDemo && currentRevealDemo?.steps.map((step, index) => (
+                    <div
+                      key={`${currentWritingItem.char}-reveal-${step.label}`}
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        color: "#111827",
+                        ...kanaGuideTextStyle,
+                        clipPath: step.clipPath,
+                        WebkitClipPath: step.clipPath,
+                        opacity: activeRevealStep >= index + 1 ? 1 : 0,
+                        transition: "opacity 220ms ease",
+                      }}
+                    >
+                      {currentWritingItem.char}
+                    </div>
+                  ))}
+                  {hasRevealDemo && activeRevealStep >= (currentRevealDemo?.steps.length ?? 0) && (
+                    <div style={{ position: "absolute", inset: 0, color: "#111827", ...kanaGuideTextStyle }}>
+                      {currentWritingItem.char}
+                    </div>
+                  )}
+                  {!hasRevealDemo && (
+                    <div style={{ position: "absolute", inset: 0, color: "#111827", ...kanaGuideTextStyle }}>
+                      {currentWritingItem.char}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
             {!isWritingViewMode && (
@@ -2043,20 +2163,38 @@ export default function KanaPage() {
               >
                 다음 글자
               </button>
-              <button
-                onClick={clearWritingCanvas}
-                style={{
-                  padding: "0.65rem 0.9rem",
-                  borderRadius: "8px",
-                  border: "1px solid #d1d5db",
-                  cursor: "pointer",
-                  background: "#fff",
-                  color: "#374151",
-                  fontWeight: 600,
-                }}
-              >
-                지우기
-              </button>
+              {!isWritingViewMode && (
+                <button
+                  onClick={clearWritingCanvas}
+                  style={{
+                    padding: "0.65rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db",
+                    cursor: "pointer",
+                    background: "#fff",
+                    color: "#374151",
+                    fontWeight: 600,
+                  }}
+                >
+                  지우기
+                </button>
+              )}
+              {isWritingViewMode && (
+                <button
+                  onClick={restartRevealDemo}
+                  style={{
+                    padding: "0.65rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db",
+                    cursor: "pointer",
+                    background: "#fff",
+                    color: "#374151",
+                    fontWeight: 600,
+                  }}
+                >
+                  다시보기
+                </button>
+              )}
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
