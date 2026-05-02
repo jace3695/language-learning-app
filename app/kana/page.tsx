@@ -140,6 +140,27 @@ type StrokeOrderInfo = {
   tip: string;
 };
 
+
+type WritingGuideMode = "follow" | "faint" | "blank";
+
+type WritingGuideHint = {
+  start?: { x: number; y: number; label?: string };
+  arrows?: Array<{ x: number; y: number; dx: number; dy: number; label?: string }>;
+};
+
+const writingGuides: Record<string, WritingGuideHint> = {
+  あ: { start: { x: 39, y: 31, label: "시작" }, arrows: [{ x: 39, y: 31, dx: 42, dy: 0, label: "1" }, { x: 50, y: 42, dx: 0, dy: 34, label: "2" }] },
+  い: { start: { x: 44, y: 32, label: "시작" }, arrows: [{ x: 44, y: 32, dx: -4, dy: 36, label: "1" }] },
+  う: { start: { x: 49, y: 30, label: "시작" }, arrows: [{ x: 48, y: 46, dx: 18, dy: 24, label: "2" }] },
+  え: { start: { x: 44, y: 30, label: "시작" }, arrows: [{ x: 48, y: 46, dx: 22, dy: 22, label: "2" }] },
+  お: { start: { x: 39, y: 30, label: "시작" }, arrows: [{ x: 39, y: 30, dx: 40, dy: 0, label: "1" }, { x: 53, y: 42, dx: 0, dy: 34, label: "2" }] },
+  ア: { start: { x: 34, y: 32, label: "시작" }, arrows: [{ x: 34, y: 32, dx: 40, dy: 0, label: "1" }] },
+  イ: { start: { x: 46, y: 30, label: "시작" }, arrows: [{ x: 46, y: 30, dx: -14, dy: 26, label: "1" }] },
+  ウ: { start: { x: 50, y: 31, label: "시작" }, arrows: [{ x: 42, y: 45, dx: 18, dy: 0, label: "2" }] },
+  エ: { start: { x: 34, y: 32, label: "시작" }, arrows: [{ x: 34, y: 32, dx: 38, dy: 0, label: "1" }] },
+  オ: { start: { x: 34, y: 31, label: "시작" }, arrows: [{ x: 34, y: 31, dx: 38, dy: 0, label: "1" }, { x: 52, y: 43, dx: 0, dy: 32, label: "2" }] },
+};
+
 type HandwritingFeedback = {
   summary: string;
   goodPoints: string[] | string;
@@ -1197,6 +1218,7 @@ export default function KanaPage() {
 
   // 쓰기 연습 모드 상태
   const [writingSubMode, setWritingSubMode] = useState<"trace" | "quiz">("trace");
+  const [writingGuideMode, setWritingGuideMode] = useState<WritingGuideMode>("follow");
   const [writingIndex, setWritingIndex] = useState(0);
   const [writingQuizQuestion, setWritingQuizQuestion] = useState<KanaItem>(() =>
     getWritingQuizQuestion(hiragana)
@@ -1241,6 +1263,7 @@ export default function KanaPage() {
     const newData = newTab === "hiragana" ? hiragana : katakana;
     setWritingIndex(0);
     setWritingSubMode("trace");
+    setWritingGuideMode("follow");
     setWritingQuizQuestion(getWritingQuizQuestion(newData));
     setWritingQuizShowAnswer(false);
     setWritingQuizAnswered(false);
@@ -1359,6 +1382,14 @@ export default function KanaPage() {
     ? (tab === "hiragana" ? hiraganaStrokeOrderData[currentWritingItem.char] : katakanaStrokeOrderData[currentWritingItem.char])
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
+  const currentWritingGuide = currentWritingItem ? writingGuides[currentWritingItem.char] : undefined;
+  const showFollowGuide = writingSubMode === "trace" && writingGuideMode === "follow";
+  const showFaintGuide = writingSubMode === "trace" && writingGuideMode !== "blank";
+  const writingGuideMessage = writingGuideMode === "follow"
+    ? "흐린 글자를 따라 천천히 써보세요. 시작점/방향은 참고용 가이드입니다."
+    : writingGuideMode === "faint"
+      ? "글자 모양을 보며 직접 써보세요."
+      : "가이드 없이 기억해서 써보세요.";
 
   const loadNextWritingQuizQuestion = useCallback(() => {
     setWritingQuizQuestion(getWritingQuizQuestion(data));
@@ -1680,6 +1711,7 @@ export default function KanaPage() {
             </span>
           </div>
 
+
           <div
             style={{
               display: "flex",
@@ -1807,6 +1839,7 @@ export default function KanaPage() {
             </button>
           </div>
 
+
           <div
             style={{
               display: "flex",
@@ -1846,6 +1879,40 @@ export default function KanaPage() {
               </button>
             </div>
           </div>
+
+          {writingSubMode === "trace" && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem", marginBottom: "0.75rem" }}>
+              {([
+                { id: "follow", label: "따라 쓰기" },
+                { id: "faint", label: "흐린 글자" },
+                { id: "blank", label: "빈칸 쓰기" },
+              ] as const).map((modeBtn) => {
+                const active = writingGuideMode === modeBtn.id;
+                return (
+                  <button
+                    key={modeBtn.id}
+                    onClick={() => setWritingGuideMode(modeBtn.id)}
+                    style={{
+                      padding: "0.4rem 0.85rem",
+                      borderRadius: "999px",
+                      border: active ? "2px solid #7c3aed" : "1px solid #d1d5db",
+                      background: active ? "#ede9fe" : "#fff",
+                      color: active ? "#6d28d9" : "#4b5563",
+                      fontWeight: active ? 700 : 500,
+                      cursor: "pointer",
+                      fontSize: "0.84rem",
+                    }}
+                  >
+                    {modeBtn.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {writingSubMode === "trace" && (
+            <div style={{ marginBottom: "0.75rem", fontSize: "0.88rem", color: "#4b5563" }}>{writingGuideMessage}</div>
+          )}
 
           <div
             ref={writingAreaRef}
@@ -1898,8 +1965,53 @@ export default function KanaPage() {
                 lineHeight: 1,
               }}
             >
-              {writingSubMode === "trace" ? currentWritingItem.char : ""}
+              {showFaintGuide ? currentWritingItem.char : ""}
             </div>
+            {showFollowGuide && currentWritingGuide?.start && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: `${currentWritingGuide.start.x}%`,
+                  top: `${currentWritingGuide.start.y}%`,
+                  transform: "translate(-50%, -50%)",
+                  pointerEvents: "none",
+                  zIndex: 2,
+                }}
+              >
+                <div style={{ width: "12px", height: "12px", borderRadius: "999px", background: "#7c3aed", opacity: 0.9 }} />
+                <div style={{ marginTop: "0.2rem", fontSize: "0.68rem", color: "#6d28d9", fontWeight: 700 }}>{currentWritingGuide.start.label ?? "1"}</div>
+              </div>
+            )}
+            {showFollowGuide && currentWritingGuide?.arrows?.map((arrow, idx) => (
+              <div
+                key={`guide-arrow-${idx}`}
+                style={{
+                  position: "absolute",
+                  left: `${arrow.x}%`,
+                  top: `${arrow.y}%`,
+                  transform: `rotate(${Math.atan2(arrow.dy, arrow.dx) * (180 / Math.PI)}deg)`,
+                  transformOrigin: "left center",
+                  width: `${Math.max(16, Math.hypot(arrow.dx, arrow.dy) * 3)}px`,
+                  borderTop: "2px dashed rgba(124, 58, 237, 0.45)",
+                  pointerEvents: "none",
+                  zIndex: 2,
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    right: "-2px",
+                    top: "-5px",
+                    width: 0,
+                    height: 0,
+                    borderLeft: "7px solid rgba(124, 58, 237, 0.7)",
+                    borderTop: "4px solid transparent",
+                    borderBottom: "4px solid transparent",
+                  }}
+                />
+                {arrow.label && <div style={{ position: "absolute", left: "-10px", top: "-14px", fontSize: "0.68rem", color: "#6d28d9", fontWeight: 700 }}>{arrow.label}</div>}
+              </div>
+            ))}
             <canvas
               ref={writingCanvasRef}
               onPointerDown={(e) => {
