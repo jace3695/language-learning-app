@@ -146,6 +146,10 @@ type KanaStrokeDemo = {
 
 const kanaStrokeDemos: Record<string, KanaStrokeDemo> = {};
 
+const strokeSvgKanaMap: Record<string, string> = {
+  "あ": "/vendor/strokesvg/hiragana/あ.svg",
+};
+
 type WritingGuideMode = "view" | "faint" | "blank";
 
 type HandwritingFeedback = {
@@ -1206,6 +1210,7 @@ export default function KanaPage() {
   // 쓰기 연습 모드 상태
   const [writingSubMode, setWritingSubMode] = useState<"trace" | "quiz">("trace");
   const [writingGuideMode, setWritingGuideMode] = useState<WritingGuideMode>("view");
+  const [replayKey, setReplayKey] = useState(0);
   const [writingIndex, setWritingIndex] = useState(0);
   const [writingQuizQuestion, setWritingQuizQuestion] = useState<KanaItem>(() =>
     getWritingQuizQuestion(hiragana)
@@ -1371,6 +1376,7 @@ export default function KanaPage() {
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentChar = currentWritingItem?.char ?? "";
   const strokeDemo = kanaStrokeDemos[currentChar];
+  const strokeSvgPath = strokeSvgKanaMap[currentChar];
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank";
   const kanaGuideTextStyle = {
     display: "flex",
@@ -1385,7 +1391,9 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "view"
-    ? "이 글자는 쓰기 보기 데이터를 준비 중입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요."
+    ? (strokeSvgPath
+      ? "글자가 쓰이는 모습을 보고, 흐린 글자와 빈칸 쓰기로 직접 연습해 보세요."
+      : "이 글자는 쓰기 보기 데이터를 준비 중입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요.")
     : writingGuideMode === "faint"
       ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
       : "이제 기억해서 빈칸에 다시 써보세요.";
@@ -1542,8 +1550,36 @@ export default function KanaPage() {
     return { ...base, borderColor: "#d1d5db", background: "#f9fafb", color: "#9ca3af" };
   };
 
+  const replayStrokeSvg = useCallback(() => {
+    setReplayKey((prev) => prev + 1);
+  }, []);
+
   const renderWritingViewGuide = () => {
     if (!currentWritingItem) return null;
+
+    if (strokeSvgPath) {
+      return (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            pointerEvents: "none",
+          }}
+        >
+          <object
+            key={`${currentChar}-${replayKey}`}
+            data={strokeSvgPath}
+            type="image/svg+xml"
+            aria-label={`${currentChar} 쓰기 보기`}
+            style={{ width: "78%", height: "78%" }}
+          />
+        </div>
+      );
+    }
 
     if (strokeDemo) {
       return (
@@ -1937,7 +1973,12 @@ export default function KanaPage() {
                 return (
                   <button
                     key={modeBtn.id}
-                    onClick={() => setWritingGuideMode(modeBtn.id)}
+                    onClick={() => {
+                      setWritingGuideMode(modeBtn.id);
+                      if (modeBtn.id === "view") {
+                        replayStrokeSvg();
+                      }
+                    }}
                     style={{
                       padding: "0.4rem 0.85rem",
                       borderRadius: "999px",
@@ -2052,7 +2093,7 @@ export default function KanaPage() {
             )}
           </div>
           {writingSubMode === "trace" ? (
-            <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
+            <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap" }}>
               <button
                 onClick={() => setWritingIndex((prev) => Math.max(0, prev - 1))}
                 disabled={writingIndex === 0}

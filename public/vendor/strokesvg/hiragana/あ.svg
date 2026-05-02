@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 109 109" width="109" height="109">
+  <style>
+    .trace {
+      fill: none;
+      stroke: #111827;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 6;
+      stroke-dasharray: 220;
+      stroke-dashoffset: 220;
+      animation: draw 2.4s linear forwards;
+    }
+    .s2 { animation-delay: 0.8s; }
+    .s3 { animation-delay: 1.6s; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+  </style>
+  <path class="trace s1" d="M20 22 C34 20 47 19 61 21"/>
+  <path class="trace s2" d="M50 23 C51 39 49 57 48 73 C48 81 52 86 60 89"/>
+  <path class="trace s3" d="M30 57 C26 70 29 83 39 88 C49 94 66 88 72 73"/>
+</svg>
