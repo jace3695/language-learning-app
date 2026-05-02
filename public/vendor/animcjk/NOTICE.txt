@@ -1,0 +1,14 @@
+AnimCJK 출처 고지
+
+- 출처: https://github.com/parsimonhi/animCJK
+- 사용 파일:
+  - svgsJaKana/12354.svg
+  - svgsJaKana/12356.svg
+  - svgsJaKana/12358.svg
+  - svgsJaKana/12360.svg
+  - svgsJaKana/12362.svg
+- 라이선스: AnimCJK README 기준 Kana SVG는 GNU Lesser General Public License 적용 대상으로 설명됩니다.
+- 원본 라이선스 상세: https://github.com/parsimonhi/animCJK/blob/master/licenses/COPYING.txt
+- 수정 여부: 현재 저장소의 네트워크 제약으로 원본 파일 직접 동기화가 어려워 동일 파일명으로 PoC용 SVG를 우선 포함 (배포 전 원본 파일 재검증 필요)
+
+법률 자문이 아니며, 최종 배포 전 라이선스 의무 사항은 직접 검토해 주세요.
