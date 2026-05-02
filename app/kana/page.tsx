@@ -140,14 +140,12 @@ type StrokeOrderInfo = {
   tip: string;
 };
 
-type KanaStrokeDemo = {
-  paths: string[];
-};
-
-const kanaStrokeDemos: Record<string, KanaStrokeDemo> = {};
-
-const strokeSvgKanaMap: Record<string, string> = {
-  "あ": "/vendor/strokesvg/hiragana/あ.svg",
+const kanaWritingVideos: Record<string, string> = {
+  あ: "/kana-writing/hiragana/a.mp4",
+  い: "/kana-writing/hiragana/i.mp4",
+  う: "/kana-writing/hiragana/u.mp4",
+  え: "/kana-writing/hiragana/e.mp4",
+  お: "/kana-writing/hiragana/o.mp4",
 };
 
 type WritingGuideMode = "view" | "faint" | "blank";
@@ -1210,7 +1208,7 @@ export default function KanaPage() {
   // 쓰기 연습 모드 상태
   const [writingSubMode, setWritingSubMode] = useState<"trace" | "quiz">("trace");
   const [writingGuideMode, setWritingGuideMode] = useState<WritingGuideMode>("view");
-  const [replayKey, setReplayKey] = useState(0);
+  const writingVideoRef = useRef<HTMLVideoElement | null>(null);
   const [writingIndex, setWritingIndex] = useState(0);
   const [writingQuizQuestion, setWritingQuizQuestion] = useState<KanaItem>(() =>
     getWritingQuizQuestion(hiragana)
@@ -1375,8 +1373,7 @@ export default function KanaPage() {
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentChar = currentWritingItem?.char ?? "";
-  const strokeDemo = kanaStrokeDemos[currentChar];
-  const strokeSvgPath = strokeSvgKanaMap[currentChar];
+  const writingVideoPath = kanaWritingVideos[currentChar];
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank";
   const kanaGuideTextStyle = {
     display: "flex",
@@ -1391,9 +1388,9 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "view"
-    ? (strokeSvgPath
-      ? "글자가 쓰이는 모습을 보고, 흐린 글자와 빈칸 쓰기로 직접 연습해 보세요."
-      : "이 글자는 쓰기 보기 데이터를 준비 중입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요.")
+    ? (writingVideoPath
+      ? "글자가 써지는 모습을 먼저 확인해 보세요."
+      : "이 글자는 쓰기 보기 영상을 준비 중입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요.")
     : writingGuideMode === "faint"
       ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
       : "이제 기억해서 빈칸에 다시 써보세요.";
@@ -1550,14 +1547,19 @@ export default function KanaPage() {
     return { ...base, borderColor: "#d1d5db", background: "#f9fafb", color: "#9ca3af" };
   };
 
-  const replayStrokeSvg = useCallback(() => {
-    setReplayKey((prev) => prev + 1);
+  const replayWritingVideo = useCallback(() => {
+    const video = writingVideoRef.current;
+    if (!video) return;
+    video.currentTime = 0;
+    video.play().catch((error) => {
+      console.error("쓰기 보기 영상 재생 실패:", error);
+    });
   }, []);
 
   const renderWritingViewGuide = () => {
     if (!currentWritingItem) return null;
 
-    if (strokeSvgPath) {
+    if (writingVideoPath) {
       return (
         <div
           style={{
@@ -1570,34 +1572,18 @@ export default function KanaPage() {
             pointerEvents: "none",
           }}
         >
-          <object
-            key={`${currentChar}-${replayKey}`}
-            data={strokeSvgPath}
-            type="image/svg+xml"
-            aria-label={`${currentChar} 쓰기 보기`}
-            style={{ width: "78%", height: "78%" }}
-          />
-        </div>
-      );
-    }
-
-    if (strokeDemo) {
-      return (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            pointerEvents: "none",
-            color: "#111827",
-            fontSize: "0.95rem",
-            fontWeight: 600,
-          }}
-        >
-          SVG stroke 애니메이션 준비 중
+          <video
+            ref={writingVideoRef}
+            key={currentChar}
+            autoPlay
+            muted
+            playsInline
+            loop
+            aria-label={`${currentChar} 쓰기 보기 영상`}
+            style={{ width: "90%", height: "90%", objectFit: "contain" }}
+          >
+            <source src={writingVideoPath} type="video/mp4" />
+          </video>
         </div>
       );
     }
@@ -1975,9 +1961,6 @@ export default function KanaPage() {
                     key={modeBtn.id}
                     onClick={() => {
                       setWritingGuideMode(modeBtn.id);
-                      if (modeBtn.id === "view") {
-                        replayStrokeSvg();
-                      }
                     }}
                     style={{
                       padding: "0.4rem 0.85rem",
@@ -2138,6 +2121,22 @@ export default function KanaPage() {
                   }}
                 >
                   지우기
+                </button>
+              )}
+              {writingGuideMode === "view" && (
+                <button
+                  onClick={replayWritingVideo}
+                  style={{
+                    padding: "0.65rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db",
+                    cursor: "pointer",
+                    background: "#fff",
+                    color: "#374151",
+                    fontWeight: 600,
+                  }}
+                >
+                  다시보기
                 </button>
               )}
             </div>
