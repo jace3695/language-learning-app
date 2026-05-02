@@ -146,47 +146,92 @@ type WritingGuideMode = "follow" | "faint" | "blank";
 type TracingGuide = {
   viewBox: string;
   paths: string[];
+  labels: { x: number; y: number; text: string }[];
+  offsetX?: number;
+  offsetY?: number;
+  scale?: number;
+  disabled?: boolean;
+  fallbackMessage?: string;
 };
 
 const tracingGuides: Record<string, TracingGuide> = {
   あ: {
     viewBox: "0 0 200 200",
     paths: [
-      "M55 55 C85 48 120 46 150 48",
-      "M105 35 C100 70 95 110 92 155",
-      "M72 108 C92 86 132 84 152 108 C174 135 145 166 100 166 C70 166 55 145 62 126 C68 110 82 100 102 94",
+      "M55 58 C86 52 122 51 151 55",
+      "M106 41 C102 75 98 116 97 158",
+      "M73 113 C95 90 134 89 153 113 C173 139 144 170 99 170 C68 170 53 148 62 129 C69 113 84 102 104 98",
     ],
+    labels: [
+      { x: 58, y: 51, text: "1" },
+      { x: 111, y: 33, text: "2" },
+      { x: 64, y: 104, text: "3" },
+    ],
+    offsetX: 0,
+    offsetY: 4,
+    scale: 1.04,
   },
   い: {
     viewBox: "0 0 200 200",
     paths: [
-      "M65 55 C58 85 58 120 72 143 C78 154 86 150 96 132",
-      "M130 65 C148 88 156 112 158 140",
+      "M67 59 C58 90 58 124 73 149 C80 161 88 157 99 137",
+      "M132 67 C149 93 157 118 159 148",
     ],
+    labels: [
+      { x: 62, y: 52, text: "1" },
+      { x: 128, y: 58, text: "2" },
+    ],
+    offsetX: -1,
+    offsetY: 2,
+    scale: 1.02,
   },
   う: {
     viewBox: "0 0 200 200",
     paths: [
-      "M78 55 C100 45 122 48 140 60",
-      "M63 100 C90 78 140 78 153 108 C166 138 138 164 92 166",
+      "M81 60 C101 51 123 53 142 64",
+      "M63 106 C91 83 140 83 154 114 C166 143 140 169 94 171",
     ],
+    labels: [
+      { x: 78, y: 52, text: "1" },
+      { x: 60, y: 98, text: "2" },
+    ],
+    offsetX: 0,
+    offsetY: 3,
+    scale: 1.03,
   },
   え: {
     viewBox: "0 0 200 200",
     paths: [
-      "M80 52 C102 45 122 48 138 60",
-      "M65 93 C95 84 124 82 150 90",
-      "M104 88 C90 112 78 135 62 162 C86 145 103 132 118 126 C129 122 132 132 136 145 C140 158 151 160 164 150",
+      "M80 57 C103 50 124 52 140 63",
+      "M67 97 C96 88 126 87 152 95",
+      "M106 95 C92 118 80 141 64 168 C89 150 106 138 121 132 C131 128 134 137 138 150 C142 162 152 164 166 154",
     ],
+    labels: [
+      { x: 76, y: 49, text: "1" },
+      { x: 62, y: 90, text: "2" },
+      { x: 102, y: 88, text: "3" },
+    ],
+    offsetX: 1,
+    offsetY: 5,
+    scale: 1.03,
   },
   お: {
     viewBox: "0 0 200 200",
     paths: [
-      "M55 62 C82 58 112 56 140 58",
-      "M96 42 C96 75 94 112 92 148",
-      "M70 110 C88 98 114 92 135 100 C158 109 166 132 153 150 C140 168 108 168 90 154 C77 144 79 128 94 120",
-      "M138 82 C153 90 164 100 172 113",
+      "M56 66 C84 62 114 60 142 63",
+      "M98 47 C98 81 96 118 94 154",
+      "M71 116 C89 104 114 98 136 106 C158 114 166 136 154 154 C142 173 110 173 91 159 C78 149 80 133 95 125",
+      "M140 87 C154 95 165 106 173 119",
     ],
+    labels: [
+      { x: 58, y: 60, text: "1" },
+      { x: 102, y: 39, text: "2" },
+      { x: 68, y: 108, text: "3" },
+      { x: 145, y: 81, text: "4" },
+    ],
+    offsetX: 2,
+    offsetY: 6,
+    scale: 1.04,
   },
 };
 
@@ -1412,7 +1457,8 @@ export default function KanaPage() {
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentTracingGuide = currentWritingItem ? tracingGuides[currentWritingItem.char] : undefined;
-  const showTracingGuide = writingSubMode === "trace" && writingGuideMode === "follow" && !!currentTracingGuide;
+  const isTracingGuideDisabled = !!currentTracingGuide?.disabled;
+  const showTracingGuide = writingSubMode === "trace" && writingGuideMode === "follow" && !!currentTracingGuide && !isTracingGuideDisabled;
   const showFaintGuide = writingSubMode === "trace" && writingGuideMode !== "blank";
   const writingGuideMessage = writingGuideMode === "follow"
     ? "흐린 글자와 보조선을 따라 천천히 써보세요."
@@ -1420,6 +1466,7 @@ export default function KanaPage() {
       ? "글자 모양을 보며 직접 써보세요."
       : "가이드 없이 기억해서 써보세요.";
   const showTracingGuidePendingMessage = writingSubMode === "trace" && writingGuideMode === "follow" && !currentTracingGuide;
+  const showTracingGuideFallbackMessage = writingSubMode === "trace" && writingGuideMode === "follow" && isTracingGuideDisabled;
 
   const loadNextWritingQuizQuestion = useCallback(() => {
     setWritingQuizQuestion(getWritingQuizQuestion(data));
@@ -1948,6 +1995,11 @@ export default function KanaPage() {
               이 글자의 세부 따라쓰기 가이드는 다음 단계에서 추가됩니다. 흐린 글자를 보고 따라 써보세요.
             </div>
           )}
+          {showTracingGuideFallbackMessage && (
+            <div style={{ marginBottom: "0.75rem", fontSize: "0.83rem", color: "#6b7280" }}>
+              {currentTracingGuide?.fallbackMessage || "이 글자는 흐린 글자를 보며 따라 써보세요."}
+            </div>
+          )}
 
           <div
             ref={writingAreaRef}
@@ -2014,18 +2066,30 @@ export default function KanaPage() {
                   zIndex: 2,
                 }}
               >
-                {currentTracingGuide.paths.map((path, idx) => (
-                  <path
-                    key={`tracing-path-${idx}`}
-                    d={path}
-                    fill="none"
-                    stroke="rgba(124, 58, 237, 0.34)"
-                    strokeWidth={5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeDasharray="9 8"
-                  />
-                ))}
+                <g
+                  transform={`translate(${currentTracingGuide.offsetX ?? 0} ${currentTracingGuide.offsetY ?? 0}) scale(${currentTracingGuide.scale ?? 1})`}
+                >
+                  {currentTracingGuide.paths.map((path, idx) => (
+                    <path
+                      key={`tracing-path-${idx}`}
+                      d={path}
+                      fill="none"
+                      stroke="rgba(124, 58, 237, 0.34)"
+                      strokeWidth={5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeDasharray="9 8"
+                    />
+                  ))}
+                  {currentTracingGuide.labels.map((label, idx) => (
+                    <g key={`tracing-label-${idx}`}>
+                      <circle cx={label.x} cy={label.y} r={9} fill="rgba(124, 58, 237, 0.18)" />
+                      <text x={label.x} y={label.y + 3} textAnchor="middle" fontSize={11} fontWeight={700} fill="rgba(109, 40, 217, 0.72)">
+                        {label.text}
+                      </text>
+                    </g>
+                  ))}
+                </g>
               </svg>
             )}
             <canvas
