@@ -1218,6 +1218,7 @@ export default function KanaPage() {
   // 쓰기 연습 모드 상태
   const [writingSubMode, setWritingSubMode] = useState<"trace" | "quiz">("trace");
   const [writingGuideMode, setWritingGuideMode] = useState<WritingGuideMode>("view");
+  const [replayKey, setReplayKey] = useState(0);
   const [writingIndex, setWritingIndex] = useState(0);
   const [writingQuizQuestion, setWritingQuizQuestion] = useState<KanaItem>(() =>
     getWritingQuizQuestion(hiragana)
@@ -1404,6 +1405,10 @@ export default function KanaPage() {
       ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
       : "이제 기억해서 빈칸에 다시 써보세요.";
 
+
+  useEffect(() => {
+    setReplayKey(0);
+  }, [currentWritingItem?.char]);
 
   const loadNextWritingQuizQuestion = useCallback(() => {
     setWritingQuizQuestion(getWritingQuizQuestion(data));
@@ -1978,9 +1983,11 @@ export default function KanaPage() {
             {writingSubMode === "trace" && writingGuideMode === "view" && (
               hasAnimCjkSvg ? (
                 <div style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                  <img
-                    src={currentAnimCjkSvg}
-                    alt={`${currentWritingItem.char} 쓰기 보기`}
+                  <object
+                    key={`${currentWritingItem.char}-${replayKey}`}
+                    data={currentAnimCjkSvg}
+                    type="image/svg+xml"
+                    aria-label={`${currentWritingItem.char} 쓰기 보기`}
                     style={{ width: "92%", height: "92%", objectFit: "contain" }}
                   />
                 </div>
@@ -2072,6 +2079,22 @@ export default function KanaPage() {
               >
                 다음 글자
               </button>
+              {writingGuideMode === "view" && hasAnimCjkSvg && (
+                <button
+                  onClick={() => setReplayKey((prev) => prev + 1)}
+                  style={{
+                    padding: "0.65rem 0.9rem",
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db",
+                    cursor: "pointer",
+                    background: "#fff",
+                    color: "#374151",
+                    fontWeight: 600,
+                  }}
+                >
+                  다시보기
+                </button>
+              )}
               {canDrawOnCanvas && (
                 <button
                   onClick={clearWritingCanvas}
