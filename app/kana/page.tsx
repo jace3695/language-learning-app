@@ -143,122 +143,6 @@ type StrokeOrderInfo = {
 
 type WritingGuideMode = "follow" | "faint" | "blank";
 
-type KanaSvgGuide = {
-  viewBox: string;
-  guidePaths: string[];
-  tracePaths: string[];
-  labels: { x: number; y: number; text: string }[];
-};
-
-type KanaDemoStroke = {
-  path: string;
-};
-
-type KanaDemo = {
-  viewBox: string;
-  strokes: KanaDemoStroke[];
-};
-
-const kanaSvgGuides: Record<string, KanaSvgGuide> = {
-  あ: {
-    viewBox: "0 0 200 200",
-    guidePaths: [
-      "M42 54 C81 47 122 47 161 54 C166 55 168 60 165 63 C161 68 157 69 149 68 C119 64 88 64 57 71 C50 72 44 68 43 62 C42 58 42 56 42 54 Z",
-      "M98 33 C104 34 108 39 107 45 C103 80 101 116 102 154 C102 162 97 166 91 165 C86 164 82 158 84 149 C89 120 91 86 96 45 C97 38 93 34 98 33 Z",
-      "M63 112 C91 87 136 86 158 112 C180 139 150 173 101 175 C67 175 48 151 58 126 C66 108 84 99 108 95 C114 94 117 100 115 105 C113 110 109 112 102 114 C87 118 75 126 71 139 C67 154 81 163 100 162 C131 162 153 147 145 127 C138 109 107 105 84 124 C78 129 71 130 66 125 C61 120 60 116 63 112 Z",
-    ],
-    tracePaths: [
-      "M55 58 C86 52 122 51 151 55",
-      "M106 41 C102 75 98 116 97 158",
-      "M73 113 C95 90 134 89 153 113 C173 139 144 170 99 170 C68 170 53 148 62 129 C69 113 84 102 104 98",
-    ],
-    labels: [
-      { x: 62, y: 57, text: "1" },
-      { x: 102, y: 43, text: "2" },
-      { x: 72, y: 104, text: "3" },
-    ],
-  },
-  い: {
-    viewBox: "0 0 200 200",
-    guidePaths: [
-      "M67 56 C74 56 80 61 79 68 C77 85 76 105 79 122 C82 136 87 145 92 144 C97 143 101 137 106 129 C110 123 117 122 121 126 C126 130 127 136 123 142 C114 157 103 166 90 166 C72 166 60 149 57 128 C53 104 56 84 62 64 C63 59 66 56 67 56 Z",
-      "M126 66 C132 64 139 66 143 72 C156 91 164 113 166 147 C166 154 161 159 155 159 C149 159 144 155 144 149 C142 123 136 102 123 81 C119 75 120 69 126 66 Z",
-    ],
-    tracePaths: [
-      "M67 59 C58 90 58 124 73 149 C80 161 88 157 99 137",
-      "M132 67 C149 93 157 118 159 148",
-    ],
-    labels: [
-      { x: 67, y: 64, text: "1" },
-      { x: 127, y: 68, text: "2" },
-    ],
-  },
-  う: {
-    viewBox: "0 0 200 200",
-    guidePaths: [
-      "M80 54 C103 48 126 51 146 62 C152 65 154 72 151 77 C147 83 141 84 134 80 C118 71 100 69 84 75 C77 78 70 74 69 68 C68 61 73 56 80 54 Z",
-      "M62 102 C95 77 146 78 160 111 C172 141 148 174 95 177 C86 177 81 172 81 166 C81 159 86 154 94 154 C136 154 152 136 145 118 C137 99 103 95 76 116 C70 120 63 119 59 113 C56 109 57 106 62 102 Z",
-    ],
-    tracePaths: [
-      "M81 60 C101 51 123 53 142 64",
-      "M63 106 C91 83 140 83 154 114 C166 143 140 169 94 171",
-    ],
-    labels: [
-      { x: 81, y: 61, text: "1" },
-      { x: 74, y: 100, text: "2" },
-    ],
-  },
-  え: {
-    viewBox: "0 0 200 200",
-    guidePaths: [
-      "M80 52 C105 47 127 49 144 61 C149 65 150 72 146 76 C143 82 136 83 130 79 C117 71 102 69 86 74 C79 76 72 72 72 65 C72 58 75 54 80 52 Z",
-      "M66 93 C96 84 128 83 156 92 C163 94 166 101 164 106 C161 112 156 114 149 112 C125 105 99 106 73 114 C66 116 60 113 58 106 C57 99 60 95 66 93 Z",
-      "M108 92 C115 93 120 98 118 104 C116 114 111 122 106 131 C117 124 126 120 134 117 C148 113 156 121 160 136 C163 149 167 150 171 147 C176 143 183 144 186 149 C190 154 189 161 184 166 C176 175 165 177 156 173 C146 168 141 159 138 149 C137 145 136 142 132 143 C117 148 97 160 67 180 C61 184 54 182 50 177 C45 171 47 164 52 158 C69 138 84 117 96 97 C99 93 103 92 108 92 Z",
-    ],
-    tracePaths: [
-      "M80 57 C103 50 124 52 140 63",
-      "M67 97 C96 88 126 87 152 95",
-      "M106 95 C92 118 80 141 64 168 C89 150 106 138 121 132 C131 128 134 137 138 150 C142 162 152 164 166 154",
-    ],
-    labels: [
-      { x: 81, y: 58, text: "1" },
-      { x: 69, y: 95, text: "2" },
-      { x: 114, y: 95, text: "3" },
-    ],
-  },
-  お: {
-    viewBox: "0 0 200 200",
-    guidePaths: [
-      "M50 62 C81 57 114 56 146 60 C153 61 157 67 156 72 C154 78 148 82 140 81 C114 78 88 79 61 84 C54 85 48 82 46 76 C45 69 46 64 50 62 Z",
-      "M97 38 C103 38 108 43 108 49 C108 81 105 116 102 154 C101 162 97 166 91 166 C85 166 80 161 81 154 C84 118 86 83 87 49 C87 43 91 39 97 38 Z",
-      "M69 112 C89 98 115 93 139 101 C165 110 175 136 163 158 C150 180 113 181 91 164 C75 151 75 130 92 118 C97 114 104 115 108 120 C111 124 112 132 106 136 C100 140 99 146 103 149 C113 156 133 154 141 141 C147 131 143 122 131 117 C114 111 94 116 79 125 C73 129 66 128 61 123 C57 118 63 115 69 112 Z",
-      "M137 82 C154 91 167 104 176 119 C180 125 178 132 173 136 C167 140 161 138 157 132 C149 120 139 110 127 102 C121 98 120 92 124 86 C128 80 132 79 137 82 Z",
-    ],
-    tracePaths: [
-      "M56 66 C84 62 114 60 142 63",
-      "M98 47 C98 81 96 118 94 154",
-      "M71 116 C89 104 114 98 136 106 C158 114 166 136 154 154 C142 173 110 173 91 159 C78 149 80 133 95 125",
-      "M140 87 C154 95 165 106 173 119",
-    ],
-    labels: [
-      { x: 61, y: 66, text: "1" },
-      { x: 99, y: 49, text: "2" },
-      { x: 73, y: 109, text: "3" },
-      { x: 134, y: 90, text: "4" },
-    ],
-  },
-};
-
-const traceBasedGuideChars = new Set(["あ", "い", "う", "え", "お"]);
-
-const kanaWritingDemos: Record<string, KanaDemo> = {
-  あ: { viewBox: "0 0 200 200", strokes: [{ path: "M55 58 C86 52 122 51 151 55" }, { path: "M106 41 C102 75 98 116 97 158" }, { path: "M73 113 C95 90 134 89 153 113 C173 139 144 170 99 170 C68 170 53 148 62 129 C69 113 84 102 104 98" }] },
-  い: { viewBox: "0 0 200 200", strokes: [{ path: "M67 59 C58 90 58 124 73 149 C80 161 88 157 99 137" }, { path: "M132 67 C149 93 157 118 159 148" }] },
-  う: { viewBox: "0 0 200 200", strokes: [{ path: "M81 60 C101 51 123 53 142 64" }, { path: "M63 106 C91 83 140 83 154 114 C166 143 140 169 94 171" }] },
-  え: { viewBox: "0 0 200 200", strokes: [{ path: "M80 57 C103 50 124 52 140 63" }, { path: "M67 97 C96 88 126 87 152 95" }, { path: "M106 95 C92 118 80 141 64 168 C89 150 106 138 121 132 C131 128 134 137 138 150 C142 162 152 164 166 154" }] },
-  お: { viewBox: "0 0 200 200", strokes: [{ path: "M56 66 C84 62 114 60 142 63" }, { path: "M98 47 C98 81 96 118 94 154" }, { path: "M71 116 C89 104 114 98 136 106 C158 114 166 136 154 154 C142 173 110 173 91 159 C78 149 80 133 95 125" }, { path: "M140 87 C154 95 165 106 173 119" }] },
-};
-
 type HandwritingFeedback = {
   summary: string;
   goodPoints: string[] | string;
@@ -1328,14 +1212,9 @@ export default function KanaPage() {
   const [writingFeedbackLoading, setWritingFeedbackLoading] = useState(false);
   const [writingFeedbackError, setWritingFeedbackError] = useState<string | null>(null);
   const writingCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const demoSvgRef = useRef<SVGSVGElement | null>(null);
   const writingAreaRef = useRef<HTMLDivElement | null>(null);
   const writingIsDrawingRef = useRef(false);
   const writingLastPointRef = useRef<{ x: number; y: number } | null>(null);
-  const [demoReplayTick, setDemoReplayTick] = useState(0);
-  const [demoVisibleStrokeCount, setDemoVisibleStrokeCount] = useState(0);
-  const [demoAnimatingStrokeIndex, setDemoAnimatingStrokeIndex] = useState<number | null>(null);
-  const [demoAnimationState, setDemoAnimationState] = useState<"idle" | "playing" | "done">("idle");
 
   const handleSpeak = useCallback((char: string) => {
     if (playingTimerRef.current) clearTimeout(playingTimerRef.current);
@@ -1485,17 +1364,8 @@ export default function KanaPage() {
     ? (tab === "hiragana" ? hiraganaStrokeOrderData[currentWritingItem.char] : katakanaStrokeOrderData[currentWritingItem.char])
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
-  const currentSvgGuide = currentWritingItem ? kanaSvgGuides[currentWritingItem.char] : undefined;
-  const currentKanaDemo = currentWritingItem ? kanaWritingDemos[currentWritingItem.char] : undefined;
   const isWritingViewMode = writingSubMode === "trace" && writingGuideMode === "follow";
-  const isDemoSupported = !!currentKanaDemo;
-  const useSvgGuide = writingSubMode === "trace" && !!currentSvgGuide;
-  const useTraceBasedGuideOnly = !!(currentWritingItem && traceBasedGuideChars.has(currentWritingItem.char));
-  const showSvgGuidePaths = useSvgGuide && writingGuideMode !== "blank" && !useTraceBasedGuideOnly;
-  const showSvgGrayTracePaths = useSvgGuide && writingGuideMode !== "blank" && currentSvgGuide.tracePaths.length > 0;
-  const showSvgPurpleTracePaths = useSvgGuide && writingGuideMode === "follow" && currentSvgGuide.tracePaths.length > 0;
-  const showSvgLabels = useSvgGuide && writingGuideMode === "follow" && currentSvgGuide.labels.length > 0;
-  const showFaintGuide = writingSubMode === "trace" && writingGuideMode !== "blank" && !useSvgGuide;
+  const showFaintGuide = writingSubMode === "trace" && writingGuideMode === "faint";
   const kanaGuideTextStyle = {
     display: "flex",
     alignItems: "center",
@@ -1509,40 +1379,11 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "follow"
-    ? "글자가 써지는 모습을 보고, 흐린 글자와 빈칸 쓰기로 직접 연습해 보세요."
+    ? "글자 모습을 보고, 아래 모드에서 직접 연습해 보세요."
     : writingGuideMode === "faint"
       ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
       : "이제 기억해서 빈칸에 다시 써보세요.";
 
-  useEffect(() => {
-    if (!isWritingViewMode || !currentKanaDemo) return;
-    setDemoAnimationState("playing");
-    setDemoVisibleStrokeCount(0);
-    setDemoAnimatingStrokeIndex(null);
-
-    const svg = demoSvgRef.current;
-    if (!svg) return;
-    const pathElements = Array.from(svg.querySelectorAll<SVGPathElement>("[data-demo-stroke='true']"));
-    if (pathElements.length === 0) return;
-
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    let elapsed = 120;
-    pathElements.forEach((pathEl, idx) => {
-      const length = pathEl.getTotalLength();
-      const duration = Math.min(950, Math.max(500, length * 4.5));
-      timers.push(setTimeout(() => {
-        setDemoVisibleStrokeCount(idx + 1);
-        setDemoAnimatingStrokeIndex(idx);
-      }, elapsed));
-      elapsed += duration + 140;
-    });
-    timers.push(setTimeout(() => {
-      setDemoAnimatingStrokeIndex(null);
-      setDemoAnimationState("done");
-    }, elapsed));
-
-    return () => timers.forEach((timer) => clearTimeout(timer));
-  }, [isWritingViewMode, currentWritingItem?.char, demoReplayTick, currentKanaDemo]);
 
   const loadNextWritingQuizQuestion = useCallback(() => {
     setWritingQuizQuestion(getWritingQuizQuestion(data));
@@ -2102,134 +1943,31 @@ export default function KanaPage() {
                 pointerEvents: "none",
               }}
             />
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                zIndex: 1,
-                color: "rgba(17, 24, 39, 0.08)",
-                ...kanaGuideTextStyle,
-              }}
-            >
-              {showFaintGuide ? currentWritingItem.char : ""}
-            </div>
-            {writingSubMode === "trace" && writingGuideMode === "follow" && !isDemoSupported && !useSvgGuide && (
+            {writingSubMode === "trace" && writingGuideMode === "faint" && (
               <div
                 style={{
                   position: "absolute",
                   inset: 0,
-                  zIndex: 2,
+                  zIndex: 1,
+                  color: "rgba(107, 114, 128, 0.22)",
                   ...kanaGuideTextStyle,
-                  color: "transparent",
-                  WebkitTextStroke: "1.4px rgba(139, 92, 246, 0.55)",
-                  opacity: 1,
-                  fontWeight: 400,
-                  textShadow: "none",
                 }}
               >
                 {currentWritingItem.char}
               </div>
             )}
-            {isWritingViewMode && isDemoSupported && currentKanaDemo && (
-              <svg
-                ref={demoSvgRef}
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 3 }}
-                viewBox={currentKanaDemo.viewBox}
-                preserveAspectRatio="xMidYMid meet"
-              >
-                {currentKanaDemo.strokes.map((stroke, idx) => (
-                  <g key={`demo-stroke-${idx}`}>
-                    {demoVisibleStrokeCount > idx && (
-                      <path
-                        d={stroke.path}
-                        fill="none"
-                        stroke="rgba(124, 58, 237, 0.2)"
-                        strokeWidth={10}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    )}
-                    <path
-                      data-demo-stroke="true"
-                      d={stroke.path}
-                      fill="none"
-                      stroke="rgba(124, 58, 237, 0.85)"
-                      strokeWidth={10}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      pathLength={100}
-                      strokeDasharray={100}
-                      strokeDashoffset={demoAnimatingStrokeIndex === idx ? 0 : 100}
-                      style={{
-                        opacity: demoVisibleStrokeCount > idx || demoAnimatingStrokeIndex === idx ? 1 : 0,
-                        transition: demoAnimatingStrokeIndex === idx ? "stroke-dashoffset 0.8s ease-out" : "none",
-                      }}
-                    />
-                    {currentSvgGuide?.labels?.[idx] && (
-                      <g transform={`translate(${currentSvgGuide.labels[idx].x}, ${currentSvgGuide.labels[idx].y})`}>
-                        <circle r="9.5" fill="rgba(124, 58, 237, 0.18)" />
-                        <text textAnchor="middle" dominantBaseline="central" fill="rgba(109, 40, 217, 0.8)" fontSize="11" fontWeight="700">
-                          {currentSvgGuide.labels[idx].text}
-                        </text>
-                      </g>
-                    )}
-                  </g>
-                ))}
-              </svg>
-            )}
-            {useSvgGuide && currentSvgGuide && !isWritingViewMode && (
-              <svg
+            {writingSubMode === "trace" && writingGuideMode === "follow" && (
+              <div
                 style={{
                   position: "absolute",
                   inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  pointerEvents: "none",
-                  zIndex: 3,
+                  zIndex: 2,
+                  color: "rgba(109, 40, 217, 0.9)",
+                  ...kanaGuideTextStyle,
                 }}
-                viewBox={currentSvgGuide.viewBox}
-                preserveAspectRatio="xMidYMid meet"
               >
-                {showSvgGuidePaths && currentSvgGuide.guidePaths.map((pathD, idx) => (
-                  <path key={`svg-guide-${idx}`} d={pathD} fill="rgba(107, 114, 128, 0.16)" />
-                ))}
-                {showSvgGrayTracePaths && currentSvgGuide.tracePaths.map((pathD, idx) => (
-                  <path
-                    key={`svg-trace-gray-${idx}`}
-                    d={pathD}
-                    fill="none"
-                    stroke="rgba(156, 163, 175, 0.35)"
-                    strokeWidth={18}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                ))}
-                {showSvgPurpleTracePaths && currentSvgGuide.tracePaths.map((pathD, idx) => (
-                  <path
-                    key={`svg-trace-purple-${idx}`}
-                    d={pathD}
-                    fill="none"
-                    stroke="rgba(124, 58, 237, 0.8)"
-                    strokeWidth={8}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                ))}
-                {showSvgLabels && currentSvgGuide.labels.map((label, idx) => (
-                  <g key={`svg-label-${idx}`} transform={`translate(${label.x}, ${label.y})`}>
-                    <circle r="9.5" fill="rgba(124, 58, 237, 0.18)" />
-                    <text
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      fill="rgba(109, 40, 217, 0.8)"
-                      fontSize="11"
-                      fontWeight="700"
-                    >
-                      {label.text}
-                    </text>
-                  </g>
-                ))}
-              </svg>
+                {currentWritingItem.char}
+              </div>
             )}
             {!isWritingViewMode && (
             <canvas
@@ -2272,23 +2010,6 @@ export default function KanaPage() {
             />
             )}
           </div>
-          {isWritingViewMode && (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "-0.4rem", marginBottom: "0.75rem", gap: "0.75rem", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "0.82rem", color: "#6b7280" }}>
-                {isDemoSupported
-                  ? `쓰기 보기 상태: ${demoAnimationState === "playing" ? "재생 중" : demoAnimationState === "done" ? "재생 완료" : "대기"}`
-                  : "이 글자는 곧 쓰기 보기 지원 예정입니다. 흐린 글자 모드에서 먼저 연습해 보세요."}
-              </span>
-              {isDemoSupported && (
-                <button
-                  onClick={() => setDemoReplayTick((prev) => prev + 1)}
-                  style={{ padding: "0.45rem 0.7rem", borderRadius: "8px", border: "1px solid #d1d5db", background: "#fff", cursor: "pointer", color: "#374151", fontWeight: 600 }}
-                >
-                  다시보기
-                </button>
-              )}
-            </div>
-          )}
 
           {writingSubMode === "trace" ? (
             <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
