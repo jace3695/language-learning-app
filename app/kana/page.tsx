@@ -1384,8 +1384,8 @@ export default function KanaPage() {
     ? (tab === "hiragana" ? hiraganaStrokeOrderData[currentWritingItem.char] : katakanaStrokeOrderData[currentWritingItem.char])
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
-  const currentKanaStrokeDemo = kanaStrokeDemos[currentWritingItem?.char ?? ""];
-  const hasKanaStrokeDemo = Boolean(currentKanaStrokeDemo);
+  const currentChar = currentWritingItem?.char ?? "";
+  const strokeDemo = kanaStrokeDemos[currentChar];
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank";
   const kanaGuideTextStyle = {
     display: "flex",
@@ -1400,7 +1400,7 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "view"
-    ? (hasKanaStrokeDemo
+    ? (strokeDemo
       ? "글자가 쓰이는 모습을 보고, 흐린 글자와 빈칸 쓰기로 직접 연습해 보세요."
       : "이 글자는 쓰기 보기 데이터를 준비 중입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요.")
     : writingGuideMode === "faint"
@@ -1992,12 +1992,12 @@ export default function KanaPage() {
               </div>
             )}
             {writingSubMode === "trace" && writingGuideMode === "view" && (
-              hasKanaStrokeDemo && currentKanaStrokeDemo ? (
+              strokeDemo ? (
                 <div key={`${currentWritingItem.char}-${replayKey}`} style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                  <svg viewBox={currentKanaStrokeDemo.viewBox} aria-label={`${currentWritingItem.char} 쓰기 보기`} style={{ width: "92%", height: "92%" }}>
-                    {currentKanaStrokeDemo.strokes.map((stroke, index) => {
+                  <svg viewBox={strokeDemo.viewBox} aria-label={`${currentWritingItem.char} 쓰기 보기`} style={{ width: "92%", height: "92%" }}>
+                    {strokeDemo.strokes.map((stroke, index) => {
                       const strokeDuration = stroke.duration ?? 900;
-                      const delay = currentKanaStrokeDemo.strokes.slice(0, index).reduce((acc, item) => acc + (item.duration ?? 900), 0);
+                      const delay = strokeDemo.strokes.slice(0, index).reduce((acc, item) => acc + (item.duration ?? 900), 0);
                       return (
                         <path
                           key={`${index}-${stroke.path.slice(0, 12)}`}
@@ -2104,7 +2104,7 @@ export default function KanaPage() {
               >
                 다음 글자
               </button>
-              {writingGuideMode === "view" && hasKanaStrokeDemo && (
+              {writingGuideMode === "view" && strokeDemo && (
                 <button
                   onClick={() => setReplayKey((prev) => prev + 1)}
                   style={{
