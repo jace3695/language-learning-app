@@ -143,25 +143,6 @@ type StrokeOrderInfo = {
 
 type WritingGuideMode = "view" | "faint" | "blank";
 
-type KanaStrokeDemo = {
-  viewBox: string;
-  strokes: {
-    path: string;
-    duration?: number;
-  }[];
-};
-
-const kanaStrokeDemos: Record<string, KanaStrokeDemo> = {
-  "あ": {
-    viewBox: "0 0 109 109",
-    strokes: [
-      { path: "M18 26 L91 26", duration: 800 },
-      { path: "M54.5 18 L54.5 72", duration: 900 },
-      { path: "M30 72 Q54.5 90 79 72", duration: 1200 },
-    ],
-  },
-};
-
 type HandwritingFeedback = {
   summary: string;
   goodPoints: string[] | string;
@@ -1220,7 +1201,6 @@ export default function KanaPage() {
   // 쓰기 연습 모드 상태
   const [writingSubMode, setWritingSubMode] = useState<"trace" | "quiz">("trace");
   const [writingGuideMode, setWritingGuideMode] = useState<WritingGuideMode>("view");
-  const [replayKey, setReplayKey] = useState(0);
   const [writingIndex, setWritingIndex] = useState(0);
   const [writingQuizQuestion, setWritingQuizQuestion] = useState<KanaItem>(() =>
     getWritingQuizQuestion(hiragana)
@@ -1385,8 +1365,7 @@ export default function KanaPage() {
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentChar = currentWritingItem?.char ?? "";
-  const strokeDemo = kanaStrokeDemos[currentChar];
-  const writingViewDebugText = strokeDemo ? "debug: stroke demo" : "debug: font fallback";
+  const writingViewDebugText = "DEBUG FONT FALLBACK ACTIVE";
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank";
   const kanaGuideTextStyle = {
     display: "flex",
@@ -1401,17 +1380,11 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "view"
-    ? (strokeDemo
-      ? "글자가 쓰이는 모습을 보고, 흐린 글자와 빈칸 쓰기로 직접 연습해 보세요."
-      : "이 글자는 쓰기 보기 데이터를 준비 중입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요.")
+    ? "폰트 기반 쓰기 보기(강제 fallback) 화면입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요."
     : writingGuideMode === "faint"
       ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
       : "이제 기억해서 빈칸에 다시 써보세요.";
 
-
-  useEffect(() => {
-    setReplayKey(0);
-  }, [currentWritingItem?.char]);
 
   const loadNextWritingQuizQuestion = useCallback(() => {
     setWritingQuizQuestion(getWritingQuizQuestion(data));
@@ -1564,58 +1537,32 @@ export default function KanaPage() {
     return { ...base, borderColor: "#d1d5db", background: "#f9fafb", color: "#9ca3af" };
   };
 
-  const strokeAnimationStyle = `
-    @keyframes draw-stroke {
-      from { stroke-dashoffset: 1; }
-      to { stroke-dashoffset: 0; }
-    }
-  `;
-
   const renderWritingViewGuide = () => {
     if (!currentWritingItem) return null;
-    if (strokeDemo) {
-      return (
-        <div key={`${currentWritingItem.char}-${replayKey}`} style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-          <svg viewBox={strokeDemo.viewBox} aria-label={`${currentWritingItem.char} 쓰기 보기`} style={{ width: "92%", height: "92%" }}>
-            {strokeDemo.strokes.map((stroke, index) => {
-              const strokeDuration = stroke.duration ?? 900;
-              const delay = strokeDemo.strokes.slice(0, index).reduce((acc, item) => acc + (item.duration ?? 900), 0);
-              return (
-                <path
-                  key={`${index}-${stroke.path.slice(0, 12)}`}
-                  d={stroke.path}
-                  fill="none"
-                  stroke="#7c3aed"
-                  strokeWidth={4}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  pathLength={1}
-                  strokeDasharray={1}
-                  strokeDashoffset={1}
-                  style={{ animation: `draw-stroke ${strokeDuration}ms ease-out ${delay}ms forwards` }}
-                />
-              );
-            })}
-          </svg>
-        </div>
-      );
-    }
 
     return (
       <div
-        className="writing-char-fallback"
         style={{
           position: "absolute",
           inset: 0,
           zIndex: 2,
-          color: "#111827",
-          ...kanaGuideTextStyle,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "none",
         }}
       >
-        {currentWritingItem.char}
+        <div style={{ fontSize: "160px", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
+          {currentChar}
+        </div>
+        <div style={{ marginTop: "12px", color: "red", fontWeight: 700, fontSize: "1.4rem" }}>
+          DEBUG FONT FALLBACK ACTIVE
+        </div>
       </div>
     );
   };
+
 
   const modeBtnStyle = (m: string): React.CSSProperties => ({
     padding: "0.4rem 1rem",
@@ -1631,7 +1578,6 @@ export default function KanaPage() {
 
   return (
     <>
-      <style>{strokeAnimationStyle}</style>
     <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1.5rem" }}>
         히라가나 / 가타카나 훈련
@@ -2120,22 +2066,6 @@ export default function KanaPage() {
               >
                 다음 글자
               </button>
-              {writingGuideMode === "view" && strokeDemo && (
-                <button
-                  onClick={() => setReplayKey((prev) => prev + 1)}
-                  style={{
-                    padding: "0.65rem 0.9rem",
-                    borderRadius: "8px",
-                    border: "1px solid #d1d5db",
-                    cursor: "pointer",
-                    background: "#fff",
-                    color: "#374151",
-                    fontWeight: 600,
-                  }}
-                >
-                  다시보기
-                </button>
-              )}
               {canDrawOnCanvas && (
                 <button
                   onClick={clearWritingCanvas}
