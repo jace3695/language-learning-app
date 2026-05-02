@@ -1458,15 +1458,13 @@ export default function KanaPage() {
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentTracingGuide = currentWritingItem ? tracingGuides[currentWritingItem.char] : undefined;
   const isTracingGuideDisabled = !!currentTracingGuide?.disabled;
-  const showTracingGuide = writingSubMode === "trace" && writingGuideMode === "follow" && !!currentTracingGuide && !isTracingGuideDisabled;
+  const showStrokeNumberGuide = writingSubMode === "trace" && writingGuideMode === "follow" && !!currentTracingGuide && !isTracingGuideDisabled;
   const showFaintGuide = writingSubMode === "trace" && writingGuideMode !== "blank";
   const writingGuideMessage = writingGuideMode === "follow"
-    ? "흐린 글자와 보조선을 따라 천천히 써보세요."
+    ? "번호는 쓰기 순서 참고용입니다. 흐린 글자 위에 따라 써보세요."
     : writingGuideMode === "faint"
       ? "글자 모양을 보며 직접 써보세요."
       : "가이드 없이 기억해서 써보세요.";
-  const showTracingGuidePendingMessage = writingSubMode === "trace" && writingGuideMode === "follow" && !currentTracingGuide;
-  const showTracingGuideFallbackMessage = writingSubMode === "trace" && writingGuideMode === "follow" && isTracingGuideDisabled;
 
   const loadNextWritingQuizQuestion = useCallback(() => {
     setWritingQuizQuestion(getWritingQuizQuestion(data));
@@ -1990,16 +1988,6 @@ export default function KanaPage() {
           {writingSubMode === "trace" && (
             <div style={{ marginBottom: "0.75rem", fontSize: "0.88rem", color: "#4b5563" }}>{writingGuideMessage}</div>
           )}
-          {showTracingGuidePendingMessage && (
-            <div style={{ marginBottom: "0.75rem", fontSize: "0.83rem", color: "#6b7280" }}>
-              이 글자의 세부 따라쓰기 가이드는 다음 단계에서 추가됩니다. 흐린 글자를 보고 따라 써보세요.
-            </div>
-          )}
-          {showTracingGuideFallbackMessage && (
-            <div style={{ marginBottom: "0.75rem", fontSize: "0.83rem", color: "#6b7280" }}>
-              {currentTracingGuide?.fallbackMessage || "이 글자는 흐린 글자를 보며 따라 써보세요."}
-            </div>
-          )}
 
           <div
             ref={writingAreaRef}
@@ -2054,43 +2042,39 @@ export default function KanaPage() {
             >
               {showFaintGuide ? currentWritingItem.char : ""}
             </div>
-            {showTracingGuide && currentTracingGuide && (
-              <svg
-                viewBox={currentTracingGuide.viewBox}
+            {showStrokeNumberGuide && currentTracingGuide && (
+              <div
                 style={{
                   position: "absolute",
                   inset: 0,
-                  width: "100%",
-                  height: "100%",
                   pointerEvents: "none",
                   zIndex: 2,
                 }}
               >
-                <g
-                  transform={`translate(${currentTracingGuide.offsetX ?? 0} ${currentTracingGuide.offsetY ?? 0}) scale(${currentTracingGuide.scale ?? 1})`}
-                >
-                  {currentTracingGuide.paths.map((path, idx) => (
-                    <path
-                      key={`tracing-path-${idx}`}
-                      d={path}
-                      fill="none"
-                      stroke="rgba(124, 58, 237, 0.34)"
-                      strokeWidth={5}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeDasharray="9 8"
-                    />
-                  ))}
-                  {currentTracingGuide.labels.map((label, idx) => (
-                    <g key={`tracing-label-${idx}`}>
-                      <circle cx={label.x} cy={label.y} r={9} fill="rgba(124, 58, 237, 0.18)" />
-                      <text x={label.x} y={label.y + 3} textAnchor="middle" fontSize={11} fontWeight={700} fill="rgba(109, 40, 217, 0.72)">
-                        {label.text}
-                      </text>
-                    </g>
-                  ))}
-                </g>
-              </svg>
+                {currentTracingGuide.labels.map((label, idx) => (
+                  <div
+                    key={`tracing-label-${idx}`}
+                    style={{
+                      position: "absolute",
+                      left: `${label.x / 2}%`,
+                      top: `${label.y / 2}%`,
+                      transform: "translate(-50%, -50%)",
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "999px",
+                      background: "rgba(124, 58, 237, 0.16)",
+                      color: "rgba(109, 40, 217, 0.76)",
+                      fontSize: "0.98rem",
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {label.text}
+                  </div>
+                ))}
+              </div>
             )}
             <canvas
               ref={writingCanvasRef}
