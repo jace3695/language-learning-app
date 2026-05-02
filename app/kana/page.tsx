@@ -143,21 +143,22 @@ type StrokeOrderInfo = {
 
 type WritingGuideMode = "follow" | "faint" | "blank";
 
-type TracingGuide = {
+type KanaSvgGuide = {
   viewBox: string;
-  paths: string[];
+  guidePaths: string[];
+  tracePaths: string[];
   labels: { x: number; y: number; text: string }[];
-  offsetX?: number;
-  offsetY?: number;
-  scale?: number;
-  disabled?: boolean;
-  fallbackMessage?: string;
 };
 
-const tracingGuides: Record<string, TracingGuide> = {
+const kanaSvgGuides: Record<string, KanaSvgGuide> = {
   あ: {
     viewBox: "0 0 200 200",
-    paths: [
+    guidePaths: [
+      "M42 54 C81 47 122 47 161 54 C166 55 168 60 165 63 C161 68 157 69 149 68 C119 64 88 64 57 71 C50 72 44 68 43 62 C42 58 42 56 42 54 Z",
+      "M98 33 C104 34 108 39 107 45 C103 80 101 116 102 154 C102 162 97 166 91 165 C86 164 82 158 84 149 C89 120 91 86 96 45 C97 38 93 34 98 33 Z",
+      "M63 112 C91 87 136 86 158 112 C180 139 150 173 101 175 C67 175 48 151 58 126 C66 108 84 99 108 95 C114 94 117 100 115 105 C113 110 109 112 102 114 C87 118 75 126 71 139 C67 154 81 163 100 162 C131 162 153 147 145 127 C138 109 107 105 84 124 C78 129 71 130 66 125 C61 120 60 116 63 112 Z",
+    ],
+    tracePaths: [
       "M55 58 C86 52 122 51 151 55",
       "M106 41 C102 75 98 116 97 158",
       "M73 113 C95 90 134 89 153 113 C173 139 144 170 99 170 C68 170 53 148 62 129 C69 113 84 102 104 98",
@@ -167,13 +168,14 @@ const tracingGuides: Record<string, TracingGuide> = {
       { x: 102, y: 43, text: "2" },
       { x: 72, y: 104, text: "3" },
     ],
-    offsetX: 0,
-    offsetY: 4,
-    scale: 1.04,
   },
   い: {
     viewBox: "0 0 200 200",
-    paths: [
+    guidePaths: [
+      "M67 56 C74 56 80 61 79 68 C77 85 76 105 79 122 C82 136 87 145 92 144 C97 143 101 137 106 129 C110 123 117 122 121 126 C126 130 127 136 123 142 C114 157 103 166 90 166 C72 166 60 149 57 128 C53 104 56 84 62 64 C63 59 66 56 67 56 Z",
+      "M126 66 C132 64 139 66 143 72 C156 91 164 113 166 147 C166 154 161 159 155 159 C149 159 144 155 144 149 C142 123 136 102 123 81 C119 75 120 69 126 66 Z",
+    ],
+    tracePaths: [
       "M67 59 C58 90 58 124 73 149 C80 161 88 157 99 137",
       "M132 67 C149 93 157 118 159 148",
     ],
@@ -181,13 +183,14 @@ const tracingGuides: Record<string, TracingGuide> = {
       { x: 67, y: 64, text: "1" },
       { x: 127, y: 68, text: "2" },
     ],
-    offsetX: -1,
-    offsetY: 2,
-    scale: 1.02,
   },
   う: {
     viewBox: "0 0 200 200",
-    paths: [
+    guidePaths: [
+      "M80 54 C103 48 126 51 146 62 C152 65 154 72 151 77 C147 83 141 84 134 80 C118 71 100 69 84 75 C77 78 70 74 69 68 C68 61 73 56 80 54 Z",
+      "M62 102 C95 77 146 78 160 111 C172 141 148 174 95 177 C86 177 81 172 81 166 C81 159 86 154 94 154 C136 154 152 136 145 118 C137 99 103 95 76 116 C70 120 63 119 59 113 C56 109 57 106 62 102 Z",
+    ],
+    tracePaths: [
       "M81 60 C101 51 123 53 142 64",
       "M63 106 C91 83 140 83 154 114 C166 143 140 169 94 171",
     ],
@@ -195,13 +198,15 @@ const tracingGuides: Record<string, TracingGuide> = {
       { x: 81, y: 61, text: "1" },
       { x: 74, y: 100, text: "2" },
     ],
-    offsetX: 0,
-    offsetY: 3,
-    scale: 1.03,
   },
   え: {
     viewBox: "0 0 200 200",
-    paths: [
+    guidePaths: [
+      "M80 52 C105 47 127 49 144 61 C149 65 150 72 146 76 C143 82 136 83 130 79 C117 71 102 69 86 74 C79 76 72 72 72 65 C72 58 75 54 80 52 Z",
+      "M66 93 C96 84 128 83 156 92 C163 94 166 101 164 106 C161 112 156 114 149 112 C125 105 99 106 73 114 C66 116 60 113 58 106 C57 99 60 95 66 93 Z",
+      "M108 92 C115 93 120 98 118 104 C116 114 111 122 106 131 C117 124 126 120 134 117 C148 113 156 121 160 136 C163 149 167 150 171 147 C176 143 183 144 186 149 C190 154 189 161 184 166 C176 175 165 177 156 173 C146 168 141 159 138 149 C137 145 136 142 132 143 C117 148 97 160 67 180 C61 184 54 182 50 177 C45 171 47 164 52 158 C69 138 84 117 96 97 C99 93 103 92 108 92 Z",
+    ],
+    tracePaths: [
       "M80 57 C103 50 124 52 140 63",
       "M67 97 C96 88 126 87 152 95",
       "M106 95 C92 118 80 141 64 168 C89 150 106 138 121 132 C131 128 134 137 138 150 C142 162 152 164 166 154",
@@ -211,13 +216,16 @@ const tracingGuides: Record<string, TracingGuide> = {
       { x: 69, y: 95, text: "2" },
       { x: 114, y: 95, text: "3" },
     ],
-    offsetX: 1,
-    offsetY: 5,
-    scale: 1.03,
   },
   お: {
     viewBox: "0 0 200 200",
-    paths: [
+    guidePaths: [
+      "M50 62 C81 57 114 56 146 60 C153 61 157 67 156 72 C154 78 148 82 140 81 C114 78 88 79 61 84 C54 85 48 82 46 76 C45 69 46 64 50 62 Z",
+      "M97 38 C103 38 108 43 108 49 C108 81 105 116 102 154 C101 162 97 166 91 166 C85 166 80 161 81 154 C84 118 86 83 87 49 C87 43 91 39 97 38 Z",
+      "M69 112 C89 98 115 93 139 101 C165 110 175 136 163 158 C150 180 113 181 91 164 C75 151 75 130 92 118 C97 114 104 115 108 120 C111 124 112 132 106 136 C100 140 99 146 103 149 C113 156 133 154 141 141 C147 131 143 122 131 117 C114 111 94 116 79 125 C73 129 66 128 61 123 C57 118 63 115 69 112 Z",
+      "M137 82 C154 91 167 104 176 119 C180 125 178 132 173 136 C167 140 161 138 157 132 C149 120 139 110 127 102 C121 98 120 92 124 86 C128 80 132 79 137 82 Z",
+    ],
+    tracePaths: [
       "M56 66 C84 62 114 60 142 63",
       "M98 47 C98 81 96 118 94 154",
       "M71 116 C89 104 114 98 136 106 C158 114 166 136 154 154 C142 173 110 173 91 159 C78 149 80 133 95 125",
@@ -229,9 +237,6 @@ const tracingGuides: Record<string, TracingGuide> = {
       { x: 73, y: 109, text: "3" },
       { x: 134, y: 90, text: "4" },
     ],
-    offsetX: 2,
-    offsetY: 6,
-    scale: 1.04,
   },
 };
 
@@ -1456,10 +1461,12 @@ export default function KanaPage() {
     ? (tab === "hiragana" ? hiraganaStrokeOrderData[currentWritingItem.char] : katakanaStrokeOrderData[currentWritingItem.char])
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
-  const currentTracingGuide = currentWritingItem ? tracingGuides[currentWritingItem.char] : undefined;
-  const isTracingGuideDisabled = !!currentTracingGuide?.disabled;
-  const showStrokeNumberGuide = writingSubMode === "trace" && writingGuideMode === "follow" && !!currentTracingGuide && !isTracingGuideDisabled;
-  const showFaintGuide = writingSubMode === "trace" && writingGuideMode !== "blank";
+  const currentSvgGuide = currentWritingItem ? kanaSvgGuides[currentWritingItem.char] : undefined;
+  const useSvgGuide = writingSubMode === "trace" && !!currentSvgGuide;
+  const showSvgGuidePaths = useSvgGuide && writingGuideMode !== "blank";
+  const showSvgTracePaths = useSvgGuide && writingGuideMode === "follow" && currentSvgGuide.tracePaths.length > 0;
+  const showSvgLabels = useSvgGuide && writingGuideMode === "follow" && currentSvgGuide.labels.length > 0;
+  const showFaintGuide = writingSubMode === "trace" && writingGuideMode !== "blank" && !useSvgGuide;
   const kanaGuideTextStyle = {
     display: "flex",
     alignItems: "center",
@@ -2047,7 +2054,7 @@ export default function KanaPage() {
             >
               {showFaintGuide ? currentWritingItem.char : ""}
             </div>
-            {writingSubMode === "trace" && writingGuideMode === "follow" && (
+            {writingSubMode === "trace" && writingGuideMode === "follow" && !useSvgGuide && (
               <div
                 style={{
                   position: "absolute",
@@ -2064,39 +2071,48 @@ export default function KanaPage() {
                 {currentWritingItem.char}
               </div>
             )}
-            {showStrokeNumberGuide && currentTracingGuide && (
-              <div
+            {useSvgGuide && currentSvgGuide && (
+              <svg
                 style={{
                   position: "absolute",
                   inset: 0,
+                  width: "100%",
+                  height: "100%",
                   pointerEvents: "none",
                   zIndex: 3,
                 }}
+                viewBox={currentSvgGuide.viewBox}
+                preserveAspectRatio="xMidYMid meet"
               >
-                {currentTracingGuide.labels.map((label, idx) => (
-                  <div
-                    key={`tracing-label-${idx}`}
-                    style={{
-                      position: "absolute",
-                      left: `${label.x / 2}%`,
-                      top: `${label.y / 2}%`,
-                      transform: "translate(-50%, -50%)",
-                      width: "25px",
-                      height: "25px",
-                      borderRadius: "999px",
-                      background: "rgba(124, 58, 237, 0.14)",
-                      color: "rgba(109, 40, 217, 0.72)",
-                      fontSize: "0.88rem",
-                      fontWeight: 700,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {label.text}
-                  </div>
+                {showSvgGuidePaths && currentSvgGuide.guidePaths.map((pathD, idx) => (
+                  <path key={`svg-guide-${idx}`} d={pathD} fill="rgba(107, 114, 128, 0.16)" />
                 ))}
-              </div>
+                {showSvgTracePaths && currentSvgGuide.tracePaths.map((pathD, idx) => (
+                  <path
+                    key={`svg-trace-${idx}`}
+                    d={pathD}
+                    fill="none"
+                    stroke="rgba(124, 58, 237, 0.75)"
+                    strokeWidth={5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ))}
+                {showSvgLabels && currentSvgGuide.labels.map((label, idx) => (
+                  <g key={`svg-label-${idx}`} transform={`translate(${label.x}, ${label.y})`}>
+                    <circle r="10.5" fill="rgba(124, 58, 237, 0.18)" />
+                    <text
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill="rgba(109, 40, 217, 0.8)"
+                      fontSize="12"
+                      fontWeight="700"
+                    >
+                      {label.text}
+                    </text>
+                  </g>
+                ))}
+              </svg>
             )}
             <canvas
               ref={writingCanvasRef}
