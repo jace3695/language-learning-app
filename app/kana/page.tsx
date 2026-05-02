@@ -143,22 +143,15 @@ type StrokeOrderInfo = {
 
 type WritingGuideMode = "view" | "faint" | "blank";
 
-type KanaRevealStep = {
-  label: string;
-  clipPath: string;
+type KanaStrokeDemo = {
+  viewBox: string;
+  strokes: {
+    path: string;
+    duration?: number;
+  }[];
 };
 
-type KanaRevealDemo = {
-  steps: KanaRevealStep[];
-};
-
-const animCjkKanaSvgs: Record<string, string> = {
-  "あ": "/vendor/animcjk/svgsJaKana/12354.svg",
-  "い": "/vendor/animcjk/svgsJaKana/12356.svg",
-  "う": "/vendor/animcjk/svgsJaKana/12358.svg",
-  "え": "/vendor/animcjk/svgsJaKana/12360.svg",
-  "お": "/vendor/animcjk/svgsJaKana/12362.svg",
-};
+const kanaStrokeDemos: Record<string, KanaStrokeDemo> = {};
 
 type HandwritingFeedback = {
   summary: string;
@@ -1382,8 +1375,8 @@ export default function KanaPage() {
     ? (tab === "hiragana" ? hiraganaStrokeOrderData[currentWritingItem.char] : katakanaStrokeOrderData[currentWritingItem.char])
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
-  const currentAnimCjkSvg = animCjkKanaSvgs[currentWritingItem?.char ?? ""];
-  const hasAnimCjkSvg = Boolean(currentAnimCjkSvg);
+  const currentKanaStrokeDemo = kanaStrokeDemos[currentWritingItem?.char ?? ""];
+  const hasKanaStrokeDemo = Boolean(currentKanaStrokeDemo);
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank";
   const kanaGuideTextStyle = {
     display: "flex",
@@ -1398,7 +1391,7 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "view"
-    ? (hasAnimCjkSvg
+    ? (hasKanaStrokeDemo
       ? "글자가 쓰이는 모습을 보고, 흐린 글자와 빈칸 쓰기로 직접 연습해 보세요."
       : "이 글자는 쓰기 보기 데이터를 준비 중입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요.")
     : writingGuideMode === "faint"
@@ -1561,6 +1554,13 @@ export default function KanaPage() {
     return { ...base, borderColor: "#d1d5db", background: "#f9fafb", color: "#9ca3af" };
   };
 
+  const strokeAnimationStyle = `
+    @keyframes draw-stroke {
+      from { stroke-dashoffset: 1; }
+      to { stroke-dashoffset: 0; }
+    }
+  `;
+
   const modeBtnStyle = (m: string): React.CSSProperties => ({
     padding: "0.4rem 1rem",
     borderRadius: "6px",
@@ -1574,6 +1574,8 @@ export default function KanaPage() {
   });
 
   return (
+    <>
+      <style>{strokeAnimationStyle}</style>
     <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1.5rem" }}>
         히라가나 / 가타카나 훈련
@@ -1981,15 +1983,29 @@ export default function KanaPage() {
               </div>
             )}
             {writingSubMode === "trace" && writingGuideMode === "view" && (
-              hasAnimCjkSvg ? (
-                <div style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                  <object
-                    key={`${currentWritingItem.char}-${replayKey}`}
-                    data={currentAnimCjkSvg}
-                    type="image/svg+xml"
-                    aria-label={`${currentWritingItem.char} 쓰기 보기`}
-                    style={{ width: "92%", height: "92%", objectFit: "contain" }}
-                  />
+              hasKanaStrokeDemo && currentKanaStrokeDemo ? (
+                <div key={`${currentWritingItem.char}-${replayKey}`} style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                  <svg viewBox={currentKanaStrokeDemo.viewBox} aria-label={`${currentWritingItem.char} 쓰기 보기`} style={{ width: "92%", height: "92%" }}>
+                    {currentKanaStrokeDemo.strokes.map((stroke, index) => {
+                      const strokeDuration = stroke.duration ?? 900;
+                      const delay = currentKanaStrokeDemo.strokes.slice(0, index).reduce((acc, item) => acc + (item.duration ?? 900), 0);
+                      return (
+                        <path
+                          key={`${index}-${stroke.path.slice(0, 12)}`}
+                          d={stroke.path}
+                          fill="none"
+                          stroke="#7c3aed"
+                          strokeWidth={4}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          pathLength={1}
+                          strokeDasharray={1}
+                          strokeDashoffset={1}
+                          style={{ animation: `draw-stroke ${strokeDuration}ms ease-out ${delay}ms forwards` }}
+                        />
+                      );
+                    })}
+                  </svg>
                 </div>
               ) : (
                 <div
@@ -2079,7 +2095,7 @@ export default function KanaPage() {
               >
                 다음 글자
               </button>
-              {writingGuideMode === "view" && hasAnimCjkSvg && (
+              {writingGuideMode === "view" && hasKanaStrokeDemo && (
                 <button
                   onClick={() => setReplayKey((prev) => prev + 1)}
                   style={{
@@ -2598,5 +2614,6 @@ export default function KanaPage() {
         </div>
       )}
     </div>
+    </>
   );
 }
