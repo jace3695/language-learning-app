@@ -1386,6 +1386,7 @@ export default function KanaPage() {
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentChar = currentWritingItem?.char ?? "";
   const strokeDemo = kanaStrokeDemos[currentChar];
+  const writingViewDebugText = strokeDemo ? "debug: stroke demo" : "debug: font fallback";
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank";
   const kanaGuideTextStyle = {
     display: "flex",
@@ -1569,6 +1570,52 @@ export default function KanaPage() {
       to { stroke-dashoffset: 0; }
     }
   `;
+
+  const renderWritingViewGuide = () => {
+    if (!currentWritingItem) return null;
+    if (strokeDemo) {
+      return (
+        <div key={`${currentWritingItem.char}-${replayKey}`} style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+          <svg viewBox={strokeDemo.viewBox} aria-label={`${currentWritingItem.char} 쓰기 보기`} style={{ width: "92%", height: "92%" }}>
+            {strokeDemo.strokes.map((stroke, index) => {
+              const strokeDuration = stroke.duration ?? 900;
+              const delay = strokeDemo.strokes.slice(0, index).reduce((acc, item) => acc + (item.duration ?? 900), 0);
+              return (
+                <path
+                  key={`${index}-${stroke.path.slice(0, 12)}`}
+                  d={stroke.path}
+                  fill="none"
+                  stroke="#7c3aed"
+                  strokeWidth={4}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  pathLength={1}
+                  strokeDasharray={1}
+                  strokeDashoffset={1}
+                  style={{ animation: `draw-stroke ${strokeDuration}ms ease-out ${delay}ms forwards` }}
+                />
+              );
+            })}
+          </svg>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="writing-char-fallback"
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 2,
+          color: "#111827",
+          ...kanaGuideTextStyle,
+        }}
+      >
+        {currentWritingItem.char}
+      </div>
+    );
+  };
 
   const modeBtnStyle = (m: string): React.CSSProperties => ({
     padding: "0.4rem 1rem",
@@ -1992,43 +2039,7 @@ export default function KanaPage() {
               </div>
             )}
             {writingSubMode === "trace" && writingGuideMode === "view" && (
-              strokeDemo ? (
-                <div key={`${currentWritingItem.char}-${replayKey}`} style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                  <svg viewBox={strokeDemo.viewBox} aria-label={`${currentWritingItem.char} 쓰기 보기`} style={{ width: "92%", height: "92%" }}>
-                    {strokeDemo.strokes.map((stroke, index) => {
-                      const strokeDuration = stroke.duration ?? 900;
-                      const delay = strokeDemo.strokes.slice(0, index).reduce((acc, item) => acc + (item.duration ?? 900), 0);
-                      return (
-                        <path
-                          key={`${index}-${stroke.path.slice(0, 12)}`}
-                          d={stroke.path}
-                          fill="none"
-                          stroke="#7c3aed"
-                          strokeWidth={4}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          pathLength={1}
-                          strokeDasharray={1}
-                          strokeDashoffset={1}
-                          style={{ animation: `draw-stroke ${strokeDuration}ms ease-out ${delay}ms forwards` }}
-                        />
-                      );
-                    })}
-                  </svg>
-                </div>
-              ) : (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    zIndex: 2,
-                    color: "#111827",
-                    ...kanaGuideTextStyle,
-                  }}
-                >
-                  {currentWritingItem.char}
-                </div>
-              )
+              renderWritingViewGuide()
             )}
             {canDrawOnCanvas && (
             <canvas
@@ -2071,6 +2082,11 @@ export default function KanaPage() {
             />
             )}
           </div>
+          {writingSubMode === "trace" && writingGuideMode === "view" && (
+            <div style={{ marginTop: "-0.5rem", marginBottom: "0.75rem", fontSize: "0.7rem", color: "#9ca3af" }}>
+              {writingViewDebugText}
+            </div>
+          )}
 
           {writingSubMode === "trace" ? (
             <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
