@@ -140,6 +140,11 @@ type StrokeOrderInfo = {
   tip: string;
 };
 
+type KanaStrokeDemo = {
+  paths: string[];
+};
+
+const kanaStrokeDemos: Record<string, KanaStrokeDemo> = {};
 
 type WritingGuideMode = "view" | "faint" | "blank";
 
@@ -1365,7 +1370,7 @@ export default function KanaPage() {
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentChar = currentWritingItem?.char ?? "";
-  const writingViewDebugText = "DEBUG FONT FALLBACK ACTIVE";
+  const strokeDemo = kanaStrokeDemos[currentChar];
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank";
   const kanaGuideTextStyle = {
     display: "flex",
@@ -1380,7 +1385,7 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "view"
-    ? "폰트 기반 쓰기 보기(강제 fallback) 화면입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요."
+    ? "이 글자는 쓰기 보기 데이터를 준비 중입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요."
     : writingGuideMode === "faint"
       ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
       : "이제 기억해서 빈칸에 다시 써보세요.";
@@ -1540,6 +1545,27 @@ export default function KanaPage() {
   const renderWritingViewGuide = () => {
     if (!currentWritingItem) return null;
 
+    if (strokeDemo) {
+      return (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            pointerEvents: "none",
+            color: "#111827",
+            fontSize: "0.95rem",
+            fontWeight: 600,
+          }}
+        >
+          SVG stroke 애니메이션 준비 중
+        </div>
+      );
+    }
+
     return (
       <div
         style={{
@@ -1555,9 +1581,6 @@ export default function KanaPage() {
       >
         <div style={{ fontSize: "160px", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
           {currentChar}
-        </div>
-        <div style={{ marginTop: "12px", color: "red", fontWeight: 700, fontSize: "1.4rem" }}>
-          DEBUG FONT FALLBACK ACTIVE
         </div>
       </div>
     );
@@ -2028,12 +2051,6 @@ export default function KanaPage() {
             />
             )}
           </div>
-          {writingSubMode === "trace" && writingGuideMode === "view" && (
-            <div style={{ marginTop: "-0.5rem", marginBottom: "0.75rem", fontSize: "0.7rem", color: "#9ca3af" }}>
-              {writingViewDebugText}
-            </div>
-          )}
-
           {writingSubMode === "trace" ? (
             <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
               <button
