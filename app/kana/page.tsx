@@ -32,6 +32,63 @@ const katakana = [
 
 type KanaItem = { char: string; roman: string };
 
+type KanaGroup = {
+  id: string;
+  label: string;
+  chars: string[];
+  note?: string;
+};
+
+const kanaConcepts = [
+  { title: "히라가나", summary: "일본어의 기본 글자", detail: "일본어의 기본 글자입니다. 주로 일본어 고유어, 조사, 동사·형용사 어미에 자주 쓰입니다." },
+  { title: "가타카나", summary: "외래어·강조 표현에 자주 사용", detail: "외래어, 외국 이름, 의성어·의태어, 강조 표현에 자주 쓰이는 글자입니다." },
+  { title: "탁음", summary: "점(゛)이 붙어 소리가 변함", detail: "か/さ/た/は행 등에 점 두 개(゛)가 붙어 소리가 탁해진 글자입니다. 예: か→が, さ→ざ, た→だ, は→ば" },
+  { title: "반탁음", summary: "동그라미(゜)가 붙어 p계열 소리", detail: "は행에 동그라미(゜)가 붙어 p 계열 소리로 바뀐 글자입니다. 예: は→ぱ, ひ→ぴ, ふ→ぷ" },
+  { title: "요음", summary: "작은 や/ゆ/よ를 붙여 한 박자", detail: "작은 や/ゆ/よ(ャ/ュ/ョ)를 붙여 한 박자로 읽는 소리입니다. 예: きゃ, しゅ, チョ" },
+  { title: "촉음", summary: "작은 っ/ッ로 자음을 끊어 읽기", detail: "작은 っ/ッ로 표시하며 다음 자음을 잠깐 막았다가 터뜨리듯 읽습니다. 예: きって, がっこう, サッカー" },
+  { title: "ん 발음", summary: "뒤 글자에 따라 다르게 들림", detail: "ん/ン은 뒤에 오는 소리에 따라 ㄴ/ㅁ/ㅇ처럼 들릴 수 있습니다. 예: ほん, せんせい, パン" },
+  { title: "장음", summary: "소리를 한 박자 길게 늘림", detail: "소리를 한 박자 길게 늘여 읽는 발음입니다. 히라가나는 あ/い/う, えい, おう 표기가 많고 가타카나는 주로 ー로 표시합니다." },
+] as const;
+
+const hiraganaGroupDefs: KanaGroup[] = [
+  { id: "a", label: "あ행", chars: ["あ", "い", "う", "え", "お"] },
+  { id: "ka", label: "か행", chars: ["か", "き", "く", "け", "こ"] },
+  { id: "sa", label: "さ행", chars: ["さ", "し", "す", "せ", "そ"] },
+  { id: "ta", label: "た행", chars: ["た", "ち", "つ", "て", "と"] },
+  { id: "na", label: "な행", chars: ["な", "に", "ぬ", "ね", "の"] },
+  { id: "ha", label: "は행", chars: ["は", "ひ", "ふ", "へ", "ほ"] },
+  { id: "ma", label: "ま행", chars: ["ま", "み", "む", "め", "も"] },
+  { id: "ya", label: "や행", chars: ["や", "ゆ", "よ"] },
+  { id: "ra", label: "ら행", chars: ["ら", "り", "る", "れ", "ろ"] },
+  { id: "wa", label: "わ행", chars: ["わ", "を", "ん"] },
+  { id: "dakuon", label: "탁음", chars: ["が","ぎ","ぐ","げ","ご","ざ","じ","ず","ぜ","ぞ","だ","ぢ","づ","で","ど","ば","び","ぶ","べ","ぼ"], note: "다음 단계에서 추가" },
+  { id: "handakuon", label: "반탁음", chars: ["ぱ","ぴ","ぷ","ぺ","ぽ"], note: "다음 단계에서 추가" },
+  { id: "youon", label: "요음", chars: ["きゃ","きゅ","きょ","しゃ","しゅ","しょ"], note: "다음 단계에서 추가" },
+  { id: "sokuon", label: "촉음", chars: ["っ"], note: "다음 단계에서 추가" },
+  { id: "n-sound", label: "ん 발음", chars: ["ん"] },
+  { id: "long-vowel", label: "장음", chars: [], note: "장음은 소리 규칙으로, 예시 단어 학습은 다음 단계에서 추가" },
+];
+
+const katakanaGroupDefs: KanaGroup[] = [
+  { id: "a", label: "ア행", chars: ["ア", "イ", "ウ", "エ", "オ"] },
+  { id: "ka", label: "カ행", chars: ["カ", "キ", "ク", "ケ", "コ"] },
+  { id: "sa", label: "サ행", chars: ["サ", "シ", "ス", "セ", "ソ"] },
+  { id: "ta", label: "タ행", chars: ["タ", "チ", "ツ", "テ", "ト"] },
+  { id: "na", label: "ナ행", chars: ["ナ", "ニ", "ヌ", "ネ", "ノ"] },
+  { id: "ha", label: "ハ행", chars: ["ハ", "ヒ", "フ", "ヘ", "ホ"] },
+  { id: "ma", label: "マ행", chars: ["マ", "ミ", "ム", "メ", "モ"] },
+  { id: "ya", label: "ヤ행", chars: ["ヤ", "ユ", "ヨ"] },
+  { id: "ra", label: "ラ행", chars: ["ラ", "リ", "ル", "レ", "ロ"] },
+  { id: "wa", label: "ワ행", chars: ["ワ", "ヲ", "ン"] },
+  { id: "dakuon", label: "탁음", chars: ["ガ","ギ","グ","ゲ","ゴ","ザ","ジ","ズ","ゼ","ゾ","ダ","ヂ","ヅ","デ","ド","バ","ビ","ブ","ベ","ボ"], note: "다음 단계에서 추가" },
+  { id: "handakuon", label: "반탁음", chars: ["パ","ピ","プ","ペ","ポ"], note: "다음 단계에서 추가" },
+  { id: "youon", label: "요음", chars: ["キャ","キュ","キョ","シャ","シュ","ショ"], note: "다음 단계에서 추가" },
+  { id: "sokuon", label: "촉음", chars: ["ッ"], note: "다음 단계에서 추가" },
+  { id: "n-sound", label: "ン 발음", chars: ["ン"] },
+  { id: "long-vowel", label: "장음", chars: ["ー"], note: "장음 예시 단어 학습은 다음 단계에서 추가" },
+];
+
+
 type ConfusingPair = {
   a: { char: string; roman: string };
   b: { char: string; roman: string };
@@ -1076,7 +1133,20 @@ export default function KanaPage() {
   const [tab, setTab] = useState<"hiragana" | "katakana">("hiragana");
   const [mode, setMode] = useState<"learn" | "quiz" | "confusing" | "writing">("learn");
 
-  const data = tab === "hiragana" ? hiragana : katakana;
+  const allData = tab === "hiragana" ? hiragana : katakana;
+  const groupDefs = tab === "hiragana" ? hiraganaGroupDefs : katakanaGroupDefs;
+  const [selectedKanaGroup, setSelectedKanaGroup] = useState("all");
+  const [openConcept, setOpenConcept] = useState<string | null>(null);
+  const [wrongKanaChars, setWrongKanaChars] = useState<Set<string>>(new Set());
+
+  const availableGroups = groupDefs.map((group) => ({
+    ...group,
+    matchedChars: group.chars.filter((char) => allData.some((item) => item.char === char)),
+  }));
+  const selectedGroup = availableGroups.find((group) => group.id === selectedKanaGroup);
+  const data = selectedKanaGroup === "all"
+    ? allData
+    : allData.filter((item) => selectedGroup?.matchedChars.includes(item.char));
 
   const [quiz, setQuiz] = useState<{ question: KanaItem; choices: string[] }>(() =>
     getQuizQuestion(hiragana)
@@ -1114,6 +1184,15 @@ export default function KanaPage() {
     } catch {
       setSettings(DEFAULT_SETTINGS);
     }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("wrongKana");
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Array<{ char: string }>;
+      setWrongKanaChars(new Set(parsed.map((item) => item.char)));
+    } catch {}
   }, []);
 
   // 쓰기 연습 모드 상태
@@ -1158,6 +1237,7 @@ export default function KanaPage() {
 
   const handleTabChange = (newTab: "hiragana" | "katakana") => {
     setTab(newTab);
+    setSelectedKanaGroup("all");
     const newData = newTab === "hiragana" ? hiragana : katakana;
     setWritingIndex(0);
     setWritingSubMode("trace");
@@ -1175,7 +1255,7 @@ export default function KanaPage() {
     if (newMode === "quiz") {
       setSelected(null);
       setScore({ correct: 0, total: 0 });
-      setQuiz(getQuizQuestion(data));
+      setQuiz(getQuizQuestion(data.length > 0 ? data : allData));
     }
     if (newMode === "confusing") {
       setConfusingView("cards");
@@ -1358,6 +1438,7 @@ export default function KanaPage() {
     }));
     if (!isCorrect) {
       saveWrongKana(quiz.question.char, quiz.question.roman, tab, "quiz");
+      setWrongKanaChars((prev) => new Set(prev).add(quiz.question.char));
     }
   };
 
@@ -1478,6 +1559,43 @@ export default function KanaPage() {
         >
           가타카나
         </button>
+      </div>
+
+
+      <div style={{ marginBottom: "1rem", border: "1px solid #e5e7eb", borderRadius: "10px", padding: "0.9rem", background: "#f8fafc" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.75rem" }}>가나 기초 설명</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "0.5rem" }}>
+          {kanaConcepts.map((concept) => {
+            const opened = openConcept === concept.title;
+            return (
+              <button key={concept.title} onClick={() => setOpenConcept(opened ? null : concept.title)} style={{ textAlign: "left", border: "1px solid #d1d5db", borderRadius: "8px", padding: "0.6rem", background: "#fff", cursor: "pointer" }}>
+                <div style={{ fontWeight: 700, color: "#1f2937" }}>{concept.title}</div>
+                <div style={{ fontSize: "0.85rem", color: "#6b7280", marginTop: "0.2rem" }}>{concept.summary}</div>
+                {opened && <div style={{ marginTop: "0.45rem", fontSize: "0.85rem", color: "#374151", lineHeight: 1.5 }}>{concept.detail}</div>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "1.25rem" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.6rem" }}>단계별 그룹 선택</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.55rem" }}>
+          <button onClick={() => setSelectedKanaGroup("all")} style={{ textAlign: "left", border: selectedKanaGroup === "all" ? "2px solid #6366f1" : "1px solid #d1d5db", borderRadius: "8px", padding: "0.65rem", background: selectedKanaGroup === "all" ? "#eef2ff" : "#fff", cursor: "pointer" }}>
+            <div style={{ fontWeight: 700 }}>전체</div><div style={{ fontSize: "0.8rem", color: "#6b7280" }}>{allData.length}글자</div>
+          </button>
+          {availableGroups.map((group) => {
+            const active = selectedKanaGroup === group.id;
+            const hasWrong = group.matchedChars.some((char) => wrongKanaChars.has(char));
+            const preview = group.matchedChars.slice(0, 6).join(" ");
+            return <button key={group.id} onClick={() => setSelectedKanaGroup(group.id)} style={{ textAlign: "left", border: active ? "2px solid #6366f1" : "1px solid #d1d5db", borderRadius: "8px", padding: "0.65rem", background: active ? "#eef2ff" : "#fff", cursor: "pointer" }}>
+              <div style={{ fontWeight: 700 }}>{group.label}</div>
+              <div style={{ fontSize: "0.82rem", color: "#374151", marginTop: "0.15rem", minHeight: "1rem" }}>{preview || "준비 중"}</div>
+              <div style={{ fontSize: "0.78rem", color: "#6b7280", marginTop: "0.2rem" }}>{group.matchedChars.length}글자 · {hasWrong ? "헷갈림 있음" : "헷갈림 없음"}</div>
+              {group.note && group.matchedChars.length === 0 && <div style={{ fontSize: "0.75rem", color: "#9a3412", marginTop: "0.2rem" }}>{group.note}</div>}
+            </button>
+          })}
+        </div>
       </div>
 
       {/* 모드 전환 */}
