@@ -143,22 +143,51 @@ type StrokeOrderInfo = {
 
 type WritingGuideMode = "follow" | "faint" | "blank";
 
-type WritingGuideHint = {
-  start?: { x: number; y: number; label?: string };
-  arrows?: Array<{ x: number; y: number; dx: number; dy: number; label?: string }>;
+type TracingGuide = {
+  viewBox: string;
+  paths: string[];
 };
 
-const writingGuides: Record<string, WritingGuideHint> = {
-  あ: { start: { x: 39, y: 31, label: "시작" }, arrows: [{ x: 39, y: 31, dx: 42, dy: 0, label: "1" }, { x: 50, y: 42, dx: 0, dy: 34, label: "2" }] },
-  い: { start: { x: 44, y: 32, label: "시작" }, arrows: [{ x: 44, y: 32, dx: -4, dy: 36, label: "1" }] },
-  う: { start: { x: 49, y: 30, label: "시작" }, arrows: [{ x: 48, y: 46, dx: 18, dy: 24, label: "2" }] },
-  え: { start: { x: 44, y: 30, label: "시작" }, arrows: [{ x: 48, y: 46, dx: 22, dy: 22, label: "2" }] },
-  お: { start: { x: 39, y: 30, label: "시작" }, arrows: [{ x: 39, y: 30, dx: 40, dy: 0, label: "1" }, { x: 53, y: 42, dx: 0, dy: 34, label: "2" }] },
-  ア: { start: { x: 34, y: 32, label: "시작" }, arrows: [{ x: 34, y: 32, dx: 40, dy: 0, label: "1" }] },
-  イ: { start: { x: 46, y: 30, label: "시작" }, arrows: [{ x: 46, y: 30, dx: -14, dy: 26, label: "1" }] },
-  ウ: { start: { x: 50, y: 31, label: "시작" }, arrows: [{ x: 42, y: 45, dx: 18, dy: 0, label: "2" }] },
-  エ: { start: { x: 34, y: 32, label: "시작" }, arrows: [{ x: 34, y: 32, dx: 38, dy: 0, label: "1" }] },
-  オ: { start: { x: 34, y: 31, label: "시작" }, arrows: [{ x: 34, y: 31, dx: 38, dy: 0, label: "1" }, { x: 52, y: 43, dx: 0, dy: 32, label: "2" }] },
+const tracingGuides: Record<string, TracingGuide> = {
+  あ: {
+    viewBox: "0 0 200 200",
+    paths: [
+      "M55 55 C85 48 120 46 150 48",
+      "M105 35 C100 70 95 110 92 155",
+      "M72 108 C92 86 132 84 152 108 C174 135 145 166 100 166 C70 166 55 145 62 126 C68 110 82 100 102 94",
+    ],
+  },
+  い: {
+    viewBox: "0 0 200 200",
+    paths: [
+      "M65 55 C58 85 58 120 72 143 C78 154 86 150 96 132",
+      "M130 65 C148 88 156 112 158 140",
+    ],
+  },
+  う: {
+    viewBox: "0 0 200 200",
+    paths: [
+      "M78 55 C100 45 122 48 140 60",
+      "M63 100 C90 78 140 78 153 108 C166 138 138 164 92 166",
+    ],
+  },
+  え: {
+    viewBox: "0 0 200 200",
+    paths: [
+      "M80 52 C102 45 122 48 138 60",
+      "M65 93 C95 84 124 82 150 90",
+      "M104 88 C90 112 78 135 62 162 C86 145 103 132 118 126 C129 122 132 132 136 145 C140 158 151 160 164 150",
+    ],
+  },
+  お: {
+    viewBox: "0 0 200 200",
+    paths: [
+      "M55 62 C82 58 112 56 140 58",
+      "M96 42 C96 75 94 112 92 148",
+      "M70 110 C88 98 114 92 135 100 C158 109 166 132 153 150 C140 168 108 168 90 154 C77 144 79 128 94 120",
+      "M138 82 C153 90 164 100 172 113",
+    ],
+  },
 };
 
 type HandwritingFeedback = {
@@ -1330,7 +1359,7 @@ export default function KanaPage() {
   useEffect(() => {
     if (mode !== "writing") return;
     clearWritingCanvas();
-  }, [mode, writingIndex, tab, clearWritingCanvas]);
+  }, [mode, writingSubMode, writingGuideMode, writingIndex, tab, selectedKanaGroup, clearWritingCanvas]);
 
   const getCanvasPoint = useCallback((clientX: number, clientY: number) => {
     const canvas = writingCanvasRef.current;
@@ -1382,14 +1411,15 @@ export default function KanaPage() {
     ? (tab === "hiragana" ? hiraganaStrokeOrderData[currentWritingItem.char] : katakanaStrokeOrderData[currentWritingItem.char])
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
-  const currentWritingGuide = currentWritingItem ? writingGuides[currentWritingItem.char] : undefined;
-  const showFollowGuide = writingSubMode === "trace" && writingGuideMode === "follow";
+  const currentTracingGuide = currentWritingItem ? tracingGuides[currentWritingItem.char] : undefined;
+  const showTracingGuide = writingSubMode === "trace" && writingGuideMode === "follow" && !!currentTracingGuide;
   const showFaintGuide = writingSubMode === "trace" && writingGuideMode !== "blank";
   const writingGuideMessage = writingGuideMode === "follow"
-    ? "흐린 글자를 따라 천천히 써보세요. 시작점/방향은 참고용 가이드입니다."
+    ? "흐린 글자와 보조선을 따라 천천히 써보세요."
     : writingGuideMode === "faint"
       ? "글자 모양을 보며 직접 써보세요."
       : "가이드 없이 기억해서 써보세요.";
+  const showTracingGuidePendingMessage = writingSubMode === "trace" && writingGuideMode === "follow" && !currentTracingGuide;
 
   const loadNextWritingQuizQuestion = useCallback(() => {
     setWritingQuizQuestion(getWritingQuizQuestion(data));
@@ -1913,6 +1943,11 @@ export default function KanaPage() {
           {writingSubMode === "trace" && (
             <div style={{ marginBottom: "0.75rem", fontSize: "0.88rem", color: "#4b5563" }}>{writingGuideMessage}</div>
           )}
+          {showTracingGuidePendingMessage && (
+            <div style={{ marginBottom: "0.75rem", fontSize: "0.83rem", color: "#6b7280" }}>
+              이 글자의 세부 따라쓰기 가이드는 다음 단계에서 추가됩니다. 흐린 글자를 보고 따라 써보세요.
+            </div>
+          )}
 
           <div
             ref={writingAreaRef}
@@ -1967,51 +2002,32 @@ export default function KanaPage() {
             >
               {showFaintGuide ? currentWritingItem.char : ""}
             </div>
-            {showFollowGuide && currentWritingGuide?.start && (
-              <div
+            {showTracingGuide && currentTracingGuide && (
+              <svg
+                viewBox={currentTracingGuide.viewBox}
                 style={{
                   position: "absolute",
-                  left: `${currentWritingGuide.start.x}%`,
-                  top: `${currentWritingGuide.start.y}%`,
-                  transform: "translate(-50%, -50%)",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
                   pointerEvents: "none",
                   zIndex: 2,
                 }}
               >
-                <div style={{ width: "12px", height: "12px", borderRadius: "999px", background: "#7c3aed", opacity: 0.9 }} />
-                <div style={{ marginTop: "0.2rem", fontSize: "0.68rem", color: "#6d28d9", fontWeight: 700 }}>{currentWritingGuide.start.label ?? "1"}</div>
-              </div>
+                {currentTracingGuide.paths.map((path, idx) => (
+                  <path
+                    key={`tracing-path-${idx}`}
+                    d={path}
+                    fill="none"
+                    stroke="rgba(124, 58, 237, 0.34)"
+                    strokeWidth={5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeDasharray="9 8"
+                  />
+                ))}
+              </svg>
             )}
-            {showFollowGuide && currentWritingGuide?.arrows?.map((arrow, idx) => (
-              <div
-                key={`guide-arrow-${idx}`}
-                style={{
-                  position: "absolute",
-                  left: `${arrow.x}%`,
-                  top: `${arrow.y}%`,
-                  transform: `rotate(${Math.atan2(arrow.dy, arrow.dx) * (180 / Math.PI)}deg)`,
-                  transformOrigin: "left center",
-                  width: `${Math.max(16, Math.hypot(arrow.dx, arrow.dy) * 3)}px`,
-                  borderTop: "2px dashed rgba(124, 58, 237, 0.45)",
-                  pointerEvents: "none",
-                  zIndex: 2,
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    right: "-2px",
-                    top: "-5px",
-                    width: 0,
-                    height: 0,
-                    borderLeft: "7px solid rgba(124, 58, 237, 0.7)",
-                    borderTop: "4px solid transparent",
-                    borderBottom: "4px solid transparent",
-                  }}
-                />
-                {arrow.label && <div style={{ position: "absolute", left: "-10px", top: "-14px", fontSize: "0.68rem", color: "#6d28d9", fontWeight: 700 }}>{arrow.label}</div>}
-              </div>
-            ))}
             <canvas
               ref={writingCanvasRef}
               onPointerDown={(e) => {
