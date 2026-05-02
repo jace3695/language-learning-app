@@ -1962,7 +1962,7 @@ export default function KanaPage() {
                   position: "absolute",
                   inset: 0,
                   zIndex: 2,
-                  color: "rgba(109, 40, 217, 0.9)",
+                  color: "#111827",
                   ...kanaGuideTextStyle,
                 }}
               >
