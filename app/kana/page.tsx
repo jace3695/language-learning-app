@@ -240,6 +240,8 @@ const kanaSvgGuides: Record<string, KanaSvgGuide> = {
   },
 };
 
+const traceBasedGuideChars = new Set(["あ", "い", "う", "え", "お"]);
+
 type HandwritingFeedback = {
   summary: string;
   goodPoints: string[] | string;
@@ -1463,8 +1465,10 @@ export default function KanaPage() {
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentSvgGuide = currentWritingItem ? kanaSvgGuides[currentWritingItem.char] : undefined;
   const useSvgGuide = writingSubMode === "trace" && !!currentSvgGuide;
-  const showSvgGuidePaths = useSvgGuide && writingGuideMode !== "blank";
-  const showSvgTracePaths = useSvgGuide && writingGuideMode === "follow" && currentSvgGuide.tracePaths.length > 0;
+  const useTraceBasedGuideOnly = !!(currentWritingItem && traceBasedGuideChars.has(currentWritingItem.char));
+  const showSvgGuidePaths = useSvgGuide && writingGuideMode !== "blank" && !useTraceBasedGuideOnly;
+  const showSvgGrayTracePaths = useSvgGuide && writingGuideMode !== "blank" && currentSvgGuide.tracePaths.length > 0;
+  const showSvgPurpleTracePaths = useSvgGuide && writingGuideMode === "follow" && currentSvgGuide.tracePaths.length > 0;
   const showSvgLabels = useSvgGuide && writingGuideMode === "follow" && currentSvgGuide.labels.length > 0;
   const showFaintGuide = writingSubMode === "trace" && writingGuideMode !== "blank" && !useSvgGuide;
   const kanaGuideTextStyle = {
@@ -2087,25 +2091,36 @@ export default function KanaPage() {
                 {showSvgGuidePaths && currentSvgGuide.guidePaths.map((pathD, idx) => (
                   <path key={`svg-guide-${idx}`} d={pathD} fill="rgba(107, 114, 128, 0.16)" />
                 ))}
-                {showSvgTracePaths && currentSvgGuide.tracePaths.map((pathD, idx) => (
+                {showSvgGrayTracePaths && currentSvgGuide.tracePaths.map((pathD, idx) => (
                   <path
-                    key={`svg-trace-${idx}`}
+                    key={`svg-trace-gray-${idx}`}
                     d={pathD}
                     fill="none"
-                    stroke="rgba(124, 58, 237, 0.75)"
-                    strokeWidth={5}
+                    stroke="rgba(156, 163, 175, 0.35)"
+                    strokeWidth={18}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ))}
+                {showSvgPurpleTracePaths && currentSvgGuide.tracePaths.map((pathD, idx) => (
+                  <path
+                    key={`svg-trace-purple-${idx}`}
+                    d={pathD}
+                    fill="none"
+                    stroke="rgba(124, 58, 237, 0.8)"
+                    strokeWidth={8}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 ))}
                 {showSvgLabels && currentSvgGuide.labels.map((label, idx) => (
                   <g key={`svg-label-${idx}`} transform={`translate(${label.x}, ${label.y})`}>
-                    <circle r="10.5" fill="rgba(124, 58, 237, 0.18)" />
+                    <circle r="9.5" fill="rgba(124, 58, 237, 0.18)" />
                     <text
                       textAnchor="middle"
                       dominantBaseline="central"
                       fill="rgba(109, 40, 217, 0.8)"
-                      fontSize="12"
+                      fontSize="11"
                       fontWeight="700"
                     >
                       {label.text}
