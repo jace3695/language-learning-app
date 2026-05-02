@@ -141,7 +141,7 @@ type StrokeOrderInfo = {
 };
 
 
-type WritingGuideMode = "view" | "video-trace" | "faint" | "blank";
+type WritingGuideMode = "view" | "faint" | "blank";
 
 type KanaRevealStep = {
   label: string;
@@ -152,52 +152,12 @@ type KanaRevealDemo = {
   steps: KanaRevealStep[];
 };
 
-const kanaRevealDemos: Record<string, KanaRevealDemo> = {
-  あ: {
-    steps: [
-      { label: "1", clipPath: "polygon(0 0, 100% 0, 100% 34%, 0 34%)" },
-      { label: "2", clipPath: "polygon(36% 0, 62% 0, 62% 100%, 36% 100%)" },
-      { label: "3", clipPath: "polygon(0 34%, 100% 34%, 100% 100%, 0 100%)" },
-    ],
-  },
-  い: {
-    steps: [
-      { label: "1", clipPath: "polygon(0 0, 52% 0, 52% 100%, 0 100%)" },
-      { label: "2", clipPath: "polygon(48% 0, 100% 0, 100% 100%, 48% 100%)" },
-    ],
-  },
-  う: {
-    steps: [
-      { label: "1", clipPath: "polygon(8% 0, 100% 0, 100% 36%, 8% 36%)" },
-      { label: "2", clipPath: "polygon(0 24%, 100% 24%, 100% 100%, 0 100%)" },
-    ],
-  },
-  え: {
-    steps: [
-      { label: "1", clipPath: "polygon(0 0, 100% 0, 100% 30%, 0 30%)" },
-      { label: "2", clipPath: "polygon(14% 20%, 100% 20%, 100% 64%, 14% 64%)" },
-      { label: "3", clipPath: "polygon(0 52%, 100% 52%, 100% 100%, 0 100%)" },
-    ],
-  },
-  お: {
-    steps: [
-      { label: "1", clipPath: "polygon(0 0, 76% 0, 76% 28%, 0 28%)" },
-      { label: "2", clipPath: "polygon(0 20%, 56% 20%, 56% 100%, 0 100%)" },
-      { label: "3", clipPath: "polygon(0 38%, 80% 38%, 80% 100%, 0 100%)" },
-      { label: "4", clipPath: "polygon(72% 0, 100% 0, 100% 70%, 72% 70%)" },
-    ],
-  },
-};
-
-const kanaWritingVideos: Record<"hiragana" | "katakana", Record<string, string>> = {
-  hiragana: {
-    "あ": "/kana-writing/hiragana/a.mp4",
-    "い": "/kana-writing/hiragana/i.mp4",
-    "う": "/kana-writing/hiragana/u.mp4",
-    "え": "/kana-writing/hiragana/e.mp4",
-    "お": "/kana-writing/hiragana/o.mp4",
-  },
-  katakana: {},
+const animCjkKanaSvgs: Record<string, string> = {
+  "あ": "/vendor/animcjk/svgsJaKana/12354.svg",
+  "い": "/vendor/animcjk/svgsJaKana/12356.svg",
+  "う": "/vendor/animcjk/svgsJaKana/12358.svg",
+  "え": "/vendor/animcjk/svgsJaKana/12360.svg",
+  "お": "/vendor/animcjk/svgsJaKana/12362.svg",
 };
 
 type HandwritingFeedback = {
@@ -1270,7 +1230,6 @@ export default function KanaPage() {
   const [writingFeedbackError, setWritingFeedbackError] = useState<string | null>(null);
   const writingCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const writingAreaRef = useRef<HTMLDivElement | null>(null);
-  const writingVideoRef = useRef<HTMLVideoElement | null>(null);
   const writingIsDrawingRef = useRef(false);
   const writingLastPointRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -1422,11 +1381,9 @@ export default function KanaPage() {
     ? (tab === "hiragana" ? hiraganaStrokeOrderData[currentWritingItem.char] : katakanaStrokeOrderData[currentWritingItem.char])
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
-  const currentWritingVideo = kanaWritingVideos[tab]?.[currentWritingItem?.char ?? ""];
-  const hasWritingVideo = Boolean(currentWritingVideo);
-  const isWritingViewMode = writingSubMode === "trace" && writingGuideMode === "view";
-  const isVideoTraceMode = writingSubMode === "trace" && writingGuideMode === "video-trace";
-  const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank" || (isVideoTraceMode && hasWritingVideo);
+  const currentAnimCjkSvg = animCjkKanaSvgs[currentWritingItem?.char ?? ""];
+  const hasAnimCjkSvg = Boolean(currentAnimCjkSvg);
+  const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank";
   const kanaGuideTextStyle = {
     display: "flex",
     alignItems: "center",
@@ -1440,24 +1397,13 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "view"
-    ? (hasWritingVideo
-      ? "글자가 써지는 모습을 먼저 확인해 보세요."
-      : "이 글자는 쓰기 보기 영상을 준비 중입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요.")
-    : writingGuideMode === "video-trace"
-      ? (hasWritingVideo
-        ? "영상이 써지는 흐름을 보면서 위에 따라 써보세요."
-        : "이 글자는 영상 따라쓰기를 준비 중입니다. 흐린 글자 모드에서 연습해 보세요.")
-      : writingGuideMode === "faint"
-        ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
-        : "이제 기억해서 빈칸에 다시 써보세요.";
+    ? (hasAnimCjkSvg
+      ? "글자가 쓰이는 모습을 보고, 흐린 글자와 빈칸 쓰기로 직접 연습해 보세요."
+      : "이 글자는 쓰기 보기 데이터를 준비 중입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요.")
+    : writingGuideMode === "faint"
+      ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
+      : "이제 기억해서 빈칸에 다시 써보세요.";
 
-
-  const replayWritingVideo = useCallback(() => {
-    const video = writingVideoRef.current;
-    if (!video) return;
-    video.currentTime = 0;
-    void video.play().catch(() => {});
-  }, []);
 
   const loadNextWritingQuizQuestion = useCallback(() => {
     setWritingQuizQuestion(getWritingQuizQuestion(data));
@@ -1952,8 +1898,7 @@ export default function KanaPage() {
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem", marginBottom: "0.75rem" }}>
                 {([
                 { id: "view", label: "쓰기 보기" },
-                { id: "video-trace", label: "영상 따라쓰기" },
-                { id: "faint", label: "흐린 글자" },
+                                { id: "faint", label: "흐린 글자" },
                 { id: "blank", label: "빈칸 쓰기" },
               ] as const).map((modeBtn) => {
                 const active = writingGuideMode === modeBtn.id;
@@ -2031,17 +1976,14 @@ export default function KanaPage() {
               </div>
             )}
             {writingSubMode === "trace" && writingGuideMode === "view" && (
-              hasWritingVideo ? (
-                <video
-                  ref={writingVideoRef}
-                  key={`view-${tab}-${currentWritingItem.char}`}
-                  src={currentWritingVideo}
-                  autoPlay
-                  muted
-                  playsInline
-                  loop
-                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", zIndex: 2, pointerEvents: "none" }}
-                />
+              hasAnimCjkSvg ? (
+                <div style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                  <img
+                    src={currentAnimCjkSvg}
+                    alt={`${currentWritingItem.char} 쓰기 보기`}
+                    style={{ width: "92%", height: "92%", objectFit: "contain" }}
+                  />
+                </div>
               ) : (
                 <div
                   style={{
@@ -2055,18 +1997,6 @@ export default function KanaPage() {
                   {currentWritingItem.char}
                 </div>
               )
-            )}
-            {writingSubMode === "trace" && writingGuideMode === "video-trace" && hasWritingVideo && (
-              <video
-                ref={writingVideoRef}
-                key={`trace-${tab}-${currentWritingItem.char}`}
-                src={currentWritingVideo}
-                autoPlay
-                muted
-                playsInline
-                loop
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", zIndex: 2, pointerEvents: "none" }}
-              />
             )}
             {canDrawOnCanvas && (
             <canvas
@@ -2142,22 +2072,6 @@ export default function KanaPage() {
               >
                 다음 글자
               </button>
-              {((writingGuideMode === "view" || writingGuideMode === "video-trace") && hasWritingVideo) && (
-                <button
-                  onClick={replayWritingVideo}
-                  style={{
-                    padding: "0.65rem 0.9rem",
-                    borderRadius: "8px",
-                    border: "1px solid #d1d5db",
-                    cursor: "pointer",
-                    background: "#fff",
-                    color: "#374151",
-                    fontWeight: 600,
-                  }}
-                >
-                  다시보기
-                </button>
-              )}
               {canDrawOnCanvas && (
                 <button
                   onClick={clearWritingCanvas}
