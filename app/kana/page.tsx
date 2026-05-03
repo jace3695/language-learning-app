@@ -1526,7 +1526,7 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "view"
-    ? "글자가 써지는 모습을 먼저 확인해 보세요."
+    ? "글자가 써지는 모습을 보고, 옆 칸에 따라 써보세요."
     : writingGuideMode === "faint"
       ? "GIF 기준 글자 모양을 떠올리며 흐린 가이드 위에 써보세요."
       : "이제 기억해서 빈칸에 다시 써보세요.";
@@ -2059,12 +2059,12 @@ export default function KanaPage() {
             <div style={{ marginBottom: "0.75rem", fontSize: "0.88rem", color: "#4b5563" }}>{writingGuideMessage}</div>
           )}
           {writingSubMode === "trace" && writingGuideMode === "view" ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "0.85rem", marginBottom: "0.95rem" }}>
-              <div style={{ borderRadius: "12px", border: "1px solid #d1d5db", background: "#fff", padding: "0.75rem" }}>
-                <div style={{ marginBottom: "0.5rem", fontSize: "0.85rem", color: "#4b5563" }}>글자가 써지는 모습을 먼저 확인해 보세요.</div>
-                <div style={{ height: "340px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: "#f8fafc" }}>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2" style={{ marginBottom: "0.95rem" }}>
+              <section style={{ borderRadius: "12px", border: "1px solid #d1d5db", background: "#fff", padding: "0.75rem" }}>
+                <h3 style={{ marginBottom: "0.5rem", fontSize: "0.9rem", color: "#374151", fontWeight: 700 }}>쓰기 순서 보기</h3>
+                <div style={{ height: "340px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: "#f8fafc", padding: "0.5rem" }}>
                   {currentGifSrc ? (
-                    <img src={currentGifSrc} alt={`${currentChar} 쓰기 GIF`} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                    <img src={currentGifSrc} alt={`${currentChar} 쓰기 GIF`} style={{ width: "100%", height: "100%", maxHeight: "320px", objectFit: "contain", display: "block", margin: "0 auto" }} />
                   ) : (
                     <div style={{ textAlign: "center", color: "#111827" }}>
                       <div style={{ fontSize: "140px", fontWeight: 700, lineHeight: 1 }}>{currentChar}</div>
@@ -2072,9 +2072,10 @@ export default function KanaPage() {
                     </div>
                   )}
                 </div>
-              </div>
-              <div style={{ borderRadius: "12px", border: "1px solid #d1d5db", background: "#fff", padding: "0.75rem" }}>
-                <div style={{ marginBottom: "0.5rem", fontSize: "0.85rem", color: "#4b5563" }}>GIF 기준 글자 모양을 보고 바로 옆 칸에 따라 써보세요.</div>
+              </section>
+              <section style={{ borderRadius: "12px", border: "1px solid #d1d5db", background: "#fff", padding: "0.75rem" }}>
+                <h3 style={{ marginBottom: "0.35rem", fontSize: "0.9rem", color: "#374151", fontWeight: 700 }}>따라 써보기</h3>
+                <div style={{ marginBottom: "0.5rem", fontSize: "0.82rem", color: "#4b5563" }}>GIF 기준 글자 모양을 보며 직접 써보세요.</div>
                 <div ref={writingAreaRef} style={{ width: "100%", height: "340px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "#fff", position: "relative", overflow: "hidden" }}>
                   {hasPngGuide ? (
                     <img src={currentGuideSrc} alt={`${currentChar} 따라쓰기 PNG 가이드`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", opacity: 0.2, pointerEvents: "none", zIndex: 1 }} />
@@ -2085,7 +2086,7 @@ export default function KanaPage() {
                   )}
                   <canvas ref={writingCanvasRef} onPointerDown={startDrawing} onPointerMove={drawMove} onPointerUp={endDrawing} onPointerCancel={endDrawing} onPointerLeave={endDrawing} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none", zIndex: 4, cursor: "crosshair" }} />
                 </div>
-              </div>
+              </section>
             </div>
           ) : (
           <div
