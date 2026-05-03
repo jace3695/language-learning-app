@@ -129,6 +129,32 @@ const katakanaGifMap: Record<string, string> = {
   ン: "/kana-gif/katakana/n.gif",
 };
 
+const hiraganaGuideMap: Record<string, string> = {
+  あ: "/kana-guide/hiragana/a.png", い: "/kana-guide/hiragana/i.png", う: "/kana-guide/hiragana/u.png", え: "/kana-guide/hiragana/e.png", お: "/kana-guide/hiragana/o.png",
+  か: "/kana-guide/hiragana/ka.png", き: "/kana-guide/hiragana/ki.png", く: "/kana-guide/hiragana/ku.png", け: "/kana-guide/hiragana/ke.png", こ: "/kana-guide/hiragana/ko.png",
+  さ: "/kana-guide/hiragana/sa.png", し: "/kana-guide/hiragana/shi.png", す: "/kana-guide/hiragana/su.png", せ: "/kana-guide/hiragana/se.png", そ: "/kana-guide/hiragana/so.png",
+  た: "/kana-guide/hiragana/ta.png", ち: "/kana-guide/hiragana/chi.png", つ: "/kana-guide/hiragana/tsu.png", て: "/kana-guide/hiragana/te.png", と: "/kana-guide/hiragana/to.png",
+  な: "/kana-guide/hiragana/na.png", に: "/kana-guide/hiragana/ni.png", ぬ: "/kana-guide/hiragana/nu.png", ね: "/kana-guide/hiragana/ne.png", の: "/kana-guide/hiragana/no.png",
+  は: "/kana-guide/hiragana/ha.png", ひ: "/kana-guide/hiragana/hi.png", ふ: "/kana-guide/hiragana/fu.png", へ: "/kana-guide/hiragana/he.png", ほ: "/kana-guide/hiragana/ho.png",
+  ま: "/kana-guide/hiragana/ma.png", み: "/kana-guide/hiragana/mi.png", む: "/kana-guide/hiragana/mu.png", め: "/kana-guide/hiragana/me.png", も: "/kana-guide/hiragana/mo.png",
+  や: "/kana-guide/hiragana/ya.png", ゆ: "/kana-guide/hiragana/yu.png", よ: "/kana-guide/hiragana/yo.png",
+  ら: "/kana-guide/hiragana/ra.png", り: "/kana-guide/hiragana/ri.png", る: "/kana-guide/hiragana/ru.png", れ: "/kana-guide/hiragana/re.png", ろ: "/kana-guide/hiragana/ro.png",
+  わ: "/kana-guide/hiragana/wa.png", を: "/kana-guide/hiragana/wo.png", ん: "/kana-guide/hiragana/n.png",
+};
+
+const katakanaGuideMap: Record<string, string> = {
+  ア: "/kana-guide/katakana/a.png", イ: "/kana-guide/katakana/i.png", ウ: "/kana-guide/katakana/u.png", エ: "/kana-guide/katakana/e.png", オ: "/kana-guide/katakana/o.png",
+  カ: "/kana-guide/katakana/ka.png", キ: "/kana-guide/katakana/ki.png", ク: "/kana-guide/katakana/ku.png", ケ: "/kana-guide/katakana/ke.png", コ: "/kana-guide/katakana/ko.png",
+  サ: "/kana-guide/katakana/sa.png", シ: "/kana-guide/katakana/shi.png", ス: "/kana-guide/katakana/su.png", セ: "/kana-guide/katakana/se.png", ソ: "/kana-guide/katakana/so.png",
+  タ: "/kana-guide/katakana/ta.png", チ: "/kana-guide/katakana/chi.png", ツ: "/kana-guide/katakana/tsu.png", テ: "/kana-guide/katakana/te.png", ト: "/kana-guide/katakana/to.png",
+  ナ: "/kana-guide/katakana/na.png", ニ: "/kana-guide/katakana/ni.png", ヌ: "/kana-guide/katakana/nu.png", ネ: "/kana-guide/katakana/ne.png", ノ: "/kana-guide/katakana/no.png",
+  ハ: "/kana-guide/katakana/ha.png", ヒ: "/kana-guide/katakana/hi.png", フ: "/kana-guide/katakana/fu.png", ヘ: "/kana-guide/katakana/he.png", ホ: "/kana-guide/katakana/ho.png",
+  マ: "/kana-guide/katakana/ma.png", ミ: "/kana-guide/katakana/mi.png", ム: "/kana-guide/katakana/mu.png", メ: "/kana-guide/katakana/me.png", モ: "/kana-guide/katakana/mo.png",
+  ヤ: "/kana-guide/katakana/ya.png", ユ: "/kana-guide/katakana/yu.png", ヨ: "/kana-guide/katakana/yo.png",
+  ラ: "/kana-guide/katakana/ra.png", リ: "/kana-guide/katakana/ri.png", ル: "/kana-guide/katakana/ru.png", レ: "/kana-guide/katakana/re.png", ロ: "/kana-guide/katakana/ro.png",
+  ワ: "/kana-guide/katakana/wa.png", ヲ: "/kana-guide/katakana/wu(o).png", ン: "/kana-guide/katakana/n.png",
+};
+
 type KanaItem = { char: string; roman: string };
 
 type KanaGroup = {
@@ -1376,17 +1402,15 @@ export default function KanaPage() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }, []);
 
-  const syncWritingCanvasSize = useCallback(() => {
+  const resizeWritingCanvas = useCallback(() => {
     const canvas = writingCanvasRef.current;
     const area = writingAreaRef.current;
     if (!canvas || !area) return;
 
     const rect = area.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-    canvas.style.width = `${rect.width}px`;
-    canvas.style.height = `${rect.height}px`;
+    canvas.width = Math.max(1, Math.round(rect.width * dpr));
+    canvas.height = Math.max(1, Math.round(rect.height * dpr));
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -1399,24 +1423,22 @@ export default function KanaPage() {
 
   useEffect(() => {
     if (mode !== "writing") return;
-    syncWritingCanvasSize();
-    const onResize = () => syncWritingCanvasSize();
+    resizeWritingCanvas();
+    const onResize = () => resizeWritingCanvas();
     window.addEventListener("resize", onResize);
     return () => {
       window.removeEventListener("resize", onResize);
     };
-  }, [mode, syncWritingCanvasSize]);
+  }, [mode, resizeWritingCanvas]);
 
   useEffect(() => {
     if (mode !== "writing") return;
     clearWritingCanvas();
   }, [mode, writingSubMode, writingGuideMode, writingIndex, tab, selectedKanaGroup, clearWritingCanvas]);
 
-  const getCanvasPoint = useCallback((clientX: number, clientY: number) => {
-    const canvas = writingCanvasRef.current;
-    if (!canvas) return null;
+  const getCanvasPoint = useCallback((event: React.PointerEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
-    return { x: clientX - rect.left, y: clientY - rect.top };
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   }, []);
 
   const drawFromLastPoint = useCallback((point: { x: number; y: number }) => {
@@ -1438,21 +1460,28 @@ export default function KanaPage() {
     writingLastPointRef.current = point;
   }, []);
 
-  const startDrawing = useCallback((clientX: number, clientY: number) => {
-    const point = getCanvasPoint(clientX, clientY);
-    if (!point) return;
+  const startDrawing = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
+    const point = getCanvasPoint(event, event.currentTarget);
     writingIsDrawingRef.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
     writingLastPointRef.current = point;
   }, [getCanvasPoint]);
 
-  const drawMove = useCallback((clientX: number, clientY: number) => {
+  const drawMove = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
     if (!writingIsDrawingRef.current) return;
-    const point = getCanvasPoint(clientX, clientY);
-    if (!point) return;
+    const point = getCanvasPoint(event, event.currentTarget);
+    event.preventDefault();
     drawFromLastPoint(point);
   }, [drawFromLastPoint, getCanvasPoint]);
 
-  const endDrawing = useCallback(() => {
+  const endDrawing = useCallback((event?: React.PointerEvent<HTMLCanvasElement>) => {
+    if (event) {
+      event.preventDefault();
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    }
     writingIsDrawingRef.current = false;
     writingLastPointRef.current = null;
   }, []);
@@ -1464,6 +1493,7 @@ export default function KanaPage() {
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentChar = currentWritingItem?.char ?? "";
   const currentGifSrc = tab === "hiragana" ? hiraganaGifMap[currentChar] : katakanaGifMap[currentChar];
+  const currentGuideSrc = tab === "hiragana" ? hiraganaGuideMap[currentChar] : katakanaGuideMap[currentChar];
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank" || writingGuideMode === "view";
   const kanaGuideTextStyle = {
     display: "flex",
@@ -1480,7 +1510,7 @@ export default function KanaPage() {
   const writingGuideMessage = writingGuideMode === "view"
     ? "글자가 써지는 모습을 먼저 확인해 보세요."
     : writingGuideMode === "faint"
-      ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
+      ? "GIF 기준 글자 모양을 떠올리며 흐린 가이드 위에 써보세요."
       : "이제 기억해서 빈칸에 다시 써보세요.";
 
 
@@ -2026,12 +2056,16 @@ export default function KanaPage() {
                 </div>
               </div>
               <div style={{ borderRadius: "12px", border: "1px solid #d1d5db", background: "#fff", padding: "0.75rem" }}>
-                <div style={{ marginBottom: "0.5rem", fontSize: "0.85rem", color: "#4b5563" }}>바로 옆 칸에 따라 써보세요.</div>
+                <div style={{ marginBottom: "0.5rem", fontSize: "0.85rem", color: "#4b5563" }}>GIF 기준 글자 모양을 보고 바로 옆 칸에 따라 써보세요.</div>
                 <div ref={writingAreaRef} style={{ width: "100%", height: "340px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "#fff", position: "relative", overflow: "hidden" }}>
-                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
-                    <span style={{ fontSize: "140px", fontWeight: 700, color: "#d1d5db", opacity: 0.28, lineHeight: 1 }}>{currentChar}</span>
-                  </div>
-                  <canvas ref={writingCanvasRef} onPointerDown={(e) => { e.preventDefault(); startDrawing(e.clientX, e.clientY); }} onPointerMove={(e) => { e.preventDefault(); drawMove(e.clientX, e.clientY); }} onPointerUp={endDrawing} onPointerCancel={endDrawing} onPointerLeave={endDrawing} onTouchStart={(e) => { e.preventDefault(); const touch = e.touches[0]; if (!touch) return; startDrawing(touch.clientX, touch.clientY); }} onTouchMove={(e) => { e.preventDefault(); const touch = e.touches[0]; if (!touch) return; drawMove(touch.clientX, touch.clientY); }} onTouchEnd={(e) => { e.preventDefault(); endDrawing(); }} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none", zIndex: 4 }} />
+                  {currentGuideSrc ? (
+                    <img src={currentGuideSrc} alt={`${currentChar} 따라쓰기 가이드`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", opacity: 0.2, pointerEvents: "none", zIndex: 1 }} />
+                  ) : (
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
+                      <span style={{ fontSize: "140px", fontWeight: 700, color: "#d1d5db", opacity: 0.28, lineHeight: 1 }}>{currentChar}</span>
+                    </div>
+                  )}
+                  <canvas ref={writingCanvasRef} onPointerDown={startDrawing} onPointerMove={drawMove} onPointerUp={endDrawing} onPointerCancel={endDrawing} onPointerLeave={endDrawing} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none", zIndex: 4, cursor: "crosshair" }} />
                 </div>
               </div>
             </div>
@@ -2072,7 +2106,7 @@ export default function KanaPage() {
               }}
             />
             {writingSubMode === "trace" && writingGuideMode === "faint" && (
-              <div
+              (currentGuideSrc ? <img src={currentGuideSrc} alt={`${currentChar} 흐린 가이드`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", opacity: 0.2, pointerEvents: "none", zIndex: 1 }} /> : <div
                 style={{
                   position: "absolute",
                   inset: 0,
@@ -2082,7 +2116,7 @@ export default function KanaPage() {
                 }}
               >
                 {currentWritingItem.char}
-              </div>
+              </div>)
             )}
             
             {canDrawOnCanvas && (
@@ -2090,31 +2124,14 @@ export default function KanaPage() {
               ref={writingCanvasRef}
               onPointerDown={(e) => {
                 e.preventDefault();
-                startDrawing(e.clientX, e.clientY);
+                startDrawing(e);
               }}
               onPointerMove={(e) => {
-                e.preventDefault();
-                drawMove(e.clientX, e.clientY);
+                drawMove(e);
               }}
               onPointerUp={endDrawing}
               onPointerCancel={endDrawing}
               onPointerLeave={endDrawing}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                if (!touch) return;
-                startDrawing(touch.clientX, touch.clientY);
-              }}
-              onTouchMove={(e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                if (!touch) return;
-                drawMove(touch.clientX, touch.clientY);
-              }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                endDrawing();
-              }}
               style={{
                 position: "absolute",
                 inset: 0,
@@ -2122,6 +2139,7 @@ export default function KanaPage() {
                 height: "100%",
                 touchAction: "none",
                 zIndex: 4,
+                cursor: "crosshair",
               }}
             />
             )}
