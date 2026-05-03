@@ -414,7 +414,7 @@ export default function WordsPage() {
 
       {/* ===== 학습 모드 ===== */}
       {mode === "study" && (
-        <ul className="grid gap-4 lg:grid-cols-2" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2" style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {filteredWordsByPartOfSpeech.length === 0 ? (
             <li className="card" style={{ textAlign: "center", color: "#888", padding: "24px 16px" }}>
               해당 조건의 단어가 없습니다.
@@ -464,7 +464,7 @@ export default function WordsPage() {
                     </>
                   )}
                 </div>
-                <div className="mt-4 flex flex-wrap justify-end gap-2">
+                <div className="mt-4 flex flex-wrap items-center gap-2 sm:justify-end">
                   <button
                     onClick={() => speakJapaneseText(w.word)}
                     className="btn"
