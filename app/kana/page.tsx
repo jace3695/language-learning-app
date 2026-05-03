@@ -1394,47 +1394,61 @@ export default function KanaPage() {
     }
   };
 
-  const clearWritingCanvas = useCallback(() => {
-    const canvas = writingCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }, []);
-
-  const resizeWritingCanvas = useCallback(() => {
-    const canvas = writingCanvasRef.current;
-    const area = writingAreaRef.current;
-    if (!canvas || !area) return;
-
-    const rect = area.getBoundingClientRect();
+  const setupWritingCanvas = useCallback((canvas: HTMLCanvasElement) => {
+    const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.max(1, Math.round(rect.width * dpr));
-    canvas.height = Math.max(1, Math.round(rect.height * dpr));
+    const width = Math.max(1, Math.round(rect.width));
+    const height = Math.max(1, Math.round(rect.height));
+
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) return null;
+
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.strokeStyle = "#111827";
     ctx.lineWidth = 6;
+
+    return ctx;
   }, []);
 
-  useEffect(() => {
-    if (mode !== "writing") return;
-    resizeWritingCanvas();
-    const onResize = () => resizeWritingCanvas();
-    window.addEventListener("resize", onResize);
-    return () => {
-      window.removeEventListener("resize", onResize);
-    };
-  }, [mode, resizeWritingCanvas]);
+  const clearWritingCanvas = useCallback(() => {
+    const canvas = writingCanvasRef.current;
+    if (!canvas) return;
+    const ctx = setupWritingCanvas(canvas);
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+  }, [setupWritingCanvas]);
+
+  const resizeWritingCanvas = useCallback(() => {
+    const canvas = writingCanvasRef.current;
+    if (!canvas) return;
+    setupWritingCanvas(canvas);
+  }, [setupWritingCanvas]);
 
   useEffect(() => {
     if (mode !== "writing") return;
-    clearWritingCanvas();
-  }, [mode, writingSubMode, writingGuideMode, writingIndex, tab, selectedKanaGroup, clearWritingCanvas]);
+    const runResize = () => {
+      writingIsDrawingRef.current = false;
+      writingLastPointRef.current = null;
+      resizeWritingCanvas();
+      clearWritingCanvas();
+    };
+
+    const frameId = requestAnimationFrame(runResize);
+    const onResize = () => {
+      requestAnimationFrame(runResize);
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [mode, writingSubMode, writingGuideMode, writingIndex, tab, selectedKanaGroup, resizeWritingCanvas, clearWritingCanvas]);
 
   const getCanvasPoint = useCallback((event: React.PointerEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
@@ -1447,25 +1461,24 @@ export default function KanaPage() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const prev = writingLastPointRef.current;
-    if (!prev) {
-      writingLastPointRef.current = point;
-      return;
-    }
-
-    ctx.beginPath();
-    ctx.moveTo(prev.x, prev.y);
     ctx.lineTo(point.x, point.y);
     ctx.stroke();
     writingLastPointRef.current = point;
   }, []);
 
   const startDrawing = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
-    const point = getCanvasPoint(event, event.currentTarget);
-    writingIsDrawingRef.current = true;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    const canvas = event.currentTarget;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
     event.preventDefault();
+    canvas.setPointerCapture(event.pointerId);
+    writingIsDrawingRef.current = true;
+
+    const point = getCanvasPoint(event, canvas);
     writingLastPointRef.current = point;
+    ctx.beginPath();
+    ctx.moveTo(point.x, point.y);
   }, [getCanvasPoint]);
 
   const drawMove = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
@@ -1484,6 +1497,9 @@ export default function KanaPage() {
     }
     writingIsDrawingRef.current = false;
     writingLastPointRef.current = null;
+    const canvas = writingCanvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    ctx?.beginPath();
   }, []);
 
   const currentWritingItem = data[writingIndex];
