@@ -391,7 +391,7 @@ export default function SentencesPage() {
 
       {/* 학습 모드 */}
       {mode === "학습" && (
-        <ul className="grid gap-4 lg:grid-cols-2" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2" style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {filteredSentencesByLevel.map((s) => {
             const saved = isSaved(s);
             return (
@@ -404,22 +404,21 @@ export default function SentencesPage() {
                     showReading={settings.showReading}
                     showKoreanPronunciation={settings.showKoreanPronunciation}
                   />
-                </div>
-
-                <div style={{ marginTop: "12px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <div className="label">뜻</div>
-                    <span className="badge">{s.category}</span>
+                  <div style={{ marginTop: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div className="label">뜻</div>
+                      <span className="badge">{s.category}</span>
+                    </div>
+                    <div>{s.meaning}</div>
                   </div>
-                  <div>{s.meaning}</div>
+
+                  <div style={{ marginTop: "10px" }}>
+                    <div className="label">설명</div>
+                    <div style={{ color: "#555" }}>{s.note}</div>
+                  </div>
                 </div>
 
-                <div style={{ marginTop: "10px" }}>
-                  <div className="label">설명</div>
-                  <div style={{ color: "#555" }}>{s.note}</div>
-                </div>
-
-                <div className="mt-4 flex flex-wrap justify-end gap-2">
+                <div className="mt-4 flex flex-wrap items-center gap-2 sm:justify-end">
                   <button
                     onClick={() => speakJapanese(s.japanese, settings)}
                     className="btn"
