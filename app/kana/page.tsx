@@ -1509,7 +1509,9 @@ export default function KanaPage() {
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentChar = currentWritingItem?.char ?? "";
   const currentGifSrc = tab === "hiragana" ? hiraganaGifMap[currentChar] : katakanaGifMap[currentChar];
-  const currentGuideSrc = tab === "hiragana" ? hiraganaGuideMap[currentChar] : katakanaGuideMap[currentChar];
+  const currentGuideMap = tab === "hiragana" ? hiraganaGuideMap : katakanaGuideMap;
+  const currentGuideSrc = currentGuideMap[currentChar] ?? "";
+  const hasPngGuide = Boolean(currentGuideSrc);
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank" || writingGuideMode === "view";
   const kanaGuideTextStyle = {
     display: "flex",
@@ -2074,8 +2076,8 @@ export default function KanaPage() {
               <div style={{ borderRadius: "12px", border: "1px solid #d1d5db", background: "#fff", padding: "0.75rem" }}>
                 <div style={{ marginBottom: "0.5rem", fontSize: "0.85rem", color: "#4b5563" }}>GIF 기준 글자 모양을 보고 바로 옆 칸에 따라 써보세요.</div>
                 <div ref={writingAreaRef} style={{ width: "100%", height: "340px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "#fff", position: "relative", overflow: "hidden" }}>
-                  {currentGuideSrc ? (
-                    <img src={currentGuideSrc} alt={`${currentChar} 따라쓰기 가이드`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", opacity: 0.2, pointerEvents: "none", zIndex: 1 }} />
+                  {hasPngGuide ? (
+                    <img src={currentGuideSrc} alt={`${currentChar} 따라쓰기 PNG 가이드`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", opacity: 0.2, pointerEvents: "none", zIndex: 1 }} />
                   ) : (
                     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
                       <span style={{ fontSize: "140px", fontWeight: 700, color: "#d1d5db", opacity: 0.28, lineHeight: 1 }}>{currentChar}</span>
@@ -2122,7 +2124,7 @@ export default function KanaPage() {
               }}
             />
             {writingSubMode === "trace" && writingGuideMode === "faint" && (
-              (currentGuideSrc ? <img src={currentGuideSrc} alt={`${currentChar} 흐린 가이드`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", opacity: 0.2, pointerEvents: "none", zIndex: 1 }} /> : <div
+              (hasPngGuide ? <img src={currentGuideSrc} alt={`${currentChar} 흐린 PNG 가이드`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", opacity: 0.2, pointerEvents: "none", zIndex: 1 }} /> : <div
                 style={{
                   position: "absolute",
                   inset: 0,
