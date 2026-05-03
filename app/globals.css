@@ -9,9 +9,9 @@ html {
 
 body {
   font-family: system-ui, sans-serif;
-  margin: 0 auto;
+  margin: 0;
   padding: 16px;
-  max-width: 600px;
+  max-width: none;
   background: #f7f7f8;
   color: #222;
   line-height: 1.5;
@@ -204,4 +204,40 @@ button {
   text-align: center;
   color: #888;
   font-size: 14px;
+}
+
+
+.app-shell {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.app-main {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 4px 0 32px;
+}
+
+.kana-writing-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  body {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    padding: 24px;
+  }
+
+  .kana-writing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
