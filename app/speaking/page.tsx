@@ -257,7 +257,7 @@ export default function SpeakingPage() {
   if (phase === "done") {
     const total = filtered.length;
     return (
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "2rem 1rem" }}>
+      <div style={{ maxWidth: "56rem", margin: "0 auto", padding: "2rem 1rem", width: "100%" }}>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1.5rem" }}>
           🎉 훈련 완료!
         </h1>
@@ -287,7 +287,7 @@ export default function SpeakingPage() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto", padding: "2rem 1rem" }}>
+    <div style={{ maxWidth: "56rem", margin: "0 auto", padding: "2rem 1rem", width: "100%" }}>
       <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1rem" }}>
         말하기 훈련
       </h1>
@@ -324,6 +324,7 @@ export default function SpeakingPage() {
           borderRadius: 12,
           padding: "1.5rem",
           marginBottom: "1.5rem",
+          width: "100%",
         }}
       >
         <span

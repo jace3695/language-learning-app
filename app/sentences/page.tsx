@@ -322,7 +322,7 @@ export default function SentencesPage() {
   ];
 
   return (
-    <section>
+    <section className="mx-auto w-full max-w-6xl">
       <div className="page-header">
         <h1>문장 학습</h1>
         <p className="muted" style={{ margin: 0 }}>
@@ -391,12 +391,12 @@ export default function SentencesPage() {
 
       {/* 학습 모드 */}
       {mode === "학습" && (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <ul className="grid gap-4 lg:grid-cols-2" style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {filteredSentencesByLevel.map((s) => {
             const saved = isSaved(s);
             return (
-              <li key={s.japanese} className="card" style={{ marginBottom: "14px" }}>
-                <div>
+              <li key={s.japanese} className="card flex h-full flex-col">
+                <div className="flex-1">
                   <JapaneseTextBlock
                     japanese={s.japanese}
                     koreanPronunciation={s.koreanPronunciation}
@@ -419,7 +419,7 @@ export default function SentencesPage() {
                   <div style={{ color: "#555" }}>{s.note}</div>
                 </div>
 
-                <div className="card-actions" style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                <div className="mt-4 flex flex-wrap justify-end gap-2">
                   <button
                     onClick={() => speakJapanese(s.japanese, settings)}
                     className="btn"
