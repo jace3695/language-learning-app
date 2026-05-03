@@ -30,6 +30,105 @@ const katakana = [
   { char: "ン", roman: "n" },
 ];
 
+
+const hiraganaGifMap: Record<string, string> = {
+  あ: "/kana-gif/hiragana/a.gif",
+  い: "/kana-gif/hiragana/i.gif",
+  う: "/kana-gif/hiragana/u.gif",
+  え: "/kana-gif/hiragana/e.gif",
+  お: "/kana-gif/hiragana/o.gif",
+  か: "/kana-gif/hiragana/ka.gif",
+  き: "/kana-gif/hiragana/ki.gif",
+  く: "/kana-gif/hiragana/ku.gif",
+  け: "/kana-gif/hiragana/ke.gif",
+  こ: "/kana-gif/hiragana/ko.gif",
+  さ: "/kana-gif/hiragana/sa.gif",
+  し: "/kana-gif/hiragana/shi.gif",
+  す: "/kana-gif/hiragana/su.gif",
+  せ: "/kana-gif/hiragana/se.gif",
+  そ: "/kana-gif/hiragana/so.gif",
+  た: "/kana-gif/hiragana/ta.gif",
+  ち: "/kana-gif/hiragana/chi.gif",
+  つ: "/kana-gif/hiragana/tsu.gif",
+  て: "/kana-gif/hiragana/te.gif",
+  と: "/kana-gif/hiragana/to.gif",
+  な: "/kana-gif/hiragana/na.gif",
+  に: "/kana-gif/hiragana/ni.gif",
+  ぬ: "/kana-gif/hiragana/nu.gif",
+  ね: "/kana-gif/hiragana/ne.gif",
+  の: "/kana-gif/hiragana/no.gif",
+  は: "/kana-gif/hiragana/ha.gif",
+  ひ: "/kana-gif/hiragana/hi.gif",
+  ふ: "/kana-gif/hiragana/fu.gif",
+  へ: "/kana-gif/hiragana/he.gif",
+  ほ: "/kana-gif/hiragana/ho.gif",
+  ま: "/kana-gif/hiragana/ma.gif",
+  み: "/kana-gif/hiragana/mi.gif",
+  む: "/kana-gif/hiragana/mu.gif",
+  め: "/kana-gif/hiragana/me.gif",
+  も: "/kana-gif/hiragana/mo.gif",
+  や: "/kana-gif/hiragana/ya.gif",
+  ゆ: "/kana-gif/hiragana/yu.gif",
+  よ: "/kana-gif/hiragana/yo.gif",
+  ら: "/kana-gif/hiragana/ra.gif",
+  り: "/kana-gif/hiragana/ri.gif",
+  る: "/kana-gif/hiragana/ru.gif",
+  れ: "/kana-gif/hiragana/re.gif",
+  ろ: "/kana-gif/hiragana/ro.gif",
+  わ: "/kana-gif/hiragana/wa.gif",
+  を: "/kana-gif/hiragana/wo.gif",
+  ん: "/kana-gif/hiragana/n.gif",
+};
+
+const katakanaGifMap: Record<string, string> = {
+  ア: "/kana-gif/katakana/a.gif",
+  イ: "/kana-gif/katakana/i.gif",
+  ウ: "/kana-gif/katakana/u.gif",
+  エ: "/kana-gif/katakana/e.gif",
+  オ: "/kana-gif/katakana/o.gif",
+  カ: "/kana-gif/katakana/ka.gif",
+  キ: "/kana-gif/katakana/ki.gif",
+  ク: "/kana-gif/katakana/ku.gif",
+  ケ: "/kana-gif/katakana/ke.gif",
+  コ: "/kana-gif/katakana/ko.gif",
+  サ: "/kana-gif/katakana/sa.gif",
+  シ: "/kana-gif/katakana/shi.gif",
+  ス: "/kana-gif/katakana/su.gif",
+  セ: "/kana-gif/katakana/se.gif",
+  ソ: "/kana-gif/katakana/so.gif",
+  タ: "/kana-gif/katakana/ta.gif",
+  チ: "/kana-gif/katakana/chi.gif",
+  ツ: "/kana-gif/katakana/tsu.gif",
+  テ: "/kana-gif/katakana/te.gif",
+  ト: "/kana-gif/katakana/to.gif",
+  ナ: "/kana-gif/katakana/na.gif",
+  ニ: "/kana-gif/katakana/ni.gif",
+  ヌ: "/kana-gif/katakana/nu.gif",
+  ネ: "/kana-gif/katakana/ne.gif",
+  ノ: "/kana-gif/katakana/no.gif",
+  ハ: "/kana-gif/katakana/ha.gif",
+  ヒ: "/kana-gif/katakana/hi.gif",
+  フ: "/kana-gif/katakana/fu.gif",
+  ヘ: "/kana-gif/katakana/he.gif",
+  ホ: "/kana-gif/katakana/ho.gif",
+  マ: "/kana-gif/katakana/ma.gif",
+  ミ: "/kana-gif/katakana/mi.gif",
+  ム: "/kana-gif/katakana/mu.gif",
+  メ: "/kana-gif/katakana/me.gif",
+  モ: "/kana-gif/katakana/mo.gif",
+  ヤ: "/kana-gif/katakana/ya.gif",
+  ユ: "/kana-gif/katakana/yu.gif",
+  ヨ: "/kana-gif/katakana/yo.gif",
+  ラ: "/kana-gif/katakana/ra.gif",
+  リ: "/kana-gif/katakana/ri.gif",
+  ル: "/kana-gif/katakana/ru.gif",
+  レ: "/kana-gif/katakana/re.gif",
+  ロ: "/kana-gif/katakana/ro.gif",
+  ワ: "/kana-gif/katakana/wa.gif",
+  ヲ: "/kana-gif/katakana/wu(o).gif",
+  ン: "/kana-gif/katakana/n.gif",
+};
+
 type KanaItem = { char: string; roman: string };
 
 type KanaGroup = {
@@ -138,14 +237,6 @@ type StrokeOrderInfo = {
   totalStrokes: number;
   steps: string[];
   tip: string;
-};
-
-const kanaWritingVideos: Record<string, string> = {
-  あ: "/kana-writing/hiragana/a.mp4",
-  い: "/kana-writing/hiragana/i.mp4",
-  う: "/kana-writing/hiragana/u.mp4",
-  え: "/kana-writing/hiragana/e.mp4",
-  お: "/kana-writing/hiragana/o.mp4",
 };
 
 type WritingGuideMode = "view" | "faint" | "blank";
@@ -1208,7 +1299,6 @@ export default function KanaPage() {
   // 쓰기 연습 모드 상태
   const [writingSubMode, setWritingSubMode] = useState<"trace" | "quiz">("trace");
   const [writingGuideMode, setWritingGuideMode] = useState<WritingGuideMode>("view");
-  const writingVideoRef = useRef<HTMLVideoElement | null>(null);
   const [writingIndex, setWritingIndex] = useState(0);
   const [writingQuizQuestion, setWritingQuizQuestion] = useState<KanaItem>(() =>
     getWritingQuizQuestion(hiragana)
@@ -1373,8 +1463,8 @@ export default function KanaPage() {
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentChar = currentWritingItem?.char ?? "";
-  const writingVideoPath = kanaWritingVideos[currentChar];
-  const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank";
+  const currentGifSrc = tab === "hiragana" ? hiraganaGifMap[currentChar] : katakanaGifMap[currentChar];
+  const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank" || writingGuideMode === "view";
   const kanaGuideTextStyle = {
     display: "flex",
     alignItems: "center",
@@ -1388,9 +1478,7 @@ export default function KanaPage() {
     pointerEvents: "none" as const,
   };
   const writingGuideMessage = writingGuideMode === "view"
-    ? (writingVideoPath
-      ? "글자가 써지는 모습을 먼저 확인해 보세요."
-      : "이 글자는 쓰기 보기 영상을 준비 중입니다. 글자 모양을 보고 흐린 글자에서 연습해 보세요.")
+    ? "글자가 써지는 모습을 먼저 확인해 보세요."
     : writingGuideMode === "faint"
       ? "방금 본 글자 모습을 떠올리며 흐린 글자 위에 써보세요."
       : "이제 기억해서 빈칸에 다시 써보세요.";
@@ -1545,67 +1633,6 @@ export default function KanaPage() {
       return { ...base, borderColor: "#dc2626", background: "#fee2e2", color: "#b91c1c" };
     }
     return { ...base, borderColor: "#d1d5db", background: "#f9fafb", color: "#9ca3af" };
-  };
-
-  const replayWritingVideo = useCallback(() => {
-    const video = writingVideoRef.current;
-    if (!video) return;
-    video.currentTime = 0;
-    video.play().catch((error) => {
-      console.error("쓰기 보기 영상 재생 실패:", error);
-    });
-  }, []);
-
-  const renderWritingViewGuide = () => {
-    if (!currentWritingItem) return null;
-
-    if (writingVideoPath) {
-      return (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            pointerEvents: "none",
-          }}
-        >
-          <video
-            ref={writingVideoRef}
-            key={currentChar}
-            autoPlay
-            muted
-            playsInline
-            loop
-            aria-label={`${currentChar} 쓰기 보기 영상`}
-            style={{ width: "90%", height: "90%", objectFit: "contain" }}
-          >
-            <source src={writingVideoPath} type="video/mp4" />
-          </video>
-        </div>
-      );
-    }
-
-    return (
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 2,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          pointerEvents: "none",
-        }}
-      >
-        <div style={{ fontSize: "160px", fontWeight: 700, color: "#111827", lineHeight: 1 }}>
-          {currentChar}
-        </div>
-      </div>
-    );
   };
 
 
@@ -1983,6 +2010,32 @@ export default function KanaPage() {
           {writingSubMode === "trace" && (
             <div style={{ marginBottom: "0.75rem", fontSize: "0.88rem", color: "#4b5563" }}>{writingGuideMessage}</div>
           )}
+          {writingSubMode === "trace" && writingGuideMode === "view" ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "0.85rem", marginBottom: "0.95rem" }}>
+              <div style={{ borderRadius: "12px", border: "1px solid #d1d5db", background: "#fff", padding: "0.75rem" }}>
+                <div style={{ marginBottom: "0.5rem", fontSize: "0.85rem", color: "#4b5563" }}>글자가 써지는 모습을 먼저 확인해 보세요.</div>
+                <div style={{ height: "340px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: "#f8fafc" }}>
+                  {currentGifSrc ? (
+                    <img src={currentGifSrc} alt={`${currentChar} 쓰기 GIF`} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                  ) : (
+                    <div style={{ textAlign: "center", color: "#111827" }}>
+                      <div style={{ fontSize: "140px", fontWeight: 700, lineHeight: 1 }}>{currentChar}</div>
+                      <div style={{ fontSize: "0.82rem", color: "#6b7280", marginTop: "0.4rem" }}>이 글자는 쓰기 보기 GIF를 준비 중입니다. 글자 모양을 보고 따라쓰기 칸에서 연습해 보세요.</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={{ borderRadius: "12px", border: "1px solid #d1d5db", background: "#fff", padding: "0.75rem" }}>
+                <div style={{ marginBottom: "0.5rem", fontSize: "0.85rem", color: "#4b5563" }}>바로 옆 칸에 따라 써보세요.</div>
+                <div ref={writingAreaRef} style={{ width: "100%", height: "340px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "#fff", position: "relative", overflow: "hidden" }}>
+                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
+                    <span style={{ fontSize: "140px", fontWeight: 700, color: "#d1d5db", opacity: 0.28, lineHeight: 1 }}>{currentChar}</span>
+                  </div>
+                  <canvas ref={writingCanvasRef} onPointerDown={(e) => { e.preventDefault(); startDrawing(e.clientX, e.clientY); }} onPointerMove={(e) => { e.preventDefault(); drawMove(e.clientX, e.clientY); }} onPointerUp={endDrawing} onPointerCancel={endDrawing} onPointerLeave={endDrawing} onTouchStart={(e) => { e.preventDefault(); const touch = e.touches[0]; if (!touch) return; startDrawing(touch.clientX, touch.clientY); }} onTouchMove={(e) => { e.preventDefault(); const touch = e.touches[0]; if (!touch) return; drawMove(touch.clientX, touch.clientY); }} onTouchEnd={(e) => { e.preventDefault(); endDrawing(); }} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none", zIndex: 4 }} />
+                </div>
+              </div>
+            </div>
+          ) : (
           <div
             ref={writingAreaRef}
             style={{
@@ -2031,9 +2084,7 @@ export default function KanaPage() {
                 {currentWritingItem.char}
               </div>
             )}
-            {writingSubMode === "trace" && writingGuideMode === "view" && (
-              renderWritingViewGuide()
-            )}
+            
             {canDrawOnCanvas && (
             <canvas
               ref={writingCanvasRef}
@@ -2075,6 +2126,7 @@ export default function KanaPage() {
             />
             )}
           </div>
+          )}
           {writingSubMode === "trace" ? (
             <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap" }}>
               <button
@@ -2121,22 +2173,6 @@ export default function KanaPage() {
                   }}
                 >
                   지우기
-                </button>
-              )}
-              {writingGuideMode === "view" && (
-                <button
-                  onClick={replayWritingVideo}
-                  style={{
-                    padding: "0.65rem 0.9rem",
-                    borderRadius: "8px",
-                    border: "1px solid #d1d5db",
-                    cursor: "pointer",
-                    background: "#fff",
-                    color: "#374151",
-                    fontWeight: 600,
-                  }}
-                >
-                  다시보기
                 </button>
               )}
             </div>
