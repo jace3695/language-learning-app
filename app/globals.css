@@ -224,6 +224,8 @@ button {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
+  width: 100%;
+  align-items: stretch;
 }
 
 @media (min-width: 768px) {
@@ -238,6 +240,6 @@ button {
   }
 
   .kana-writing-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(320px, 1fr));
   }
 }

@@ -301,7 +301,7 @@ export default function WordsPage() {
   };
 
   return (
-    <section>
+    <section className="mx-auto w-full max-w-6xl">
       <div className="page-header">
         <h1>단어 학습</h1>
         <p className="muted" style={{ margin: 0 }}>
@@ -414,7 +414,7 @@ export default function WordsPage() {
 
       {/* ===== 학습 모드 ===== */}
       {mode === "study" && (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <ul className="grid gap-4 lg:grid-cols-2" style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {filteredWordsByPartOfSpeech.length === 0 ? (
             <li className="card" style={{ textAlign: "center", color: "#888", padding: "24px 16px" }}>
               해당 조건의 단어가 없습니다.
@@ -422,47 +422,49 @@ export default function WordsPage() {
           ) : filteredWordsByPartOfSpeech.map((w) => {
             const saved = isSaved(w);
             return (
-              <li key={getWordKey(w)} className="card" style={{ marginBottom: "14px" }}>
-                <div className="card-top">
-                  <div className="jp-text"><FuriganaText text={w.word} rubySegments={w.rubySegments} showReading={settings.showReading} /></div>
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                    <span className="badge">{w.category}</span>
-                    {w.partOfSpeech && <span className="badge">{getPartOfSpeechLabel(w.partOfSpeech)}</span>}
-                  </div>
-                </div>
-                {w.koreanPronunciation && (
-                  settings.showKoreanPronunciation &&
-                  <div style={{ marginTop: "4px" }}>
-                    <div className="label">한글 발음</div>
-                    <div style={{ color: "#666", fontSize: "14px" }}>{w.koreanPronunciation}</div>
-                  </div>
-                )}
-                <div style={{ marginTop: "10px" }}>
-                  <div className="label">뜻</div>
-                  <div>{w.meaning}</div>
-                </div>
-                {w.example && (
-                  <>
-                    <div style={{ marginTop: "10px" }}>
-                      <div className="label">예문</div>
-                      <div style={{ color: "#555" }}><FuriganaText text={w.example} rubySegments={w.exampleRubySegments} showReading={settings.showReading} /></div>
+              <li key={getWordKey(w)} className="card flex h-full flex-col">
+                <div className="flex-1">
+                  <div className="card-top">
+                    <div className="jp-text"><FuriganaText text={w.word} rubySegments={w.rubySegments} showReading={settings.showReading} /></div>
+                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                      <span className="badge">{w.category}</span>
+                      {w.partOfSpeech && <span className="badge">{getPartOfSpeechLabel(w.partOfSpeech)}</span>}
                     </div>
-                    {w.exampleMeaning && (
-                      <div style={{ marginTop: "4px" }}>
-                        <div className="label">예문 뜻</div>
-                        <div style={{ color: "#666", fontSize: "13px" }}>{w.exampleMeaning}</div>
+                  </div>
+                  {w.koreanPronunciation && (
+                    settings.showKoreanPronunciation &&
+                    <div style={{ marginTop: "4px" }}>
+                      <div className="label">한글 발음</div>
+                      <div style={{ color: "#666", fontSize: "14px" }}>{w.koreanPronunciation}</div>
+                    </div>
+                  )}
+                  <div style={{ marginTop: "10px" }}>
+                    <div className="label">뜻</div>
+                    <div>{w.meaning}</div>
+                  </div>
+                  {w.example && (
+                    <>
+                      <div style={{ marginTop: "10px" }}>
+                        <div className="label">예문</div>
+                        <div style={{ color: "#555" }}><FuriganaText text={w.example} rubySegments={w.exampleRubySegments} showReading={settings.showReading} /></div>
                       </div>
-                    )}
-                    {w.exampleKoreanPronunciation && (
-                      settings.showKoreanPronunciation &&
-                      <div style={{ marginTop: "4px" }}>
-                        <div className="label">예문 한글 발음</div>
-                        <div style={{ color: "#888", fontSize: "13px" }}>{w.exampleKoreanPronunciation}</div>
-                      </div>
-                    )}
-                  </>
-                )}
-                <div className="card-actions" style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                      {w.exampleMeaning && (
+                        <div style={{ marginTop: "4px" }}>
+                          <div className="label">예문 뜻</div>
+                          <div style={{ color: "#666", fontSize: "13px" }}>{w.exampleMeaning}</div>
+                        </div>
+                      )}
+                      {w.exampleKoreanPronunciation && (
+                        settings.showKoreanPronunciation &&
+                        <div style={{ marginTop: "4px" }}>
+                          <div className="label">예문 한글 발음</div>
+                          <div style={{ color: "#888", fontSize: "13px" }}>{w.exampleKoreanPronunciation}</div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                <div className="mt-4 flex flex-wrap justify-end gap-2">
                   <button
                     onClick={() => speakJapaneseText(w.word)}
                     className="btn"
