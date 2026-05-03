@@ -1698,7 +1698,7 @@ export default function KanaPage() {
 
   return (
     <>
-    <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
+    <div style={{ padding: "2rem 0", maxWidth: "72rem", margin: "0 auto" }}>
       <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1.5rem" }}>
         히라가나 / 가타카나 훈련
       </h1>
@@ -2059,7 +2059,7 @@ export default function KanaPage() {
             <div style={{ marginBottom: "0.75rem", fontSize: "0.88rem", color: "#4b5563" }}>{writingGuideMessage}</div>
           )}
           {writingSubMode === "trace" && writingGuideMode === "view" ? (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2" style={{ marginBottom: "0.95rem" }}>
+            <div className="kana-writing-grid" style={{ marginBottom: "0.95rem" }}>
               <section style={{ borderRadius: "12px", border: "1px solid #d1d5db", background: "#fff", padding: "0.75rem" }}>
                 <h3 style={{ marginBottom: "0.5rem", fontSize: "0.9rem", color: "#374151", fontWeight: 700 }}>쓰기 순서 보기</h3>
                 <div style={{ height: "340px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: "#f8fafc", padding: "0.5rem" }}>

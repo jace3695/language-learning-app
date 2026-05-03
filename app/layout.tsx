@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <header>
+        <header className="app-shell">
           <nav>
             {navItems.map((item) => (
               <Link key={item.href} href={item.href}>
@@ -49,7 +49,7 @@ export default function RootLayout({
             ))}
           </nav>
         </header>
-        <main>{children}</main>
+        <main className="app-main">{children}</main>
       </body>
     </html>
   );
