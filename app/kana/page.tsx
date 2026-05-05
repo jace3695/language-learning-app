@@ -14,6 +14,11 @@ const hiragana = [
   { char: "ら", roman: "ra" }, { char: "り", roman: "ri" }, { char: "る", roman: "ru" }, { char: "れ", roman: "re" }, { char: "ろ", roman: "ro" },
   { char: "わ", roman: "wa" }, { char: "を", roman: "wo" },
   { char: "ん", roman: "n" },
+  { char: "が", roman: "ga" }, { char: "ぎ", roman: "gi" }, { char: "ぐ", roman: "gu" }, { char: "げ", roman: "ge" }, { char: "ご", roman: "go" },
+  { char: "ざ", roman: "za" }, { char: "じ", roman: "ji" }, { char: "ず", roman: "zu" }, { char: "ぜ", roman: "ze" }, { char: "ぞ", roman: "zo" },
+  { char: "だ", roman: "da" }, { char: "ぢ", roman: "ji" }, { char: "づ", roman: "zu" }, { char: "で", roman: "de" }, { char: "ど", roman: "do" },
+  { char: "ば", roman: "ba" }, { char: "び", roman: "bi" }, { char: "ぶ", roman: "bu" }, { char: "べ", roman: "be" }, { char: "ぼ", roman: "bo" },
+  { char: "ぱ", roman: "pa" }, { char: "ぴ", roman: "pi" }, { char: "ぷ", roman: "pu" }, { char: "ぺ", roman: "pe" }, { char: "ぽ", roman: "po" },
 ];
 
 const katakana = [
@@ -28,6 +33,11 @@ const katakana = [
   { char: "ラ", roman: "ra" }, { char: "リ", roman: "ri" }, { char: "ル", roman: "ru" }, { char: "レ", roman: "re" }, { char: "ロ", roman: "ro" },
   { char: "ワ", roman: "wa" }, { char: "ヲ", roman: "wo" },
   { char: "ン", roman: "n" },
+  { char: "ガ", roman: "ga" }, { char: "ギ", roman: "gi" }, { char: "グ", roman: "gu" }, { char: "ゲ", roman: "ge" }, { char: "ゴ", roman: "go" },
+  { char: "ザ", roman: "za" }, { char: "ジ", roman: "ji" }, { char: "ズ", roman: "zu" }, { char: "ゼ", roman: "ze" }, { char: "ゾ", roman: "zo" },
+  { char: "ダ", roman: "da" }, { char: "ヂ", roman: "ji" }, { char: "ヅ", roman: "zu" }, { char: "デ", roman: "de" }, { char: "ド", roman: "do" },
+  { char: "バ", roman: "ba" }, { char: "ビ", roman: "bi" }, { char: "ブ", roman: "bu" }, { char: "ベ", roman: "be" }, { char: "ボ", roman: "bo" },
+  { char: "パ", roman: "pa" }, { char: "ピ", roman: "pi" }, { char: "プ", roman: "pu" }, { char: "ペ", roman: "pe" }, { char: "ポ", roman: "po" },
 ];
 
 
@@ -167,8 +177,9 @@ type KanaGroup = {
 const kanaConcepts = [
   { title: "히라가나", summary: "일본어의 기본 글자", detail: "일본어의 기본 글자입니다. 주로 일본어 고유어, 조사, 동사·형용사 어미에 자주 쓰입니다." },
   { title: "가타카나", summary: "외래어·강조 표현에 자주 사용", detail: "외래어, 외국 이름, 의성어·의태어, 강조 표현에 자주 쓰이는 글자입니다." },
-  { title: "탁음", summary: "점(゛)이 붙어 소리가 변함", detail: "か/さ/た/は행 등에 점 두 개(゛)가 붙어 소리가 탁해진 글자입니다. 예: か→が, さ→ざ, た→だ, は→ば" },
-  { title: "반탁음", summary: "동그라미(゜)가 붙어 p계열 소리", detail: "は행에 동그라미(゜)가 붙어 p 계열 소리로 바뀐 글자입니다. 예: は→ぱ, ひ→ぴ, ふ→ぷ" },
+  { title: "탁음", summary: "점(゛)이 붙어 소리가 변함", detail: "탁음은 글자 오른쪽 위에 점 두 개(゛)가 붙어 소리가 변한 글자예요. 예: か→が, さ→ざ, た→だ, は→ば" },
+  { title: "반탁음", summary: "동그라미(゜)가 붙어 p계열 소리", detail: "반탁음은 は행 글자 오른쪽 위에 동그라미(゜)가 붙어 p 소리로 변한 글자예요. 예: は→ぱ, ひ→ぴ" },
+  { title: "탁음 주의", summary: "じ/ぢ, ず/づ 발음 겹침", detail: "じ/ぢ는 둘 다 보통 ji로, ず/づ는 둘 다 보통 zu로 들릴 수 있습니다. 초보 단계에서는 じ, ず를 먼저 자주 사용합니다." },
   { title: "요음", summary: "작은 や/ゆ/よ를 붙여 한 박자", detail: "작은 や/ゆ/よ(ャ/ュ/ョ)를 붙여 한 박자로 읽는 소리입니다. 예: きゃ, しゅ, チョ" },
   { title: "촉음", summary: "작은 っ/ッ로 자음을 끊어 읽기", detail: "작은 っ/ッ로 표시하며 다음 자음을 잠깐 막았다가 터뜨리듯 읽습니다. 예: きって, がっこう, サッカー" },
   { title: "ん 발음", summary: "뒤 글자에 따라 다르게 들림", detail: "ん/ン은 뒤에 오는 소리에 따라 ㄴ/ㅁ/ㅇ처럼 들릴 수 있습니다. 예: ほん, せんせい, パン" },
@@ -186,8 +197,11 @@ const hiraganaGroupDefs: KanaGroup[] = [
   { id: "ya", label: "や행", chars: ["や", "ゆ", "よ"] },
   { id: "ra", label: "ら행", chars: ["ら", "り", "る", "れ", "ろ"] },
   { id: "wa", label: "わ행", chars: ["わ", "を", "ん"] },
-  { id: "dakuon", label: "탁음", chars: ["が","ぎ","ぐ","げ","ご","ざ","じ","ず","ぜ","ぞ","だ","ぢ","づ","で","ど","ば","び","ぶ","べ","ぼ"], note: "다음 단계에서 추가" },
-  { id: "handakuon", label: "반탁음", chars: ["ぱ","ぴ","ぷ","ぺ","ぽ"], note: "다음 단계에서 추가" },
+  { id: "ga", label: "が행", chars: ["が","ぎ","ぐ","げ","ご"] },
+  { id: "za", label: "ざ행", chars: ["ざ","じ","ず","ぜ","ぞ"] },
+  { id: "da", label: "だ행", chars: ["だ","ぢ","づ","で","ど"] },
+  { id: "ba", label: "ば행", chars: ["ば","び","ぶ","べ","ぼ"] },
+  { id: "pa", label: "ぱ행", chars: ["ぱ","ぴ","ぷ","ぺ","ぽ"] },
   { id: "youon", label: "요음", chars: ["きゃ","きゅ","きょ","しゃ","しゅ","しょ"], note: "다음 단계에서 추가" },
   { id: "sokuon", label: "촉음", chars: ["っ"], note: "다음 단계에서 추가" },
   { id: "n-sound", label: "ん 발음", chars: ["ん"] },
@@ -205,8 +219,11 @@ const katakanaGroupDefs: KanaGroup[] = [
   { id: "ya", label: "ヤ행", chars: ["ヤ", "ユ", "ヨ"] },
   { id: "ra", label: "ラ행", chars: ["ラ", "リ", "ル", "レ", "ロ"] },
   { id: "wa", label: "ワ행", chars: ["ワ", "ヲ", "ン"] },
-  { id: "dakuon", label: "탁음", chars: ["ガ","ギ","グ","ゲ","ゴ","ザ","ジ","ズ","ゼ","ゾ","ダ","ヂ","ヅ","デ","ド","バ","ビ","ブ","ベ","ボ"], note: "다음 단계에서 추가" },
-  { id: "handakuon", label: "반탁음", chars: ["パ","ピ","プ","ペ","ポ"], note: "다음 단계에서 추가" },
+  { id: "ga", label: "ガ행", chars: ["ガ","ギ","グ","ゲ","ゴ"] },
+  { id: "za", label: "ザ행", chars: ["ザ","ジ","ズ","ゼ","ゾ"] },
+  { id: "da", label: "ダ행", chars: ["ダ","ヂ","ヅ","デ","ド"] },
+  { id: "ba", label: "バ행", chars: ["バ","ビ","ブ","ベ","ボ"] },
+  { id: "pa", label: "パ행", chars: ["パ","ピ","プ","ペ","ポ"] },
   { id: "youon", label: "요음", chars: ["キャ","キュ","キョ","シャ","シュ","ショ"], note: "다음 단계에서 추가" },
   { id: "sokuon", label: "촉음", chars: ["ッ"], note: "다음 단계에서 추가" },
   { id: "n-sound", label: "ン 발음", chars: ["ン"] },
@@ -1263,6 +1280,7 @@ export default function KanaPage() {
   const allData = tab === "hiragana" ? hiragana : katakana;
   const groupDefs = tab === "hiragana" ? hiraganaGroupDefs : katakanaGroupDefs;
   const [selectedKanaGroup, setSelectedKanaGroup] = useState("all");
+  const [auditScope, setAuditScope] = useState<"base" | "dakuon" | "all">("base");
   const [openConcept, setOpenConcept] = useState<string | null>(null);
   const [wrongKanaChars, setWrongKanaChars] = useState<Set<string>>(new Set());
 
@@ -1277,12 +1295,17 @@ export default function KanaPage() {
   const baseKanaItems = allData.filter((item) =>
     baseKanaGroups.some((group) => group.matchedChars.includes(item.char))
   );
-  const baseKanaGroupByChar = baseKanaGroups.reduce<Record<string, KanaGroup>>((acc, group) => {
+  const dakuonKanaGroups = availableGroups.filter((group) => ["ga", "za", "da", "ba", "pa"].includes(group.id));
+  const dakuonKanaItems = allData.filter((item) =>
+    dakuonKanaGroups.some((group) => group.matchedChars.includes(item.char))
+  );
+  const allKanaGroupByChar = availableGroups.reduce<Record<string, KanaGroup>>((acc, group) => {
     group.matchedChars.forEach((char) => {
       acc[char] = group;
     });
     return acc;
   }, {});
+  const auditItems = auditScope === "base" ? baseKanaItems : auditScope === "dakuon" ? dakuonKanaItems : allData;
   const data = selectedKanaGroup === "all"
     ? allData
     : allData.filter((item) => selectedGroup?.matchedChars.includes(item.char));
@@ -1527,6 +1550,10 @@ export default function KanaPage() {
   const currentGifMap = tab === "hiragana" ? hiraganaGifMap : katakanaGifMap;
   const baseGifCount = baseKanaItems.filter((item) => Boolean(currentGifMap[item.char])).length;
   const basePngCount = baseKanaItems.filter((item) => Boolean(currentGuideMap[item.char])).length;
+  const dakuonGifCount = dakuonKanaItems.filter((item) => Boolean(currentGifMap[item.char])).length;
+  const dakuonPngCount = dakuonKanaItems.filter((item) => Boolean(currentGuideMap[item.char])).length;
+  const auditGifCount = auditItems.filter((item) => Boolean(currentGifMap[item.char])).length;
+  const auditPngCount = auditItems.filter((item) => Boolean(currentGuideMap[item.char])).length;
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank" || writingGuideMode === "view";
   const kanaGuideTextStyle = {
     display: "flex",
@@ -1649,7 +1676,7 @@ export default function KanaPage() {
   };
 
   const handleAuditPractice = (item: KanaItem) => {
-    const group = baseKanaGroupByChar[item.char];
+    const group = allKanaGroupByChar[item.char];
     if (group) setSelectedKanaGroup(group.id);
     setMode("writing");
     setWritingSubMode("trace");
@@ -1851,8 +1878,11 @@ export default function KanaPage() {
                 }}
               >
                 <span style={{ fontSize: "2rem", lineHeight: 1 }}>{item.char}</span>
-                <span style={{ fontSize: "0.75rem", color: isPlaying ? "#6366f1" : "#6b7280", marginTop: "0.4rem", fontWeight: isPlaying ? "700" : "400" }}>
+                  <span style={{ fontSize: "0.75rem", color: isPlaying ? "#6366f1" : "#6b7280", marginTop: "0.4rem", fontWeight: isPlaying ? "700" : "400" }}>
                   {isPlaying ? "재생 중..." : item.roman}
+                </span>
+                <span style={{ fontSize: "0.68rem", color: "#9ca3af", marginTop: "0.2rem" }}>
+                  {allKanaGroupByChar[item.char]?.label ?? "-"}
                 </span>
               </div>
             );
@@ -1957,13 +1987,19 @@ export default function KanaPage() {
       {mode === "audit" && (
         <div>
           <div style={{ marginBottom: "1rem", border: "1px solid #e5e7eb", borderRadius: "10px", padding: "0.9rem", background: "#f8fafc" }}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.35rem" }}>{tab === "hiragana" ? "히라가나" : "가타카나"} 기본 46자 검수</h3>
-            <div style={{ fontSize: "0.86rem", color: "#374151" }}>GIF 등록: {baseGifCount} / {baseKanaItems.length}</div>
-            <div style={{ fontSize: "0.86rem", color: "#374151" }}>PNG 등록: {basePngCount} / {baseKanaItems.length}</div>
+            <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.55rem" }}>{tab === "hiragana" ? "히라가나" : "가타카나"} 검수표</h3>
+            <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap", marginBottom: "0.6rem" }}>
+              <button onClick={() => setAuditScope("base")} style={{ padding: "0.35rem 0.7rem", borderRadius: "999px", border: auditScope === "base" ? "2px solid #6366f1" : "1px solid #d1d5db", background: auditScope === "base" ? "#eef2ff" : "#fff", color: auditScope === "base" ? "#4338ca" : "#374151", fontWeight: 700, cursor: "pointer" }}>기본 46자</button>
+              <button onClick={() => setAuditScope("dakuon")} style={{ padding: "0.35rem 0.7rem", borderRadius: "999px", border: auditScope === "dakuon" ? "2px solid #6366f1" : "1px solid #d1d5db", background: auditScope === "dakuon" ? "#eef2ff" : "#fff", color: auditScope === "dakuon" ? "#4338ca" : "#374151", fontWeight: 700, cursor: "pointer" }}>탁음/반탁음</button>
+              <button onClick={() => setAuditScope("all")} style={{ padding: "0.35rem 0.7rem", borderRadius: "999px", border: auditScope === "all" ? "2px solid #6366f1" : "1px solid #d1d5db", background: auditScope === "all" ? "#eef2ff" : "#fff", color: auditScope === "all" ? "#4338ca" : "#374151", fontWeight: 700, cursor: "pointer" }}>전체</button>
+            </div>
+            <div style={{ fontSize: "0.86rem", color: "#374151" }}>기본 46자 GIF/PNG: {baseGifCount}/{baseKanaItems.length} · {basePngCount}/{baseKanaItems.length}</div>
+            <div style={{ fontSize: "0.86rem", color: "#374151" }}>탁음/반탁음 GIF/PNG: {dakuonGifCount}/{dakuonKanaItems.length} · {dakuonPngCount}/{dakuonKanaItems.length}</div>
+            <div style={{ fontSize: "0.86rem", color: "#374151" }}>현재 범위 GIF/PNG: {auditGifCount}/{auditItems.length} · {auditPngCount}/{auditItems.length}</div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem" }}>
-            {baseKanaItems.map((item) => {
-              const group = baseKanaGroupByChar[item.char];
+            {auditItems.map((item) => {
+              const group = allKanaGroupByChar[item.char];
               const hasGif = Boolean(currentGifMap[item.char]);
               const hasGuide = Boolean(currentGuideMap[item.char]);
               return (
