@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 
 const hiragana = [
   { char: "あ", roman: "a" }, { char: "い", roman: "i" }, { char: "う", roman: "u" }, { char: "え", roman: "e" }, { char: "お", roman: "o" },
@@ -1338,9 +1338,9 @@ export default function KanaPage() {
   const [tab, setTab] = useState<"hiragana" | "katakana">("hiragana");
   const [mode, setMode] = useState<"learn" | "quiz" | "confusing" | "writing" | "audit">("learn");
 
-  const allData: KanaItem[] = uniqueKanaItems(tab === "hiragana"
+  const allData: KanaItem[] = useMemo(() => uniqueKanaItems(tab === "hiragana"
     ? [...hiragana, ...hiraganaYouon, ...hiraganaSpecialRules]
-    : [...katakana, ...katakanaYouon, ...katakanaSpecialRules]);
+    : [...katakana, ...katakanaYouon, ...katakanaSpecialRules]), [tab]);
   const groupDefs = tab === "hiragana" ? hiraganaGroupDefs : katakanaGroupDefs;
   const [selectedKanaGroupIds, setSelectedKanaGroupIds] = useState<string[]>(["all"]);
   const [auditScope, setAuditScope] = useState<"base" | "dakuon" | "youon" | "special" | "all">("base");
@@ -1377,14 +1377,23 @@ export default function KanaPage() {
     .filter((groupId) => groupId !== "all")
     .flatMap((groupId) => availableGroups.find((group) => group.id === groupId)?.matchedChars ?? []);
   const selectedGroups = availableGroups.filter((group) => selectedGroupSet.has(group.id));
-  const includeSpecialItems = selectedGroups.some((group) => ["sokuon", "n-sound", "long-vowel"].includes(group.id));
+  const selectedSpecialTypes = new Set(
+    selectedGroups
+      .filter((group) => ["sokuon", "n-sound", "long-vowel"].includes(group.id))
+      .map((group) => group.id as KanaItem["specialType"])
+  );
+  const includesNSoundSpecial = selectedSpecialTypes.has("n-sound");
+  const regularSelectedData = allData.filter((item) =>
+    item.kind !== "special" &&
+    selectedGroupChars.includes(item.char) &&
+    !(includesNSoundSpecial && (item.char === "ん" || item.char === "ン"))
+  );
+  const specialSelectedData = allData.filter((item) =>
+    item.kind === "special" && selectedSpecialTypes.has(item.specialType)
+  );
   const data = selectedGroupSet.has("all")
     ? allData
-    : uniqueKanaItems(
-      allData.filter((item) =>
-        selectedGroupChars.includes(item.char) && (includeSpecialItems || item.kind !== "special")
-      )
-    );
+    : uniqueKanaItems([...regularSelectedData, ...specialSelectedData]);
   const quizSourceItems = getQuizEligibleItems(data);
   const selectedGroupLabels = selectedGroupSet.has("all")
     ? ["전체"]
@@ -1455,6 +1464,8 @@ export default function KanaPage() {
   const writingAreaRef = useRef<HTMLDivElement | null>(null);
   const writingIsDrawingRef = useRef(false);
   const writingLastPointRef = useRef<{ x: number; y: number } | null>(null);
+  const lastQuizResetKeyRef = useRef<string>("");
+  const prevModeRef = useRef(mode);
 
   const handleSpeak = useCallback((char: string) => {
     if (playingTimerRef.current) clearTimeout(playingTimerRef.current);
@@ -1514,8 +1525,6 @@ export default function KanaPage() {
     if (newMode === "quiz") {
       setSelected(null);
       setScore({ correct: 0, total: 0 });
-      const source = quizSourceItems.length > 0 ? quizSourceItems : getQuizEligibleItems(allData);
-      setQuiz(getQuizQuestion(source));
     }
     if (newMode === "confusing") {
       setConfusingView("cards");
@@ -1702,12 +1711,27 @@ export default function KanaPage() {
     clearWritingCanvas();
   }, [allData, clearWritingCanvas, data, resetWritingFeedback, writingIndex]);
 
+  const quizResetKey = useMemo(
+    () => `${tab}|${selectedKanaGroupIds.slice().sort().join(",")}`,
+    [selectedKanaGroupIds, tab]
+  );
+
   useEffect(() => {
-    if (mode !== "quiz") return;
-    if (quizSourceItems.length === 0) return;
-    setSelected(null);
-    setQuiz(getQuizQuestion(quizSourceItems));
-  }, [mode, selectedKanaGroupIds, tab, quizSourceItems]);
+    const enteringQuiz = prevModeRef.current !== "quiz" && mode === "quiz";
+    const changedWhileQuiz = mode === "quiz" && lastQuizResetKeyRef.current !== quizResetKey;
+    if (!enteringQuiz && !changedWhileQuiz) {
+      prevModeRef.current = mode;
+      return;
+    }
+
+    const source = quizSourceItems.length > 0 ? quizSourceItems : getQuizEligibleItems(allData);
+    if (source.length > 0) {
+      setSelected(null);
+      setQuiz(getQuizQuestion(source));
+    }
+    lastQuizResetKeyRef.current = quizResetKey;
+    prevModeRef.current = mode;
+  }, [allData, mode, quizResetKey, quizSourceItems]);
 
   const getRandomWritingIndex = useCallback((currentIndex: number) => {
     if (data.length <= 1) return 0;
