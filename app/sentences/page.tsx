@@ -11,6 +11,22 @@ const WRONG_SENTENCES_KEY = "wrongSentences";
 
 type Category = "전체" | "여행" | "업무" | "친구" | "일상";
 type LevelFilter = "all" | "beginner" | "basic" | "practical";
+type PatternFilter =
+  | "all"
+  | "desu"
+  | "masu"
+  | "particle-wa"
+  | "particle-wo"
+  | "particle-ni"
+  | "particle-de"
+  | "question"
+  | "travel"
+  | "work"
+  | "daily"
+  | "request"
+  | "shopping"
+  | "direction"
+  | "other";
 type Mode = "학습" | "퀴즈";
 type QuizType = "jp-to-kr" | "kr-to-jp";
 
@@ -44,6 +60,22 @@ const DEFAULT_SETTINGS: AppSettings = {
   showReading: true,
 };
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+const sentencePatternLabels: Record<string, string> = {
+  desu: "です 문장",
+  masu: "ます 문장",
+  "particle-wa": "は 패턴",
+  "particle-wo": "を 패턴",
+  "particle-ni": "に 패턴",
+  "particle-de": "で 패턴",
+  question: "질문 표현",
+  travel: "여행 표현",
+  work: "업무 표현",
+  daily: "일상 표현",
+  request: "요청 표현",
+  shopping: "쇼핑 표현",
+  direction: "길찾기 표현",
+  other: "기타",
+};
 
 async function speakJapaneseFallback(text: string, settings: AppSettings) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
@@ -168,6 +200,7 @@ export default function SentencesPage() {
   const [mode, setMode] = useState<Mode>("학습");
   const [category, setCategory] = useState<Category>("전체");
   const [levelFilter, setLevelFilter] = useState<LevelFilter>("all");
+  const [patternFilter, setPatternFilter] = useState<PatternFilter>("all");
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
@@ -212,17 +245,21 @@ export default function SentencesPage() {
   const filteredSentencesByLevel = filteredSentences.filter(
     (s) => levelFilter === "all" || getEffectiveLevel(s) === levelFilter
   );
+  const filteredSentencesByPattern = filteredSentencesByLevel.filter(
+    (s) => patternFilter === "all" || (s.pattern ?? "other") === patternFilter
+  );
 
   const startQuiz = useCallback(() => {
     const pool = SENTENCES.filter(
       (s) =>
         (category === "전체" || s.category === category) &&
-        (levelFilter === "all" || getEffectiveLevel(s) === levelFilter)
+        (levelFilter === "all" || getEffectiveLevel(s) === levelFilter) &&
+        (patternFilter === "all" || (s.pattern ?? "other") === patternFilter)
     );
     if (pool.length < 4) return;
     setQuiz(generateQuiz(pool));
     setScore({ correct: 0, total: 0 });
-  }, [category, levelFilter]);
+  }, [category, levelFilter, patternFilter]);
 
   useEffect(() => {
     if (mode === "퀴즈") {
@@ -307,7 +344,8 @@ export default function SentencesPage() {
     const pool = SENTENCES.filter(
       (s) =>
         (category === "전체" || s.category === category) &&
-        (levelFilter === "all" || getEffectiveLevel(s) === levelFilter)
+        (levelFilter === "all" || getEffectiveLevel(s) === levelFilter) &&
+        (patternFilter === "all" || (s.pattern ?? "other") === patternFilter)
     );
     if (pool.length < 4) return;
     setQuiz(generateQuiz(pool));
@@ -319,6 +357,23 @@ export default function SentencesPage() {
     { label: "기초", value: "beginner" },
     { label: "기본", value: "basic" },
     { label: "실전", value: "practical" },
+  ];
+  const PATTERNS: Array<{ label: string; value: PatternFilter }> = [
+    { label: "전체 패턴", value: "all" },
+    { label: "です 문장", value: "desu" },
+    { label: "ます 문장", value: "masu" },
+    { label: "は 패턴", value: "particle-wa" },
+    { label: "を 패턴", value: "particle-wo" },
+    { label: "に 패턴", value: "particle-ni" },
+    { label: "で 패턴", value: "particle-de" },
+    { label: "질문 표현", value: "question" },
+    { label: "여행 표현", value: "travel" },
+    { label: "업무 표현", value: "work" },
+    { label: "일상 표현", value: "daily" },
+    { label: "요청 표현", value: "request" },
+    { label: "쇼핑 표현", value: "shopping" },
+    { label: "길찾기 표현", value: "direction" },
+    { label: "기타", value: "other" },
   ];
 
   return (
@@ -368,6 +423,30 @@ export default function SentencesPage() {
           </button>
         ))}
       </div>
+      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "20px" }}>
+        {PATTERNS.map((pattern) => (
+          <button
+            key={pattern.value}
+            onClick={() => setPatternFilter(pattern.value)}
+            className="btn"
+            style={{
+              fontSize: "13px",
+              padding: "4px 12px",
+              fontWeight: patternFilter === pattern.value ? 700 : 400,
+              background: patternFilter === pattern.value ? "#444" : undefined,
+              color: patternFilter === pattern.value ? "#fff" : undefined,
+            }}
+          >
+            {pattern.label}
+          </button>
+        ))}
+      </div>
+      <div className="card" style={{ marginBottom: "16px", fontSize: "13px", color: "#4b5563" }}>
+        <div><strong>です 문장:</strong> 명사나 상태를 공손하게 말할 때 사용해요. 예: これは水です。</div>
+        <div><strong>ます 문장:</strong> 동작을 공손하게 말할 때 사용해요. 예: 日本語を勉強します。</div>
+        <div><strong>は/を/に/で 패턴:</strong> 주제·대상·방향·장소를 나타내는 기본 조사 패턴이에요.</div>
+        <div><strong>질문/요청 표현:</strong> 정보를 묻거나 부탁할 때 자주 사용해요.</div>
+      </div>
 
       {/* 난이도 필터 */}
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "20px" }}>
@@ -397,7 +476,7 @@ export default function SentencesPage() {
           gridTemplateColumns: "repeat(auto-fit, minmax(min(360px, 100%), 1fr))",
           gap: "16px",
         }}>
-          {filteredSentencesByLevel.map((s) => {
+          {filteredSentencesByPattern.map((s) => {
             const saved = isSaved(s);
             return (
               <div key={s.japanese} className="card"
@@ -419,6 +498,9 @@ export default function SentencesPage() {
                     showReading={settings.showReading}
                     showKoreanPronunciation={settings.showKoreanPronunciation}
                   />
+                  <div>
+                    <span className="badge">{sentencePatternLabels[s.pattern ?? "other"] ?? "기타"}</span>
+                  </div>
                   <div style={{ marginTop: "12px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <div className="label">뜻</div>
@@ -458,7 +540,7 @@ export default function SentencesPage() {
               </div>
             );
           })}
-          {filteredSentencesByLevel.length === 0 && (
+          {filteredSentencesByPattern.length === 0 && (
             <div style={{ color: "#888", textAlign: "center", padding: "32px 0" }}>
               해당 카테고리의 문장이 없습니다.
             </div>
@@ -485,7 +567,7 @@ export default function SentencesPage() {
             </span>
           </div>
 
-          {filteredSentences.length < 4 ? (
+          {filteredSentencesByPattern.length < 4 ? (
             <div
               className="card"
               style={{ textAlign: "center", color: "#888", padding: "32px 0" }}
@@ -500,6 +582,9 @@ export default function SentencesPage() {
                   {quiz.quizType === "jp-to-kr"
                     ? "일본어 → 한국어"
                     : "한국어 → 일본어"}
+                </span>
+                <span className="badge" style={{ marginLeft: "6px" }}>
+                  {sentencePatternLabels[quiz.question.pattern ?? "other"] ?? "기타"}
                 </span>
               </div>
 
@@ -640,6 +725,9 @@ export default function SentencesPage() {
                   )}
                   <div style={{ fontWeight: 400, marginTop: "4px", fontSize: "13px", opacity: 0.8 }}>
                     {quiz.question.note}
+                  </div>
+                  <div style={{ fontWeight: 400, marginTop: "4px", fontSize: "13px", opacity: 0.8 }}>
+                    패턴: {sentencePatternLabels[quiz.question.pattern ?? "other"] ?? "기타"}
                   </div>
                 </div>
               )}
