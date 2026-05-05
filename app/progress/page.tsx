@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 
 import { WORDS } from "@/data/words";
@@ -23,6 +23,24 @@ interface KanaQuizItem {
   type?: string;
   mode?: string;
   createdAt?: string;
+}
+
+interface KanaSummaryCard {
+  key: "basic" | "dakuon" | "youon" | "special";
+  label: string;
+  total: number;
+  wrongCount: number;
+  confusingCount: number;
+  statusText: "안정적" | "복습 권장" | "집중 복습 필요";
+  statusColor: string;
+  bgColor: string;
+}
+
+interface KanaTopWrongItem {
+  char: string;
+  romaji: string;
+  count: number;
+  lastWrongAt?: string;
 }
 
 interface WordQuizItem {
@@ -71,6 +89,20 @@ const ROMAJI_POOL = [
   "bya","byu","byo",
   "pya","pyu","pyo",
 ];
+
+const BASIC_KANA_CHARS = new Set([
+  "あ","い","う","え","お","か","き","く","け","こ","さ","し","す","せ","そ","た","ち","つ","て","と","な","に","ぬ","ね","の","は","ひ","ふ","へ","ほ","ま","み","む","め","も","や","ゆ","よ","ら","り","る","れ","ろ","わ","を","ん",
+  "ア","イ","ウ","エ","オ","カ","キ","ク","ケ","コ","サ","シ","ス","セ","ソ","タ","チ","ツ","テ","ト","ナ","ニ","ヌ","ネ","ノ","ハ","ヒ","フ","ヘ","ホ","マ","ミ","ム","メ","モ","ヤ","ユ","ヨ","ラ","リ","ル","レ","ロ","ワ","ヲ","ン",
+]);
+const DAKUON_KANA_CHARS = new Set([
+  "が","ぎ","ぐ","げ","ご","ざ","じ","ず","ぜ","ぞ","だ","ぢ","づ","で","ど","ば","び","ぶ","べ","ぼ","ぱ","ぴ","ぷ","ぺ","ぽ",
+  "ガ","ギ","グ","ゲ","ゴ","ザ","ジ","ズ","ゼ","ゾ","ダ","ヂ","ヅ","デ","ド","バ","ビ","ブ","ベ","ボ","パ","ピ","プ","ペ","ポ",
+]);
+const YOON_KANA_CHARS = new Set([
+  "きゃ","きゅ","きょ","しゃ","しゅ","しょ","ちゃ","ちゅ","ちょ","にゃ","にゅ","にょ","ひゃ","ひゅ","ひょ","みゃ","みゅ","みょ","りゃ","りゅ","りょ","ぎゃ","ぎゅ","ぎょ","じゃ","じゅ","じょ","びゃ","びゅ","びょ","ぴゃ","ぴゅ","ぴょ",
+  "キャ","キュ","キョ","シャ","シュ","ショ","チャ","チュ","チョ","ニャ","ニュ","ニョ","ヒャ","ヒュ","ヒョ","ミャ","ミュ","ミョ","リャ","リュ","リョ","ギャ","ギュ","ギョ","ジャ","ジュ","ジョ","ビャ","ビュ","ビョ","ピャ","ピュ","ピョ",
+]);
+const SPECIAL_KANA_CHARS = new Set(["っ", "ッ", "ん", "ン", "ー"]);
 
 function loadFromStorage(key: string): AnyItem[] {
   try {
@@ -390,6 +422,7 @@ export default function ProgressPage() {
   const [sentenceOptions, setSentenceOptions] = useState<string[]>([]);
   const [sentenceSelected, setSentenceSelected] = useState<string | null>(null);
   const [sentenceIsCorrect, setSentenceIsCorrect] = useState<boolean | null>(null);
+  const [confusingKanaChars, setConfusingKanaChars] = useState<string[]>([]);
 
   const buildKanaQuiz = useCallback((items: AnyItem[]) => {
     const qi = getKanaQuizItems(items);
@@ -444,10 +477,58 @@ export default function ProgressPage() {
     const wrongWords = loadFromStorage("wrongWords");
     const wrongSentences = loadFromStorage("wrongSentences");
     setData({ wrongKana, wrongWords, wrongSentences });
+    const rawConfusingKana = loadFromStorage("wrongKanaChars");
+    const rawConfusingKanaLegacy = loadFromStorage("confusingKana");
+    const confusingChars = [...rawConfusingKana, ...rawConfusingKanaLegacy]
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (typeof item === "object" && item !== null && typeof item.char === "string") return item.char;
+        return "";
+      })
+      .filter(Boolean);
+    setConfusingKanaChars(Array.from(new Set(confusingChars)));
     buildKanaQuiz(wrongKana);
     buildWordQuiz(wrongWords);
     buildSentenceQuiz(wrongSentences);
   }, [buildKanaQuiz, buildWordQuiz, buildSentenceQuiz]);
+
+  const kanaSummaryCards: KanaSummaryCard[] = useMemo(() => {
+    const wrongKanaItems = getKanaQuizItems(data.wrongKana);
+    const groupConfig = [
+      { key: "basic" as const, label: "기본 46자", total: 46, set: BASIC_KANA_CHARS },
+      { key: "dakuon" as const, label: "탁음/반탁음", total: 25, set: DAKUON_KANA_CHARS },
+      { key: "youon" as const, label: "요음", total: 33, set: YOON_KANA_CHARS },
+      { key: "special" as const, label: "특수 발음", total: 3, set: SPECIAL_KANA_CHARS },
+    ];
+    return groupConfig.map((group) => {
+      const wrongCount = wrongKanaItems.filter((item) => group.set.has(item.char)).length;
+      const confusingCount = confusingKanaChars.filter((char) => group.set.has(char)).length;
+      const statusText = wrongCount === 0 ? "안정적" : wrongCount <= 3 ? "복습 권장" : "집중 복습 필요";
+      const statusColor = wrongCount === 0 ? "#166534" : wrongCount <= 3 ? "#9a3412" : "#991b1b";
+      const bgColor = wrongCount === 0 ? "#dcfce7" : wrongCount <= 3 ? "#ffedd5" : "#fee2e2";
+      return { key: group.key, label: group.label, total: group.total, wrongCount, confusingCount, statusText, statusColor, bgColor };
+    });
+  }, [confusingKanaChars, data.wrongKana]);
+
+  const kanaTopWrongItems: KanaTopWrongItem[] = useMemo(() => {
+    const map = new Map<string, KanaTopWrongItem>();
+    getKanaQuizItems(data.wrongKana).forEach((item) => {
+      const prev = map.get(item.char);
+      const createdAt = item.createdAt;
+      if (!prev) {
+        map.set(item.char, { char: item.char, romaji: item.romaji, count: 1, lastWrongAt: createdAt });
+        return;
+      }
+      const prevTime = prev.lastWrongAt ? new Date(prev.lastWrongAt).getTime() : 0;
+      const curTime = createdAt ? new Date(createdAt).getTime() : 0;
+      map.set(item.char, {
+        ...prev,
+        count: prev.count + 1,
+        lastWrongAt: curTime > prevTime ? createdAt : prev.lastWrongAt,
+      });
+    });
+    return Array.from(map.values()).sort((a, b) => b.count - a.count).slice(0, 10);
+  }, [data.wrongKana]);
 
   function clearSection(key: SectionKey) {
     try {
@@ -663,6 +744,52 @@ export default function ProgressPage() {
       <p style={{ color: "#666", marginBottom: "2rem" }}>
         퀴즈에서 틀렸거나 헷갈린 항목이 여기에 기록됩니다.
       </p>
+
+      <section style={{ marginBottom: "2rem" }}>
+        <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>가나 진도 요약</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" style={{ gap: "0.75rem" }}>
+          {kanaSummaryCards.map((card) => (
+            <article key={card.key} style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: "0.85rem", background: "#fff" }}>
+              <h3 style={{ fontSize: "1rem", margin: "0 0 0.4rem 0" }}>{card.label}</h3>
+              <p style={{ margin: "0 0 0.35rem 0", fontSize: "0.86rem", color: "#4b5563" }}>
+                전체 {card.total}자 · 오답 {card.wrongCount}개 · 헷갈림 {card.confusingCount}개
+              </p>
+              <p style={{ margin: "0 0 0.65rem 0", fontSize: "0.8rem", fontWeight: 700, color: card.statusColor, background: card.bgColor, display: "inline-block", padding: "0.15rem 0.45rem", borderRadius: 999 }}>
+                {card.statusText}
+              </p>
+              <Link href="/kana" style={{ display: "inline-block", fontSize: "0.8rem", padding: "0.25rem 0.6rem", borderRadius: 4, textDecoration: "none", background: "#3730a3", color: "#fff" }}>
+                가나 퀴즈 다시 풀기
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section style={{ marginBottom: "2rem", border: "1px solid #ddd", borderRadius: 8, padding: "1rem" }}>
+        <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>자주 틀린 가나</h2>
+        {kanaTopWrongItems.length === 0 ? (
+          <p style={{ color: "#999", margin: 0 }}>기록된 가나 오답이 없습니다.</p>
+        ) : (
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: "0.5rem" }}>
+            {kanaTopWrongItems.map((item) => (
+              <li key={item.char} style={{ display: "flex", justifyContent: "space-between", gap: "0.6rem", alignItems: "center", border: "1px solid #eee", borderRadius: 6, padding: "0.5rem 0.65rem", background: "#fafafa" }}>
+                <div>
+                  <strong style={{ fontSize: "1.1rem", marginRight: "0.3rem" }}>{item.char}</strong>
+                  <span style={{ color: "#4b5563", fontSize: "0.88rem" }}>
+                    / {item.romaji} · {item.count}회
+                  </span>
+                  <div style={{ color: "#6b7280", fontSize: "0.75rem", marginTop: "0.1rem" }}>
+                    {item.lastWrongAt ? `마지막 틀림: ${formatDate(item.lastWrongAt)}` : "최근 틀림"}
+                  </div>
+                </div>
+                <Link href="/kana" style={{ fontSize: "0.75rem", padding: "0.25rem 0.6rem", borderRadius: 4, textDecoration: "none", background: "#111827", color: "#fff", whiteSpace: "nowrap" }}>
+                  다시 학습
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {/* Kana 오답 퀴즈 섹션 */}
       <section
