@@ -414,7 +414,7 @@ export default function WordsPage() {
 
       {/* ===== 학습 모드 ===== */}
       {mode === "study" && (
-        <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <ul className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2" style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {filteredWordsByPartOfSpeech.length === 0 ? (
             <li className="card" style={{ textAlign: "center", color: "#888", padding: "24px 16px" }}>
               해당 조건의 단어가 없습니다.
@@ -422,8 +422,8 @@ export default function WordsPage() {
           ) : filteredWordsByPartOfSpeech.map((w) => {
             const saved = isSaved(w);
             return (
-              <li key={getWordKey(w)} className="flex h-full flex-col rounded-xl border bg-white p-4">
-                <div className="flex-1">
+              <li key={getWordKey(w)} className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="flex-1 space-y-2">
                   <div className="card-top">
                     <div className="jp-text"><FuriganaText text={w.word} rubySegments={w.rubySegments} showReading={settings.showReading} /></div>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
