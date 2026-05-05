@@ -395,7 +395,7 @@ export default function SentencesPage() {
           {filteredSentencesByLevel.map((s) => {
             const saved = isSaved(s);
             return (
-              <div key={s.japanese} className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div key={s.japanese} className="flex h-full flex-col rounded-xl border-2 border-blue-500 bg-white p-4 shadow-sm">
                 <div className="flex-1 space-y-2">
                   <JapaneseTextBlock
                     japanese={s.japanese}
