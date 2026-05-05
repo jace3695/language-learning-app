@@ -218,6 +218,8 @@ const kanaConcepts = [
 ] as const;
 
 const hiraganaGroupDefs: KanaGroup[] = [
+  { id: "basic-46", label: "기본 46자", chars: ["あ","い","う","え","お","か","き","く","け","こ","さ","し","す","せ","そ","た","ち","つ","て","と","な","に","ぬ","ね","の","は","ひ","ふ","へ","ほ","ま","み","む","め","も","や","ゆ","よ","ら","り","る","れ","ろ","わ","を","ん"] },
+  { id: "dakuon-handakuon", label: "탁음/반탁음", chars: ["が","ぎ","ぐ","げ","ご","ざ","じ","ず","ぜ","ぞ","だ","ぢ","づ","で","ど","ば","び","ぶ","べ","ぼ","ぱ","ぴ","ぷ","ぺ","ぽ"] },
   { id: "a", label: "あ행", chars: ["あ", "い", "う", "え", "お"] },
   { id: "ka", label: "か행", chars: ["か", "き", "く", "け", "こ"] },
   { id: "sa", label: "さ행", chars: ["さ", "し", "す", "せ", "そ"] },
@@ -241,6 +243,8 @@ const hiraganaGroupDefs: KanaGroup[] = [
 ];
 
 const katakanaGroupDefs: KanaGroup[] = [
+  { id: "basic-46", label: "기본 46자", chars: ["ア","イ","ウ","エ","オ","カ","キ","ク","ケ","コ","サ","シ","ス","セ","ソ","タ","チ","ツ","テ","ト","ナ","ニ","ヌ","ネ","ノ","ハ","ヒ","フ","ヘ","ホ","マ","ミ","ム","メ","モ","ヤ","ユ","ヨ","ラ","リ","ル","レ","ロ","ワ","ヲ","ン"] },
+  { id: "dakuon-handakuon", label: "탁음/반탁음", chars: ["ガ","ギ","グ","ゲ","ゴ","ザ","ジ","ズ","ゼ","ゾ","ダ","ヂ","ヅ","デ","ド","バ","ビ","ブ","ベ","ボ","パ","ピ","プ","ペ","ポ"] },
   { id: "a", label: "ア행", chars: ["ア", "イ", "ウ", "エ", "オ"] },
   { id: "ka", label: "カ행", chars: ["カ", "キ", "ク", "ケ", "コ"] },
   { id: "sa", label: "サ행", chars: ["サ", "シ", "ス", "セ", "ソ"] },
@@ -1324,7 +1328,7 @@ export default function KanaPage() {
     ? [...hiragana, ...hiraganaYouon, ...hiraganaSpecialRules]
     : [...katakana, ...katakanaYouon, ...katakanaSpecialRules]);
   const groupDefs = tab === "hiragana" ? hiraganaGroupDefs : katakanaGroupDefs;
-  const [selectedKanaGroup, setSelectedKanaGroup] = useState("all");
+  const [selectedKanaGroupIds, setSelectedKanaGroupIds] = useState<string[]>(["all"]);
   const [auditScope, setAuditScope] = useState<"base" | "dakuon" | "youon" | "special" | "all">("base");
   const [openConcept, setOpenConcept] = useState<string | null>(null);
   const [wrongKanaChars, setWrongKanaChars] = useState<Set<string>>(new Set());
@@ -1333,7 +1337,7 @@ export default function KanaPage() {
     ...group,
     matchedChars: group.chars.filter((char) => allData.some((item) => item.char === char)),
   }));
-  const selectedGroup = availableGroups.find((group) => group.id === selectedKanaGroup);
+  const selectedGroupSet = new Set(selectedKanaGroupIds);
   const baseKanaGroups = availableGroups.filter((group) =>
     ["a", "ka", "sa", "ta", "na", "ha", "ma", "ya", "ra", "wa"].includes(group.id)
   );
@@ -1353,9 +1357,15 @@ export default function KanaPage() {
   const youonKanaItems = allData.filter((item) => item.kind === "youon");
   const specialKanaItems = allData.filter((item) => item.kind === "special");
   const auditItems = auditScope === "base" ? baseKanaItems : auditScope === "dakuon" ? dakuonKanaItems : auditScope === "youon" ? youonKanaItems : auditScope === "special" ? specialKanaItems : allData;
-  const data = selectedKanaGroup === "all"
+  const selectedGroupChars = selectedKanaGroupIds
+    .filter((groupId) => groupId !== "all")
+    .flatMap((groupId) => availableGroups.find((group) => group.id === groupId)?.matchedChars ?? []);
+  const data = selectedGroupSet.has("all")
     ? allData
-    : allData.filter((item) => selectedGroup?.matchedChars.includes(item.char));
+    : uniqueKanaItems(allData.filter((item) => selectedGroupChars.includes(item.char)));
+  const selectedGroupLabels = selectedGroupSet.has("all")
+    ? ["전체"]
+    : availableGroups.filter((group) => selectedGroupSet.has(group.id)).map((group) => group.label);
 
   const [quiz, setQuiz] = useState<{ question: KanaItem; choices: string[] }>(() =>
     getQuizQuestion(hiragana)
@@ -1445,10 +1455,22 @@ export default function KanaPage() {
     },
     []
   );
+  const toggleKanaGroup = (groupId: string) => {
+    setSelectedKanaGroupIds((prev) => {
+      if (groupId === "all") return ["all"];
+      const withoutAll = prev.filter((id) => id !== "all");
+      const exists = withoutAll.includes(groupId);
+      if (exists) {
+        const next = withoutAll.filter((id) => id !== groupId);
+        return next.length > 0 ? next : ["basic-46"];
+      }
+      return [...withoutAll, groupId];
+    });
+  };
 
   const handleTabChange = (newTab: "hiragana" | "katakana") => {
     setTab(newTab);
-    setSelectedKanaGroup("all");
+    setSelectedKanaGroupIds(["all"]);
     const newData = newTab === "hiragana" ? hiragana : katakana;
     setWritingIndex(0);
     setWritingOrderMode("sequence");
@@ -1532,7 +1554,7 @@ export default function KanaPage() {
       cancelAnimationFrame(frameId);
       window.removeEventListener("resize", onResize);
     };
-  }, [mode, writingSubMode, writingGuideMode, writingIndex, tab, selectedKanaGroup, resizeWritingCanvas, clearWritingCanvas]);
+  }, [mode, writingSubMode, writingGuideMode, writingIndex, tab, selectedKanaGroupIds, resizeWritingCanvas, clearWritingCanvas]);
 
   const getCanvasPoint = useCallback((event: React.PointerEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
@@ -1638,6 +1660,21 @@ export default function KanaPage() {
     setWritingFeedbackError(null);
     setWritingFeedbackLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (writingIndex >= data.length) {
+      setWritingIndex(0);
+    }
+    if (data.length > 0) {
+      setQuiz(getQuizQuestion(data));
+      setWritingQuizQuestion(getWritingQuizQuestion(data));
+    }
+    setSelected(null);
+    setWritingQuizShowAnswer(false);
+    setWritingQuizAnswered(false);
+    resetWritingFeedback();
+    clearWritingCanvas();
+  }, [clearWritingCanvas, data, resetWritingFeedback, writingIndex]);
 
   const getRandomWritingIndex = useCallback((currentIndex: number) => {
     if (data.length <= 1) return 0;
@@ -1755,7 +1792,7 @@ export default function KanaPage() {
 
   const handleAuditPractice = (item: KanaItem) => {
     const group = allKanaGroupByChar[item.char];
-    if (group) setSelectedKanaGroup(group.id);
+    if (group) setSelectedKanaGroupIds([group.id]);
     setMode("writing");
     setWritingSubMode("trace");
     setWritingGuideMode("view");
@@ -1888,20 +1925,24 @@ export default function KanaPage() {
       <div style={{ marginBottom: "1.25rem" }}>
         <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.6rem" }}>단계별 그룹 선택</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.55rem" }}>
-          <button onClick={() => setSelectedKanaGroup("all")} style={{ textAlign: "left", border: selectedKanaGroup === "all" ? "2px solid #6366f1" : "1px solid #d1d5db", borderRadius: "8px", padding: "0.65rem", background: selectedKanaGroup === "all" ? "#eef2ff" : "#fff", cursor: "pointer" }}>
+          <button onClick={() => toggleKanaGroup("all")} style={{ textAlign: "left", border: selectedGroupSet.has("all") ? "2px solid #6366f1" : "1px solid #d1d5db", borderRadius: "8px", padding: "0.65rem", background: selectedGroupSet.has("all") ? "#eef2ff" : "#fff", cursor: "pointer" }}>
             <div style={{ fontWeight: 700 }}>전체</div><div style={{ fontSize: "0.8rem", color: "#6b7280" }}>{allData.length}글자</div>
           </button>
           {availableGroups.map((group) => {
-            const active = selectedKanaGroup === group.id;
+            const active = selectedGroupSet.has(group.id) && !selectedGroupSet.has("all");
             const hasWrong = group.matchedChars.some((char) => wrongKanaChars.has(char));
             const preview = group.matchedChars.slice(0, 6).join(" ");
-            return <button key={group.id} onClick={() => setSelectedKanaGroup(group.id)} style={{ textAlign: "left", border: active ? "2px solid #6366f1" : "1px solid #d1d5db", borderRadius: "8px", padding: "0.65rem", background: active ? "#eef2ff" : "#fff", cursor: "pointer" }}>
+            return <button key={group.id} onClick={() => toggleKanaGroup(group.id)} style={{ textAlign: "left", border: active ? "2px solid #6366f1" : "1px solid #d1d5db", borderRadius: "8px", padding: "0.65rem", background: active ? "#eef2ff" : "#fff", cursor: "pointer" }}>
               <div style={{ fontWeight: 700 }}>{group.label}</div>
               <div style={{ fontSize: "0.82rem", color: "#374151", marginTop: "0.15rem", minHeight: "1rem" }}>{preview || "준비 중"}</div>
               <div style={{ fontSize: "0.78rem", color: "#6b7280", marginTop: "0.2rem" }}>{group.matchedChars.length}글자 · {hasWrong ? "헷갈림 있음" : "헷갈림 없음"}</div>
               {group.note && group.matchedChars.length === 0 && <div style={{ fontSize: "0.75rem", color: "#9a3412", marginTop: "0.2rem" }}>{group.note}</div>}
             </button>
           })}
+        </div>
+        <div style={{ marginTop: "0.65rem", fontSize: "0.88rem", color: "#4b5563" }}>
+          선택됨: {selectedGroupLabels.join(", ")}<br />
+          학습 대상: {data.length}글자
         </div>
       </div>
 
