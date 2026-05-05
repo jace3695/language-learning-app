@@ -1306,13 +1306,23 @@ function getWritingQuizQuestion(data: KanaItem[]): KanaItem {
   return data[questionIndex];
 }
 
+function uniqueKanaItems(items: KanaItem[]): KanaItem[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = `${item.kind ?? "kana"}-${item.char ?? item.roman}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export default function KanaPage() {
   const [tab, setTab] = useState<"hiragana" | "katakana">("hiragana");
   const [mode, setMode] = useState<"learn" | "quiz" | "confusing" | "writing" | "audit">("learn");
 
-  const allData: KanaItem[] = tab === "hiragana"
+  const allData: KanaItem[] = uniqueKanaItems(tab === "hiragana"
     ? [...hiragana, ...hiraganaYouon, ...hiraganaSpecialRules]
-    : [...katakana, ...katakanaYouon, ...katakanaSpecialRules];
+    : [...katakana, ...katakanaYouon, ...katakanaSpecialRules]);
   const groupDefs = tab === "hiragana" ? hiraganaGroupDefs : katakanaGroupDefs;
   const [selectedKanaGroup, setSelectedKanaGroup] = useState("all");
   const [auditScope, setAuditScope] = useState<"base" | "dakuon" | "youon" | "special" | "all">("base");
@@ -1398,6 +1408,7 @@ export default function KanaPage() {
   const [writingSubMode, setWritingSubMode] = useState<"trace" | "quiz">("trace");
   const [writingGuideMode, setWritingGuideMode] = useState<WritingGuideMode>("view");
   const [writingIndex, setWritingIndex] = useState(0);
+  const [writingOrderMode, setWritingOrderMode] = useState<"sequence" | "random">("sequence");
   const [writingQuizQuestion, setWritingQuizQuestion] = useState<KanaItem>(() =>
     getWritingQuizQuestion(hiragana)
   );
@@ -1440,6 +1451,7 @@ export default function KanaPage() {
     setSelectedKanaGroup("all");
     const newData = newTab === "hiragana" ? hiragana : katakana;
     setWritingIndex(0);
+    setWritingOrderMode("sequence");
     setWritingSubMode("trace");
     setWritingGuideMode("view");
     setWritingQuizQuestion(getWritingQuizQuestion(newData));
@@ -1626,6 +1638,35 @@ export default function KanaPage() {
     setWritingFeedbackError(null);
     setWritingFeedbackLoading(false);
   }, []);
+
+  const getRandomWritingIndex = useCallback((currentIndex: number) => {
+    if (data.length <= 1) return 0;
+    let nextIndex = currentIndex;
+    while (nextIndex === currentIndex) {
+      nextIndex = Math.floor(Math.random() * data.length);
+    }
+    return nextIndex;
+  }, [data.length]);
+
+  const goToPrevWritingItem = useCallback(() => {
+    if (data.length === 0) return;
+    setWritingIndex((prev) => {
+      if (writingOrderMode === "random") return getRandomWritingIndex(prev);
+      return Math.max(0, prev - 1);
+    });
+    resetWritingFeedback();
+    clearWritingCanvas();
+  }, [clearWritingCanvas, data.length, getRandomWritingIndex, resetWritingFeedback, writingOrderMode]);
+
+  const goToNextWritingItem = useCallback(() => {
+    if (data.length === 0) return;
+    setWritingIndex((prev) => {
+      if (writingOrderMode === "random") return getRandomWritingIndex(prev);
+      return Math.min(data.length - 1, prev + 1);
+    });
+    resetWritingFeedback();
+    clearWritingCanvas();
+  }, [clearWritingCanvas, data.length, getRandomWritingIndex, resetWritingFeedback, writingOrderMode]);
 
   const getFeedbackLines = (value: string[] | string | undefined) => {
     if (!value) return [];
@@ -1896,7 +1937,7 @@ export default function KanaPage() {
             const isPlaying = playingChar === item.char;
             return (
               <div
-                key={item.char}
+                key={`${item.kind ?? "kana"}-${item.char}-${item.roman}`}
                 onClick={() => handleSpeak(item.char)}
                 style={{
                   display: "flex",
@@ -2044,7 +2085,7 @@ export default function KanaPage() {
               const hasGif = Boolean(currentGifMap[item.char]);
               const hasGuide = Boolean(currentGuideMap[item.char]);
               return (
-                <div key={item.char} style={{ border: "1px solid #e5e7eb", borderRadius: "10px", background: "#fff", padding: "0.75rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                <div key={`${item.kind ?? "kana"}-${item.char}-${item.roman}`} style={{ border: "1px solid #e5e7eb", borderRadius: "10px", background: "#fff", padding: "0.75rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                   <div style={{ fontSize: "2.1rem", fontWeight: 700, lineHeight: 1, color: "#111827" }}>{item.char}</div>
                   <div style={{ fontSize: "0.85rem", color: "#374151" }}>발음: <strong>{item.roman}</strong></div>
                   <div style={{ fontSize: "0.8rem", color: "#6b7280" }}>그룹: {group?.label ?? "준비 중"}</div>
@@ -2122,6 +2163,48 @@ export default function KanaPage() {
             >
               쓰기 퀴즈
             </button>
+            <div style={{ marginLeft: "auto", display: "flex", gap: "0.4rem" }}>
+              <button
+                onClick={() => {
+                  setWritingOrderMode("sequence");
+                  resetWritingFeedback();
+                  clearWritingCanvas();
+                }}
+                style={{
+                  padding: "0.4rem 0.9rem",
+                  borderRadius: "6px",
+                  border: "2px solid",
+                  cursor: "pointer",
+                  fontWeight: writingOrderMode === "sequence" ? "bold" : "normal",
+                  borderColor: writingOrderMode === "sequence" ? "#8b5cf6" : "#d1d5db",
+                  background: writingOrderMode === "sequence" ? "#ede9fe" : "#fff",
+                  color: writingOrderMode === "sequence" ? "#7c3aed" : "#6b7280",
+                  fontSize: "0.875rem",
+                }}
+              >
+                순서
+              </button>
+              <button
+                onClick={() => {
+                  setWritingOrderMode("random");
+                  resetWritingFeedback();
+                  clearWritingCanvas();
+                }}
+                style={{
+                  padding: "0.4rem 0.9rem",
+                  borderRadius: "6px",
+                  border: "2px solid",
+                  cursor: "pointer",
+                  fontWeight: writingOrderMode === "random" ? "bold" : "normal",
+                  borderColor: writingOrderMode === "random" ? "#8b5cf6" : "#d1d5db",
+                  background: writingOrderMode === "random" ? "#ede9fe" : "#fff",
+                  color: writingOrderMode === "random" ? "#7c3aed" : "#6b7280",
+                  fontSize: "0.875rem",
+                }}
+              >
+                랜덤
+              </button>
+            </div>
           </div>
 
 
@@ -2309,30 +2392,30 @@ export default function KanaPage() {
           {writingSubMode === "trace" ? (
             <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap" }}>
               <button
-                onClick={() => setWritingIndex((prev) => Math.max(0, prev - 1))}
-                disabled={writingIndex === 0}
+                onClick={goToPrevWritingItem}
+                disabled={writingOrderMode === "sequence" && writingIndex === 0}
                 style={{
                   padding: "0.65rem 0.9rem",
                   borderRadius: "8px",
                   border: "1px solid #d1d5db",
-                  cursor: writingIndex === 0 ? "not-allowed" : "pointer",
-                  background: writingIndex === 0 ? "#f3f4f6" : "#fff",
-                  color: writingIndex === 0 ? "#9ca3af" : "#374151",
+                  cursor: writingOrderMode === "sequence" && writingIndex === 0 ? "not-allowed" : "pointer",
+                  background: writingOrderMode === "sequence" && writingIndex === 0 ? "#f3f4f6" : "#fff",
+                  color: writingOrderMode === "sequence" && writingIndex === 0 ? "#9ca3af" : "#374151",
                   fontWeight: 600,
                 }}
               >
                 이전 글자
               </button>
               <button
-                onClick={() => setWritingIndex((prev) => Math.min(data.length - 1, prev + 1))}
-                disabled={writingIndex === data.length - 1}
+                onClick={goToNextWritingItem}
+                disabled={writingOrderMode === "sequence" && writingIndex === data.length - 1}
                 style={{
                   padding: "0.65rem 0.9rem",
                   borderRadius: "8px",
                   border: "1px solid #d1d5db",
-                  cursor: writingIndex === data.length - 1 ? "not-allowed" : "pointer",
-                  background: writingIndex === data.length - 1 ? "#f3f4f6" : "#fff",
-                  color: writingIndex === data.length - 1 ? "#9ca3af" : "#374151",
+                  cursor: writingOrderMode === "sequence" && writingIndex === data.length - 1 ? "not-allowed" : "pointer",
+                  background: writingOrderMode === "sequence" && writingIndex === data.length - 1 ? "#f3f4f6" : "#fff",
+                  color: writingOrderMode === "sequence" && writingIndex === data.length - 1 ? "#9ca3af" : "#374151",
                   fontWeight: 600,
                 }}
               >
