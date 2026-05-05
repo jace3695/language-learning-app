@@ -1258,7 +1258,7 @@ function getWritingQuizQuestion(data: KanaItem[]): KanaItem {
 
 export default function KanaPage() {
   const [tab, setTab] = useState<"hiragana" | "katakana">("hiragana");
-  const [mode, setMode] = useState<"learn" | "quiz" | "confusing" | "writing">("learn");
+  const [mode, setMode] = useState<"learn" | "quiz" | "confusing" | "writing" | "audit">("learn");
 
   const allData = tab === "hiragana" ? hiragana : katakana;
   const groupDefs = tab === "hiragana" ? hiraganaGroupDefs : katakanaGroupDefs;
@@ -1271,6 +1271,18 @@ export default function KanaPage() {
     matchedChars: group.chars.filter((char) => allData.some((item) => item.char === char)),
   }));
   const selectedGroup = availableGroups.find((group) => group.id === selectedKanaGroup);
+  const baseKanaGroups = availableGroups.filter((group) =>
+    ["a", "ka", "sa", "ta", "na", "ha", "ma", "ya", "ra", "wa"].includes(group.id)
+  );
+  const baseKanaItems = allData.filter((item) =>
+    baseKanaGroups.some((group) => group.matchedChars.includes(item.char))
+  );
+  const baseKanaGroupByChar = baseKanaGroups.reduce<Record<string, KanaGroup>>((acc, group) => {
+    group.matchedChars.forEach((char) => {
+      acc[char] = group;
+    });
+    return acc;
+  }, {});
   const data = selectedKanaGroup === "all"
     ? allData
     : allData.filter((item) => selectedGroup?.matchedChars.includes(item.char));
@@ -1379,7 +1391,7 @@ export default function KanaPage() {
     setQuiz(getQuizQuestion(newData));
   };
 
-  const handleModeChange = (newMode: "learn" | "quiz" | "confusing" | "writing") => {
+  const handleModeChange = (newMode: "learn" | "quiz" | "confusing" | "writing" | "audit") => {
     setMode(newMode);
     if (newMode === "quiz") {
       setSelected(null);
@@ -1512,6 +1524,9 @@ export default function KanaPage() {
   const currentGuideMap = tab === "hiragana" ? hiraganaGuideMap : katakanaGuideMap;
   const currentGuideSrc = currentGuideMap[currentChar] ?? "";
   const hasPngGuide = Boolean(currentGuideSrc);
+  const currentGifMap = tab === "hiragana" ? hiraganaGifMap : katakanaGifMap;
+  const baseGifCount = baseKanaItems.filter((item) => Boolean(currentGifMap[item.char])).length;
+  const basePngCount = baseKanaItems.filter((item) => Boolean(currentGuideMap[item.char])).length;
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank" || writingGuideMode === "view";
   const kanaGuideTextStyle = {
     display: "flex",
@@ -1631,6 +1646,19 @@ export default function KanaPage() {
   const loadNextConfusingQuestion = () => {
     setConfusingQuiz(getConfusingQuizQuestion());
     setConfusingSelected(null);
+  };
+
+  const handleAuditPractice = (item: KanaItem) => {
+    const group = baseKanaGroupByChar[item.char];
+    if (group) setSelectedKanaGroup(group.id);
+    setMode("writing");
+    setWritingSubMode("trace");
+    setWritingGuideMode("view");
+    const targetData = group ? allData.filter((kana) => group.chars.includes(kana.char)) : allData;
+    const targetIndex = targetData.findIndex((kana) => kana.char === item.char);
+    setWritingIndex(targetIndex >= 0 ? targetIndex : 0);
+    resetWritingFeedback();
+    clearWritingCanvas();
   };
 
   const getChoiceStyle = (choice: string): React.CSSProperties => {
@@ -1786,6 +1814,9 @@ export default function KanaPage() {
         <button onClick={() => handleModeChange("writing")} style={modeBtnStyle("writing")}>
           쓰기 연습
         </button>
+        <button onClick={() => handleModeChange("audit")} style={modeBtnStyle("audit")}>
+          검수표
+        </button>
       </div>
 
       {/* 학습 모드 */}
@@ -1920,6 +1951,40 @@ export default function KanaPage() {
               다음 문제 →
             </button>
           )}
+        </div>
+      )}
+
+      {mode === "audit" && (
+        <div>
+          <div style={{ marginBottom: "1rem", border: "1px solid #e5e7eb", borderRadius: "10px", padding: "0.9rem", background: "#f8fafc" }}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.35rem" }}>{tab === "hiragana" ? "히라가나" : "가타카나"} 기본 46자 검수</h3>
+            <div style={{ fontSize: "0.86rem", color: "#374151" }}>GIF 등록: {baseGifCount} / {baseKanaItems.length}</div>
+            <div style={{ fontSize: "0.86rem", color: "#374151" }}>PNG 등록: {basePngCount} / {baseKanaItems.length}</div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem" }}>
+            {baseKanaItems.map((item) => {
+              const group = baseKanaGroupByChar[item.char];
+              const hasGif = Boolean(currentGifMap[item.char]);
+              const hasGuide = Boolean(currentGuideMap[item.char]);
+              return (
+                <div key={item.char} style={{ border: "1px solid #e5e7eb", borderRadius: "10px", background: "#fff", padding: "0.75rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                  <div style={{ fontSize: "2.1rem", fontWeight: 700, lineHeight: 1, color: "#111827" }}>{item.char}</div>
+                  <div style={{ fontSize: "0.85rem", color: "#374151" }}>발음: <strong>{item.roman}</strong></div>
+                  <div style={{ fontSize: "0.8rem", color: "#6b7280" }}>그룹: {group?.label ?? "준비 중"}</div>
+                  <div style={{ fontSize: "0.8rem", color: hasGif ? "#166534" : "#b91c1c" }}>GIF: {hasGif ? "있음" : "없음"}</div>
+                  <div style={{ fontSize: "0.8rem", color: hasGuide ? "#166534" : "#b91c1c" }}>PNG: {hasGuide ? "있음" : "없음"}</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", marginTop: "0.35rem" }}>
+                    <button onClick={() => handleSpeak(item.char)} style={{ padding: "0.4rem 0.5rem", borderRadius: "7px", border: "1px solid #d1d5db", background: "#fff", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}>
+                      🔊 발음 듣기
+                    </button>
+                    <button onClick={() => handleAuditPractice(item)} style={{ padding: "0.45rem 0.5rem", borderRadius: "7px", border: "none", background: "#7c3aed", color: "#fff", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700 }}>
+                      이 글자 연습
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
