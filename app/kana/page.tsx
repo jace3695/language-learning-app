@@ -1302,7 +1302,7 @@ function getQuizQuestion(data: KanaItem[]): { question: KanaItem; choices: strin
   const uniqueByRoman = Array.from(
     new Map(
       data
-        .filter((item) => item.roman && !(item.kind === "special" && item.specialType === "n-sound"))
+        .filter((item) => item.roman && (item.char || item.id))
         .map((item) => [item.roman, item])
     ).values()
   );
@@ -1313,6 +1313,10 @@ function getQuizQuestion(data: KanaItem[]): { question: KanaItem; choices: strin
   const uniqueChoices = Array.from(new Set([...wrongs, question.roman]));
   const choices = uniqueChoices.sort(() => Math.random() - 0.5);
   return { question, choices };
+}
+
+function getQuizEligibleItems(items: KanaItem[]): KanaItem[] {
+  return items.filter((item) => Boolean(item.roman) && Boolean(item.char || item.id));
 }
 
 function getWritingQuizQuestion(data: KanaItem[]): KanaItem {
@@ -1352,10 +1356,12 @@ export default function KanaPage() {
     ["a", "ka", "sa", "ta", "na", "ha", "ma", "ya", "ra", "wa"].includes(group.id)
   );
   const baseKanaItems = allData.filter((item) =>
+    item.kind !== "special" &&
     baseKanaGroups.some((group) => group.matchedChars.includes(item.char))
   );
   const dakuonKanaGroups = availableGroups.filter((group) => ["ga", "za", "da", "ba", "pa"].includes(group.id));
   const dakuonKanaItems = allData.filter((item) =>
+    item.kind !== "special" &&
     dakuonKanaGroups.some((group) => group.matchedChars.includes(item.char))
   );
   const allKanaGroupByChar = availableGroups.reduce<Record<string, KanaGroup>>((acc, group) => {
@@ -1379,6 +1385,7 @@ export default function KanaPage() {
         selectedGroupChars.includes(item.char) && (includeSpecialItems || item.kind !== "special")
       )
     );
+  const quizSourceItems = getQuizEligibleItems(data);
   const selectedGroupLabels = selectedGroupSet.has("all")
     ? ["전체"]
     : availableGroups.filter((group) => selectedGroupSet.has(group.id)).map((group) => group.label);
@@ -1466,10 +1473,11 @@ export default function KanaPage() {
 
   const loadNextQuestion = useCallback(
     (currentData: KanaItem[]) => {
-      setQuiz(getQuizQuestion(currentData));
+      const source = getQuizEligibleItems(currentData);
+      setQuiz(getQuizQuestion(source.length > 0 ? source : getQuizEligibleItems(allData)));
       setSelected(null);
     },
-    []
+    [allData]
   );
   const toggleKanaGroup = (groupId: string) => {
     setSelectedKanaGroupIds((prev) => {
@@ -1498,7 +1506,7 @@ export default function KanaPage() {
     setWritingQuizScore({ correct: 0, wrong: 0, total: 0 });
     setSelected(null);
     setScore({ correct: 0, total: 0 });
-    setQuiz(getQuizQuestion(newData));
+    setQuiz(getQuizQuestion(getQuizEligibleItems(newData)));
   };
 
   const handleModeChange = (newMode: "learn" | "quiz" | "confusing" | "writing" | "audit") => {
@@ -1506,7 +1514,8 @@ export default function KanaPage() {
     if (newMode === "quiz") {
       setSelected(null);
       setScore({ correct: 0, total: 0 });
-      setQuiz(getQuizQuestion(data.length > 0 ? data : allData));
+      const source = quizSourceItems.length > 0 ? quizSourceItems : getQuizEligibleItems(allData);
+      setQuiz(getQuizQuestion(source));
     }
     if (newMode === "confusing") {
       setConfusingView("cards");
@@ -1682,7 +1691,8 @@ export default function KanaPage() {
       setWritingIndex(0);
     }
     if (data.length > 0) {
-      setQuiz(getQuizQuestion(data));
+      const source = getQuizEligibleItems(data);
+      setQuiz(getQuizQuestion(source.length > 0 ? source : getQuizEligibleItems(allData)));
       setWritingQuizQuestion(getWritingQuizQuestion(data));
     }
     setSelected(null);
@@ -1690,7 +1700,14 @@ export default function KanaPage() {
     setWritingQuizAnswered(false);
     resetWritingFeedback();
     clearWritingCanvas();
-  }, [clearWritingCanvas, data, resetWritingFeedback, writingIndex]);
+  }, [allData, clearWritingCanvas, data, resetWritingFeedback, writingIndex]);
+
+  useEffect(() => {
+    if (mode !== "quiz") return;
+    if (quizSourceItems.length === 0) return;
+    setSelected(null);
+    setQuiz(getQuizQuestion(quizSourceItems));
+  }, [mode, selectedKanaGroupIds, tab, quizSourceItems]);
 
   const getRandomWritingIndex = useCallback((currentIndex: number) => {
     if (data.length <= 1) return 0;
