@@ -165,7 +165,38 @@ const katakanaGuideMap: Record<string, string> = {
   ワ: "/kana-guide/katakana/wa.png", ヲ: "/kana-guide/katakana/wu(o).png", ン: "/kana-guide/katakana/n.png",
 };
 
-type KanaItem = { char: string; roman: string };
+type KanaItem = {
+  char: string;
+  roman: string;
+  note?: string;
+  examples?: { word: string; roman: string }[];
+  kind?: "kana" | "youon" | "special";
+};
+
+const hiraganaYouon: KanaItem[] = [
+  { char: "きゃ", roman: "kya", note: "き + 小さい ゃ", kind: "youon" }, { char: "きゅ", roman: "kyu", note: "き + 小さい ゅ", kind: "youon" }, { char: "きょ", roman: "kyo", note: "き + 小さい ょ", kind: "youon" },
+  { char: "しゃ", roman: "sha", note: "し + 小さい ゃ", kind: "youon" }, { char: "しゅ", roman: "shu", note: "し + 小さい ゅ", kind: "youon" }, { char: "しょ", roman: "sho", note: "し + 小さい ょ", kind: "youon" },
+  { char: "ちゃ", roman: "cha", note: "ち + 小さい ゃ", kind: "youon" }, { char: "ちゅ", roman: "chu", note: "ち + 小さい ゅ", kind: "youon" }, { char: "ちょ", roman: "cho", note: "ち + 小さい ょ", kind: "youon" },
+  { char: "にゃ", roman: "nya", note: "に + 小さい ゃ", kind: "youon" }, { char: "にゅ", roman: "nyu", note: "に + 小さい ゅ", kind: "youon" }, { char: "にょ", roman: "nyo", note: "に + 小さい ょ", kind: "youon" },
+  { char: "ひゃ", roman: "hya", note: "ひ + 小さい ゃ", kind: "youon" }, { char: "ひゅ", roman: "hyu", note: "ひ + 小さい ゅ", kind: "youon" }, { char: "ひょ", roman: "hyo", note: "ひ + 小さい ょ", kind: "youon" },
+  { char: "みゃ", roman: "mya", note: "み + 小さい ゃ", kind: "youon" }, { char: "みゅ", roman: "myu", note: "み + 小さい ゅ", kind: "youon" }, { char: "みょ", roman: "myo", note: "み + 小さい ょ", kind: "youon" },
+  { char: "りゃ", roman: "rya", note: "り + 小さい ゃ", kind: "youon" }, { char: "りゅ", roman: "ryu", note: "り + 小さい ゅ", kind: "youon" }, { char: "りょ", roman: "ryo", note: "り + 小さい ょ", kind: "youon" },
+  { char: "ぎゃ", roman: "gya", note: "ぎ + 小さい ゃ", kind: "youon" }, { char: "ぎゅ", roman: "gyu", note: "ぎ + 小さい ゅ", kind: "youon" }, { char: "ぎょ", roman: "gyo", note: "ぎ + 小さい ょ", kind: "youon" },
+  { char: "じゃ", roman: "ja", note: "じ + 小さい ゃ", kind: "youon" }, { char: "じゅ", roman: "ju", note: "じ + 小さい ゅ", kind: "youon" }, { char: "じょ", roman: "jo", note: "じ + 小さい ょ", kind: "youon" },
+  { char: "びゃ", roman: "bya", note: "び + 小さい ゃ", kind: "youon" }, { char: "びゅ", roman: "byu", note: "び + 小さい ゅ", kind: "youon" }, { char: "びょ", roman: "byo", note: "び + 小さい ょ", kind: "youon" },
+  { char: "ぴゃ", roman: "pya", note: "ぴ + 小さい ゃ", kind: "youon" }, { char: "ぴゅ", roman: "pyu", note: "ぴ + 小さい ゅ", kind: "youon" }, { char: "ぴょ", roman: "pyo", note: "ぴ + 小さい ょ", kind: "youon" },
+];
+const katakanaYouon: KanaItem[] = hiraganaYouon.map((item, i) => [{char:"キャ",roman:"kya"},{char:"キュ",roman:"kyu"},{char:"キョ",roman:"kyo"},{char:"シャ",roman:"sha"},{char:"シュ",roman:"shu"},{char:"ショ",roman:"sho"},{char:"チャ",roman:"cha"},{char:"チュ",roman:"chu"},{char:"チョ",roman:"cho"},{char:"ニャ",roman:"nya"},{char:"ニュ",roman:"nyu"},{char:"ニョ",roman:"nyo"},{char:"ヒャ",roman:"hya"},{char:"ヒュ",roman:"hyu"},{char:"ヒョ",roman:"hyo"},{char:"ミャ",roman:"mya"},{char:"ミュ",roman:"myu"},{char:"ミョ",roman:"myo"},{char:"リャ",roman:"rya"},{char:"リュ",roman:"ryu"},{char:"リョ",roman:"ryo"},{char:"ギャ",roman:"gya"},{char:"ギュ",roman:"gyu"},{char:"ギョ",roman:"gyo"},{char:"ジャ",roman:"ja"},{char:"ジュ",roman:"ju"},{char:"ジョ",roman:"jo"},{char:"ビャ",roman:"bya"},{char:"ビュ",roman:"byu"},{char:"ビョ",roman:"byo"},{char:"ピャ",roman:"pya"},{char:"ピュ",roman:"pyu"},{char:"ピョ",roman:"pyo"}][i]).map((item)=>({...item,note:`${item.char[0]} + 小さい ${item.char[1]}`,kind:"youon" as const}));
+const hiraganaSpecialRules: KanaItem[] = [
+  { char: "っ", roman: "sokuon", kind: "special", note: "작은 っ: 뒤 자음을 잠깐 막고 강하게 이어요.", examples: [{ word: "きって", roman: "kitte" }, { word: "がっこう", roman: "gakkou" }, { word: "ざっし", roman: "zasshi" }] },
+  { char: "ん", roman: "n", kind: "special", note: "뒤 소리에 따라 n/m/ng처럼 들릴 수 있어요.", examples: [{ word: "さん", roman: "san" }, { word: "ほん", roman: "hon" }, { word: "しんぶん", roman: "shinbun" }, { word: "こんばんは", roman: "konbanwa" }] },
+  { char: "ー", roman: "long vowel", kind: "special", note: "히라가나는 모음을 이어 길게, 가타카나는 ー로 길게 읽어요.", examples: [{ word: "おかあさん", roman: "okaasan" }, { word: "おとうさん", roman: "otousan" }, { word: "せんせい", roman: "sensei" }, { word: "おにいさん", roman: "oniisan" }] },
+];
+const katakanaSpecialRules: KanaItem[] = [
+  { char: "ッ", roman: "sokuon", kind: "special", note: "작은 ッ: 뒤 자음을 잠깐 막고 강하게 이어요.", examples: [{ word: "ベッド", roman: "beddo" }, { word: "カップ", roman: "kappu" }] },
+  { char: "ン", roman: "n", kind: "special", note: "뒤 소리에 따라 n/m/ng처럼 들릴 수 있어요.", examples: [{ word: "パン", roman: "pan" }] },
+  { char: "ー", roman: "long vowel", kind: "special", note: "가타카나는 장음 기호 ー로 앞 모음을 길게 읽어요.", examples: [{ word: "コーヒー", roman: "koohii" }, { word: "ケーキ", roman: "keeki" }, { word: "タクシー", roman: "takushii" }, { word: "スーパー", roman: "suupaa" }] },
+];
 
 type KanaGroup = {
   id: string;
@@ -202,8 +233,9 @@ const hiraganaGroupDefs: KanaGroup[] = [
   { id: "da", label: "だ행", chars: ["だ","ぢ","づ","で","ど"] },
   { id: "ba", label: "ば행", chars: ["ば","び","ぶ","べ","ぼ"] },
   { id: "pa", label: "ぱ행", chars: ["ぱ","ぴ","ぷ","ぺ","ぽ"] },
-  { id: "youon", label: "요음", chars: ["きゃ","きゅ","きょ","しゃ","しゅ","しょ"], note: "다음 단계에서 추가" },
-  { id: "sokuon", label: "촉음", chars: ["っ"], note: "다음 단계에서 추가" },
+  { id: "youon-basic", label: "요음 기본", chars: ["きゃ","きゅ","きょ","しゃ","しゅ","しょ","ちゃ","ちゅ","ちょ","にゃ","にゅ","にょ","ひゃ","ひゅ","ひょ","みゃ","みゅ","みょ","りゃ","りゅ","りょ"] },
+  { id: "youon-dakuon", label: "요음 탁음/반탁음", chars: ["ぎゃ","ぎゅ","ぎょ","じゃ","じゅ","じょ","びゃ","びゅ","びょ","ぴゃ","ぴゅ","ぴょ"] },
+  { id: "sokuon", label: "촉음", chars: ["っ"] },
   { id: "n-sound", label: "ん 발음", chars: ["ん"] },
   { id: "long-vowel", label: "장음", chars: [], note: "장음은 소리 규칙으로, 예시 단어 학습은 다음 단계에서 추가" },
 ];
@@ -224,8 +256,9 @@ const katakanaGroupDefs: KanaGroup[] = [
   { id: "da", label: "ダ행", chars: ["ダ","ヂ","ヅ","デ","ド"] },
   { id: "ba", label: "バ행", chars: ["バ","ビ","ブ","ベ","ボ"] },
   { id: "pa", label: "パ행", chars: ["パ","ピ","プ","ペ","ポ"] },
-  { id: "youon", label: "요음", chars: ["キャ","キュ","キョ","シャ","シュ","ショ"], note: "다음 단계에서 추가" },
-  { id: "sokuon", label: "촉음", chars: ["ッ"], note: "다음 단계에서 추가" },
+  { id: "youon-basic", label: "요음 기본", chars: ["キャ","キュ","キョ","シャ","シュ","ショ","チャ","チュ","チョ","ニャ","ニュ","ニョ","ヒャ","ヒュ","ヒョ","ミャ","ミュ","ミョ","リャ","リュ","リョ"] },
+  { id: "youon-dakuon", label: "요음 탁음/반탁음", chars: ["ギャ","ギュ","ギョ","ジャ","ジュ","ジョ","ビャ","ビュ","ビョ","ピャ","ピュ","ピョ"] },
+  { id: "sokuon", label: "촉음", chars: ["ッ"] },
   { id: "n-sound", label: "ン 발음", chars: ["ン"] },
   { id: "long-vowel", label: "장음", chars: ["ー"], note: "장음 예시 단어 학습은 다음 단계에서 추가" },
 ];
@@ -1277,10 +1310,12 @@ export default function KanaPage() {
   const [tab, setTab] = useState<"hiragana" | "katakana">("hiragana");
   const [mode, setMode] = useState<"learn" | "quiz" | "confusing" | "writing" | "audit">("learn");
 
-  const allData = tab === "hiragana" ? hiragana : katakana;
+  const allData: KanaItem[] = tab === "hiragana"
+    ? [...hiragana, ...hiraganaYouon, ...hiraganaSpecialRules]
+    : [...katakana, ...katakanaYouon, ...katakanaSpecialRules];
   const groupDefs = tab === "hiragana" ? hiraganaGroupDefs : katakanaGroupDefs;
   const [selectedKanaGroup, setSelectedKanaGroup] = useState("all");
-  const [auditScope, setAuditScope] = useState<"base" | "dakuon" | "all">("base");
+  const [auditScope, setAuditScope] = useState<"base" | "dakuon" | "youon" | "special" | "all">("base");
   const [openConcept, setOpenConcept] = useState<string | null>(null);
   const [wrongKanaChars, setWrongKanaChars] = useState<Set<string>>(new Set());
 
@@ -1305,7 +1340,9 @@ export default function KanaPage() {
     });
     return acc;
   }, {});
-  const auditItems = auditScope === "base" ? baseKanaItems : auditScope === "dakuon" ? dakuonKanaItems : allData;
+  const youonKanaItems = allData.filter((item) => item.kind === "youon");
+  const specialKanaItems = allData.filter((item) => item.kind === "special");
+  const auditItems = auditScope === "base" ? baseKanaItems : auditScope === "dakuon" ? dakuonKanaItems : auditScope === "youon" ? youonKanaItems : auditScope === "special" ? specialKanaItems : allData;
   const data = selectedKanaGroup === "all"
     ? allData
     : allData.filter((item) => selectedGroup?.matchedChars.includes(item.char));
@@ -1881,6 +1918,8 @@ export default function KanaPage() {
                   <span style={{ fontSize: "0.75rem", color: isPlaying ? "#6366f1" : "#6b7280", marginTop: "0.4rem", fontWeight: isPlaying ? "700" : "400" }}>
                   {isPlaying ? "재생 중..." : item.roman}
                 </span>
+                {item.note && <span style={{ fontSize: "0.65rem", color: "#4b5563", marginTop: "0.2rem", textAlign: "center" }}>{item.note}</span>}
+                {item.examples?.[0] && <span style={{ fontSize: "0.63rem", color: "#6b7280", marginTop: "0.15rem" }}>예: {item.examples[0].word} ({item.examples[0].roman})</span>}
                 <span style={{ fontSize: "0.68rem", color: "#9ca3af", marginTop: "0.2rem" }}>
                   {allKanaGroupByChar[item.char]?.label ?? "-"}
                 </span>
@@ -1991,6 +2030,8 @@ export default function KanaPage() {
             <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap", marginBottom: "0.6rem" }}>
               <button onClick={() => setAuditScope("base")} style={{ padding: "0.35rem 0.7rem", borderRadius: "999px", border: auditScope === "base" ? "2px solid #6366f1" : "1px solid #d1d5db", background: auditScope === "base" ? "#eef2ff" : "#fff", color: auditScope === "base" ? "#4338ca" : "#374151", fontWeight: 700, cursor: "pointer" }}>기본 46자</button>
               <button onClick={() => setAuditScope("dakuon")} style={{ padding: "0.35rem 0.7rem", borderRadius: "999px", border: auditScope === "dakuon" ? "2px solid #6366f1" : "1px solid #d1d5db", background: auditScope === "dakuon" ? "#eef2ff" : "#fff", color: auditScope === "dakuon" ? "#4338ca" : "#374151", fontWeight: 700, cursor: "pointer" }}>탁음/반탁음</button>
+              <button onClick={() => setAuditScope("youon")} style={{ padding: "0.35rem 0.7rem", borderRadius: "999px", border: auditScope === "youon" ? "2px solid #6366f1" : "1px solid #d1d5db", background: auditScope === "youon" ? "#eef2ff" : "#fff", color: auditScope === "youon" ? "#4338ca" : "#374151", fontWeight: 700, cursor: "pointer" }}>요음</button>
+              <button onClick={() => setAuditScope("special")} style={{ padding: "0.35rem 0.7rem", borderRadius: "999px", border: auditScope === "special" ? "2px solid #6366f1" : "1px solid #d1d5db", background: auditScope === "special" ? "#eef2ff" : "#fff", color: auditScope === "special" ? "#4338ca" : "#374151", fontWeight: 700, cursor: "pointer" }}>특수 발음</button>
               <button onClick={() => setAuditScope("all")} style={{ padding: "0.35rem 0.7rem", borderRadius: "999px", border: auditScope === "all" ? "2px solid #6366f1" : "1px solid #d1d5db", background: auditScope === "all" ? "#eef2ff" : "#fff", color: auditScope === "all" ? "#4338ca" : "#374151", fontWeight: 700, cursor: "pointer" }}>전체</button>
             </div>
             <div style={{ fontSize: "0.86rem", color: "#374151" }}>기본 46자 GIF/PNG: {baseGifCount}/{baseKanaItems.length} · {basePngCount}/{baseKanaItems.length}</div>
