@@ -7,7 +7,24 @@ type Word = {
   meaning: string;
   example: string;
   category: "일상" | "여행" | "업무" | "친구";
+  partOfSpeech?: string;
 };
+
+const partOfSpeechLabels: Record<string, string> = {
+  noun: "명사",
+  verb: "동사",
+  "i-adjective": "い형용사",
+  "na-adjective": "な형용사",
+  adverb: "부사",
+  expression: "표현",
+  particle: "조사",
+  other: "기타",
+};
+
+function normalizePartOfSpeech(partOfSpeech?: string): string {
+  if (!partOfSpeech) return "other";
+  return partOfSpeech.replace(/_/g, "-");
+}
 
 type Sentence = {
   japanese: string;
@@ -91,7 +108,12 @@ export default function ReviewPage() {
             >
               <div className="card-top">
                 <div className="jp-text">{w.word}</div>
-                <span className="badge">{w.category}</span>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  <span className="badge">{w.category}</span>
+                  {partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)] && (
+                    <span className="badge">{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)]}</span>
+                  )}
+                </div>
               </div>
 
               <div style={{ marginTop: "12px" }}>

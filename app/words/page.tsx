@@ -10,7 +10,7 @@ const STORAGE_KEY = "savedWords";
 const WRONG_WORDS_KEY = "wrongWords";
 type CategoryFilter = "전체" | "여행" | "업무" | "일상" | "친구";
 type LevelFilter = "all" | "beginner" | "basic" | "practical";
-type PartOfSpeechFilter = "all" | "noun" | "verb" | "i_adjective" | "na_adjective" | "adverb" | "expression";
+type PartOfSpeechFilter = "all" | "noun" | "verb" | "i-adjective" | "na-adjective" | "adverb" | "expression" | "particle" | "other";
 type QuizType = "jp-to-kr" | "kr-to-jp";
 type PageMode = "study" | "quiz";
 
@@ -37,6 +37,36 @@ type SettingsPayload = Partial<AppSettings> & {
 };
 
 const APP_SETTINGS_KEY = "japaneseAppSettings";
+
+const partOfSpeechLabels: Record<Exclude<PartOfSpeechFilter, "all">, string> = {
+  noun: "명사",
+  verb: "동사",
+  "i-adjective": "い형용사",
+  "na-adjective": "な형용사",
+  adverb: "부사",
+  expression: "표현",
+  particle: "조사",
+  other: "기타",
+};
+
+const partOfSpeechBadgeStyles: Record<Exclude<PartOfSpeechFilter, "all">, { background: string; color: string }> = {
+  noun: { background: "#eef2ff", color: "#3730a3" },
+  verb: { background: "#ecfeff", color: "#155e75" },
+  "i-adjective": { background: "#fef3c7", color: "#92400e" },
+  "na-adjective": { background: "#fce7f3", color: "#9d174d" },
+  adverb: { background: "#e0f2fe", color: "#075985" },
+  expression: { background: "#dcfce7", color: "#166534" },
+  particle: { background: "#f3e8ff", color: "#6b21a8" },
+  other: { background: "#f3f4f6", color: "#374151" },
+};
+
+function normalizePartOfSpeech(partOfSpeech?: string): Exclude<PartOfSpeechFilter, "all"> {
+  if (!partOfSpeech) return "other";
+  const normalized = partOfSpeech.replace(/_/g, "-");
+  if (normalized in partOfSpeechLabels) return normalized as Exclude<PartOfSpeechFilter, "all">;
+  return "other";
+}
+
 const DEFAULT_SETTINGS: AppSettings = {
   ttsRate: 1,
   repeatCount: 1,
@@ -200,7 +230,7 @@ export default function WordsPage() {
   const filteredWordsByPartOfSpeech =
     partOfSpeechFilter === "all"
       ? filteredWordsByLevel
-      : filteredWordsByLevel.filter((w) => w.partOfSpeech === partOfSpeechFilter);
+      : filteredWordsByLevel.filter((w) => normalizePartOfSpeech(w.partOfSpeech) === partOfSpeechFilter);
 
   const quizPool = filteredWordsByPartOfSpeech;
 
@@ -278,27 +308,17 @@ export default function WordsPage() {
 
 
   const PARTS_OF_SPEECH: Array<{ label: string; value: PartOfSpeechFilter }> = [
-    { label: "전체", value: "all" },
+    { label: "전체 품사", value: "all" },
     { label: "명사", value: "noun" },
     { label: "동사", value: "verb" },
-    { label: "い형용사", value: "i_adjective" },
-    { label: "な형용사", value: "na_adjective" },
+    { label: "い형용사", value: "i-adjective" },
+    { label: "な형용사", value: "na-adjective" },
     { label: "부사", value: "adverb" },
     { label: "표현", value: "expression" },
+    { label: "조사", value: "particle" },
+    { label: "기타", value: "other" },
   ];
 
-  const getPartOfSpeechLabel = (partOfSpeech?: Word["partOfSpeech"]) => {
-    if (!partOfSpeech) return null;
-    const labels: Record<Exclude<PartOfSpeechFilter, "all">, string> = {
-      noun: "명사",
-      verb: "동사",
-      i_adjective: "い형용사",
-      na_adjective: "な형용사",
-      adverb: "부사",
-      expression: "표현",
-    };
-    return labels[partOfSpeech];
-  };
 
   return (
     <section className="mx-auto w-full max-w-6xl">
@@ -412,6 +432,18 @@ export default function WordsPage() {
         ))}
       </div>
 
+      <div className="card" style={{ marginBottom: "20px", padding: "14px 16px" }}>
+        <div className="label" style={{ marginBottom: "8px" }}>품사 빠른 설명</div>
+        <div style={{ display: "grid", gap: "6px", fontSize: "13px", color: "#444" }}>
+          <div><strong>명사:</strong> 사람, 장소, 물건, 개념을 나타내는 말이에요. 예: 水, 駅, 会社</div>
+          <div><strong>동사:</strong> 동작이나 상태를 나타내는 말이에요. 예: 食べる, 行く, 見る</div>
+          <div><strong>い형용사:</strong> 끝이 い로 끝나며 상태나 성질을 나타내요. 예: 大きい, 小さい, 高い</div>
+          <div><strong>な형용사:</strong> 명사를 꾸밀 때 な가 붙는 형용사예요. 예: 静か, 便利, きれい</div>
+          <div><strong>조사:</strong> 단어 사이의 관계를 나타내는 짧은 말이에요. 예: は, を, に, で</div>
+          <div><strong>표현:</strong> 인사나 자주 쓰는 고정 표현이에요. 예: こんにちは, ありがとう</div>
+        </div>
+      </div>
+
       {/* ===== 학습 모드 ===== */}
       {mode === "study" && (
         <div style={{
@@ -443,7 +475,7 @@ export default function WordsPage() {
                     <div className="jp-text"><FuriganaText text={w.word} rubySegments={w.rubySegments} showReading={settings.showReading} /></div>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                       <span className="badge">{w.category}</span>
-                      {w.partOfSpeech && <span className="badge">{getPartOfSpeechLabel(w.partOfSpeech)}</span>}
+                      <span className="badge" style={partOfSpeechBadgeStyles[normalizePartOfSpeech(w.partOfSpeech)]}>{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)]}</span>
                     </div>
                   </div>
                   {w.koreanPronunciation && (
@@ -564,7 +596,7 @@ export default function WordsPage() {
                   <div style={{ marginBottom: "8px" }}>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                       <span className="badge">{currentWord.category}</span>
-                      {currentWord.partOfSpeech && <span className="badge">{getPartOfSpeechLabel(currentWord.partOfSpeech)}</span>}
+                      <span className="badge" style={partOfSpeechBadgeStyles[normalizePartOfSpeech(currentWord.partOfSpeech)]}>{partOfSpeechLabels[normalizePartOfSpeech(currentWord.partOfSpeech)]}</span>
                     </div>
                   </div>
                   <div
@@ -685,6 +717,7 @@ export default function WordsPage() {
                       }}
                     >
                       {selected === correctAnswer ? "정답! 🎉" : `오답 — 정답: ${correctAnswer}`}
+                      <div style={{ marginTop: "6px", fontSize: "13px", color: "#555" }}>품사: [{partOfSpeechLabels[normalizePartOfSpeech(currentWord?.partOfSpeech)]}]</div>
                       {selected !== correctAnswer && currentWord && quizType === "kr-to-jp" && (
                         <div style={{ marginTop: "8px", fontSize: "14px", color: "#444" }}>
                           <FuriganaText text={currentWord.word} rubySegments={currentWord.rubySegments} showReading={settings.showReading} />
