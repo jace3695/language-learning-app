@@ -1341,17 +1341,21 @@ export default function KanaPage() {
   const allData: KanaItem[] = useMemo(() => uniqueKanaItems(tab === "hiragana"
     ? [...hiragana, ...hiraganaYouon, ...hiraganaSpecialRules]
     : [...katakana, ...katakanaYouon, ...katakanaSpecialRules]), [tab]);
-  const groupDefs = tab === "hiragana" ? hiraganaGroupDefs : katakanaGroupDefs;
+  const groupDefs = useMemo(() => (tab === "hiragana" ? hiraganaGroupDefs : katakanaGroupDefs), [tab]);
   const [selectedKanaGroupIds, setSelectedKanaGroupIds] = useState<string[]>(["all"]);
   const [auditScope, setAuditScope] = useState<"base" | "dakuon" | "youon" | "special" | "all">("base");
   const [openConcept, setOpenConcept] = useState<string | null>(null);
   const [wrongKanaChars, setWrongKanaChars] = useState<Set<string>>(new Set());
 
-  const availableGroups = groupDefs.map((group) => ({
+  const availableGroups = useMemo(() => groupDefs.map((group) => ({
     ...group,
     matchedChars: group.chars.filter((char) => allData.some((item) => item.char === char)),
-  }));
-  const selectedGroupSet = useMemo(() => new Set(selectedKanaGroupIds), [selectedKanaGroupIds]);
+  })), [allData, groupDefs]);
+  const selectedGroupKey = useMemo(
+    () => selectedKanaGroupIds.slice().sort().join("|"),
+    [selectedKanaGroupIds]
+  );
+  const selectedGroupSet = useMemo(() => new Set(selectedKanaGroupIds), [selectedGroupKey]);
   const baseKanaGroups = availableGroups.filter((group) =>
     ["a", "ka", "sa", "ta", "na", "ha", "ma", "ya", "ra", "wa"].includes(group.id)
   );
@@ -1373,19 +1377,15 @@ export default function KanaPage() {
   const youonKanaItems = allData.filter((item) => item.kind === "youon");
   const specialKanaItems = allData.filter((item) => item.kind === "special");
   const auditItems = auditScope === "base" ? baseKanaItems : auditScope === "dakuon" ? dakuonKanaItems : auditScope === "youon" ? youonKanaItems : auditScope === "special" ? specialKanaItems : allData;
-  const selectedGroupKey = useMemo(
-    () => selectedKanaGroupIds.slice().sort().join("|"),
-    [selectedKanaGroupIds]
-  );
   const selectedGroupChars = useMemo(
     () => selectedKanaGroupIds
       .filter((groupId) => groupId !== "all")
       .flatMap((groupId) => availableGroups.find((group) => group.id === groupId)?.matchedChars ?? []),
-    [availableGroups, selectedGroupKey, selectedKanaGroupIds]
+    [availableGroups, selectedGroupKey]
   );
   const selectedGroups = useMemo(
     () => availableGroups.filter((group) => selectedGroupSet.has(group.id)),
-    [availableGroups, selectedGroupSet]
+    [availableGroups, selectedGroupKey]
   );
   const selectedSpecialTypes = useMemo(() => new Set(
     selectedGroups
@@ -1406,8 +1406,9 @@ export default function KanaPage() {
     );
 
     return uniqueKanaItems([...regularSelectedData, ...specialSelectedData]);
-  }, [allData, includesNSoundSpecial, selectedGroupChars, selectedGroupSet, selectedSpecialTypes]);
-  const quizSourceItems = useMemo(() => getQuizEligibleItems(data), [data]);
+  }, [allData, includesNSoundSpecial, selectedGroupChars, selectedGroupKey, selectedSpecialTypes]);
+  const dataKey = useMemo(() => data.map((item) => item.id ?? `${item.kind ?? "kana"}-${item.char}-${item.roman}`).join("|"), [data]);
+  const dataRef = useRef<KanaItem[]>([]);
   const selectedGroupLabels = selectedGroupSet.has("all")
     ? ["전체"]
     : availableGroups.filter((group) => selectedGroupSet.has(group.id)).map((group) => group.label);
@@ -1709,12 +1710,14 @@ export default function KanaPage() {
   }, []);
 
   useEffect(() => {
+    dataRef.current = data;
+  }, [dataKey, data]);
+
+  useEffect(() => {
     if (writingIndex >= data.length) {
       setWritingIndex(0);
     }
     if (data.length > 0) {
-      const source = getQuizEligibleItems(data);
-      setQuiz(getQuizQuestion(source.length > 0 ? source : getQuizEligibleItems(allData)));
       setWritingQuizQuestion(getWritingQuizQuestion(data));
     }
     setSelected(null);
@@ -1722,7 +1725,7 @@ export default function KanaPage() {
     setWritingQuizAnswered(false);
     resetWritingFeedback();
     clearWritingCanvas();
-  }, [allData, clearWritingCanvas, data, resetWritingFeedback, writingIndex]);
+  }, [clearWritingCanvas, data, dataKey, resetWritingFeedback, writingIndex]);
 
   const quizResetKey = useMemo(
     () => `${tab}|${selectedGroupKey}`,
@@ -1737,10 +1740,11 @@ export default function KanaPage() {
       return;
     }
 
-    const source = quizSourceItems.length > 0 ? quizSourceItems : getQuizEligibleItems(allData);
-    if (source.length > 0) {
+    const source = getQuizEligibleItems(dataRef.current);
+    const fallback = getQuizEligibleItems(allData);
+    if (source.length > 0 || fallback.length > 0) {
       setSelected(null);
-      setQuiz(getQuizQuestion(source));
+      setQuiz(getQuizQuestion(source.length > 0 ? source : fallback));
     }
     lastQuizResetKeyRef.current = quizResetKey;
     prevModeRef.current = mode;
