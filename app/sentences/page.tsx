@@ -391,11 +391,11 @@ export default function SentencesPage() {
 
       {/* 학습 모드 */}
       {mode === "학습" && (
-        <ul className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {filteredSentencesByLevel.map((s) => {
             const saved = isSaved(s);
             return (
-              <li key={s.japanese} className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div key={s.japanese} className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <div className="flex-1 space-y-2">
                   <JapaneseTextBlock
                     japanese={s.japanese}
@@ -433,15 +433,15 @@ export default function SentencesPage() {
                     {saved ? "저장 취소" : "저장"}
                   </button>
                 </div>
-              </li>
+              </div>
             );
           })}
           {filteredSentencesByLevel.length === 0 && (
-            <li style={{ color: "#888", textAlign: "center", padding: "32px 0" }}>
+            <div style={{ color: "#888", textAlign: "center", padding: "32px 0" }}>
               해당 카테고리의 문장이 없습니다.
-            </li>
+            </div>
           )}
-        </ul>
+        </div>
       )}
 
       {/* 퀴즈 모드 */}

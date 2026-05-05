@@ -414,15 +414,15 @@ export default function WordsPage() {
 
       {/* ===== 학습 모드 ===== */}
       {mode === "study" && (
-        <ul className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {filteredWordsByPartOfSpeech.length === 0 ? (
-            <li className="card" style={{ textAlign: "center", color: "#888", padding: "24px 16px" }}>
+            <div className="card" style={{ textAlign: "center", color: "#888", padding: "24px 16px" }}>
               해당 조건의 단어가 없습니다.
-            </li>
+            </div>
           ) : filteredWordsByPartOfSpeech.map((w) => {
             const saved = isSaved(w);
             return (
-              <li key={getWordKey(w)} className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div key={getWordKey(w)} className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <div className="flex-1 space-y-2">
                   <div className="card-top">
                     <div className="jp-text"><FuriganaText text={w.word} rubySegments={w.rubySegments} showReading={settings.showReading} /></div>
@@ -484,10 +484,10 @@ export default function WordsPage() {
                     {saved ? "저장 취소" : "저장"}
                   </button>
                 </div>
-              </li>
+              </div>
             );
           })}
-        </ul>
+        </div>
       )}
 
       {/* ===== 퀴즈 모드 ===== */}
