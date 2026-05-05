@@ -166,11 +166,13 @@ const katakanaGuideMap: Record<string, string> = {
 };
 
 type KanaItem = {
+  id?: string;
   char: string;
   roman: string;
   note?: string;
   examples?: { word: string; roman: string }[];
   kind?: "kana" | "youon" | "special";
+  specialType?: "sokuon" | "n-sound" | "long-vowel";
 };
 
 const hiraganaYouon: KanaItem[] = [
@@ -188,14 +190,14 @@ const hiraganaYouon: KanaItem[] = [
 ];
 const katakanaYouon: KanaItem[] = hiraganaYouon.map((item, i) => [{char:"キャ",roman:"kya"},{char:"キュ",roman:"kyu"},{char:"キョ",roman:"kyo"},{char:"シャ",roman:"sha"},{char:"シュ",roman:"shu"},{char:"ショ",roman:"sho"},{char:"チャ",roman:"cha"},{char:"チュ",roman:"chu"},{char:"チョ",roman:"cho"},{char:"ニャ",roman:"nya"},{char:"ニュ",roman:"nyu"},{char:"ニョ",roman:"nyo"},{char:"ヒャ",roman:"hya"},{char:"ヒュ",roman:"hyu"},{char:"ヒョ",roman:"hyo"},{char:"ミャ",roman:"mya"},{char:"ミュ",roman:"myu"},{char:"ミョ",roman:"myo"},{char:"リャ",roman:"rya"},{char:"リュ",roman:"ryu"},{char:"リョ",roman:"ryo"},{char:"ギャ",roman:"gya"},{char:"ギュ",roman:"gyu"},{char:"ギョ",roman:"gyo"},{char:"ジャ",roman:"ja"},{char:"ジュ",roman:"ju"},{char:"ジョ",roman:"jo"},{char:"ビャ",roman:"bya"},{char:"ビュ",roman:"byu"},{char:"ビョ",roman:"byo"},{char:"ピャ",roman:"pya"},{char:"ピュ",roman:"pyu"},{char:"ピョ",roman:"pyo"}][i]).map((item)=>({...item,note:`${item.char[0]} + 小さい ${item.char[1]}`,kind:"youon" as const}));
 const hiraganaSpecialRules: KanaItem[] = [
-  { char: "っ", roman: "sokuon", kind: "special", note: "작은 っ: 뒤 자음을 잠깐 막고 강하게 이어요.", examples: [{ word: "きって", roman: "kitte" }, { word: "がっこう", roman: "gakkou" }, { word: "ざっし", roman: "zasshi" }] },
-  { char: "ん", roman: "n", kind: "special", note: "뒤 소리에 따라 n/m/ng처럼 들릴 수 있어요.", examples: [{ word: "さん", roman: "san" }, { word: "ほん", roman: "hon" }, { word: "しんぶん", roman: "shinbun" }, { word: "こんばんは", roman: "konbanwa" }] },
-  { char: "ー", roman: "long vowel", kind: "special", note: "히라가나는 모음을 이어 길게, 가타카나는 ー로 길게 읽어요.", examples: [{ word: "おかあさん", roman: "okaasan" }, { word: "おとうさん", roman: "otousan" }, { word: "せんせい", roman: "sensei" }, { word: "おにいさん", roman: "oniisan" }] },
+  { id: "special-sokuon", char: "っ", roman: "sokuon", kind: "special", specialType: "sokuon", note: "작은 っ: 뒤 자음을 잠깐 막고 강하게 이어요.", examples: [{ word: "きって", roman: "kitte" }, { word: "がっこう", roman: "gakkou" }, { word: "ざっし", roman: "zasshi" }] },
+  { id: "special-n-sound", char: "ん", roman: "n", kind: "special", specialType: "n-sound", note: "뒤 소리에 따라 n/m/ng처럼 들릴 수 있어요.", examples: [{ word: "さん", roman: "san" }, { word: "ほん", roman: "hon" }, { word: "しんぶん", roman: "shinbun" }, { word: "こんばんは", roman: "konbanwa" }] },
+  { id: "special-long-vowel", char: "ー", roman: "long vowel", kind: "special", specialType: "long-vowel", note: "히라가나는 모음을 이어 길게, 가타카나는 ー로 길게 읽어요.", examples: [{ word: "おかあさん", roman: "okaasan" }, { word: "おとうさん", roman: "otousan" }, { word: "せんせい", roman: "sensei" }, { word: "おにいさん", roman: "oniisan" }] },
 ];
 const katakanaSpecialRules: KanaItem[] = [
-  { char: "ッ", roman: "sokuon", kind: "special", note: "작은 ッ: 뒤 자음을 잠깐 막고 강하게 이어요.", examples: [{ word: "ベッド", roman: "beddo" }, { word: "カップ", roman: "kappu" }] },
-  { char: "ン", roman: "n", kind: "special", note: "뒤 소리에 따라 n/m/ng처럼 들릴 수 있어요.", examples: [{ word: "パン", roman: "pan" }] },
-  { char: "ー", roman: "long vowel", kind: "special", note: "가타카나는 장음 기호 ー로 앞 모음을 길게 읽어요.", examples: [{ word: "コーヒー", roman: "koohii" }, { word: "ケーキ", roman: "keeki" }, { word: "タクシー", roman: "takushii" }, { word: "スーパー", roman: "suupaa" }] },
+  { id: "special-sokuon", char: "ッ", roman: "sokuon", kind: "special", specialType: "sokuon", note: "작은 ッ: 뒤 자음을 잠깐 막고 강하게 이어요.", examples: [{ word: "ベッド", roman: "beddo" }, { word: "カップ", roman: "kappu" }] },
+  { id: "special-n-sound", char: "ン", roman: "n", kind: "special", specialType: "n-sound", note: "뒤 소리에 따라 n/m/ng처럼 들릴 수 있어요.", examples: [{ word: "パン", roman: "pan" }] },
+  { id: "special-long-vowel", char: "ー", roman: "long vowel", kind: "special", specialType: "long-vowel", note: "가타카나는 장음 기호 ー로 앞 모음을 길게 읽어요.", examples: [{ word: "コーヒー", roman: "koohii" }, { word: "ケーキ", roman: "keeki" }, { word: "タクシー", roman: "takushii" }, { word: "スーパー", roman: "suupaa" }] },
 ];
 
 type KanaGroup = {
@@ -1297,11 +1299,19 @@ function getQuizQuestion(data: KanaItem[]): { question: KanaItem; choices: strin
   const questionIndex = Math.floor(Math.random() * data.length);
   const question = data[questionIndex];
 
-  const wrongPool = data.filter((_, i) => i !== questionIndex);
+  const uniqueByRoman = Array.from(
+    new Map(
+      data
+        .filter((item) => item.roman && !(item.kind === "special" && item.specialType === "n-sound"))
+        .map((item) => [item.roman, item])
+    ).values()
+  );
+  const wrongPool = uniqueByRoman.filter((item) => item.roman !== question.roman);
   const shuffled = [...wrongPool].sort(() => Math.random() - 0.5);
   const wrongs = shuffled.slice(0, 3).map((item) => item.roman);
 
-  const choices = [...wrongs, question.roman].sort(() => Math.random() - 0.5);
+  const uniqueChoices = Array.from(new Set([...wrongs, question.roman]));
+  const choices = uniqueChoices.sort(() => Math.random() - 0.5);
   return { question, choices };
 }
 
@@ -1313,7 +1323,7 @@ function getWritingQuizQuestion(data: KanaItem[]): KanaItem {
 function uniqueKanaItems(items: KanaItem[]): KanaItem[] {
   const seen = new Set<string>();
   return items.filter((item) => {
-    const key = `${item.kind ?? "kana"}-${item.char ?? item.roman}`;
+    const key = item.id ?? (item.kind === "special" ? `special-${item.specialType ?? item.char}` : `kana-${item.char}`);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -1360,9 +1370,15 @@ export default function KanaPage() {
   const selectedGroupChars = selectedKanaGroupIds
     .filter((groupId) => groupId !== "all")
     .flatMap((groupId) => availableGroups.find((group) => group.id === groupId)?.matchedChars ?? []);
+  const selectedGroups = availableGroups.filter((group) => selectedGroupSet.has(group.id));
+  const includeSpecialItems = selectedGroups.some((group) => ["sokuon", "n-sound", "long-vowel"].includes(group.id));
   const data = selectedGroupSet.has("all")
     ? allData
-    : uniqueKanaItems(allData.filter((item) => selectedGroupChars.includes(item.char)));
+    : uniqueKanaItems(
+      allData.filter((item) =>
+        selectedGroupChars.includes(item.char) && (includeSpecialItems || item.kind !== "special")
+      )
+    );
   const selectedGroupLabels = selectedGroupSet.has("all")
     ? ["전체"]
     : availableGroups.filter((group) => selectedGroupSet.has(group.id)).map((group) => group.label);
