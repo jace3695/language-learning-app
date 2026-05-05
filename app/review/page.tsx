@@ -31,6 +31,23 @@ type Sentence = {
   meaning: string;
   category: "일상" | "여행" | "업무" | "친구";
   note: string;
+  pattern?: string;
+};
+const sentencePatternLabels: Record<string, string> = {
+  desu: "です 문장",
+  masu: "ます 문장",
+  "particle-wa": "は 패턴",
+  "particle-wo": "を 패턴",
+  "particle-ni": "に 패턴",
+  "particle-de": "で 패턴",
+  question: "질문 표현",
+  travel: "여행 표현",
+  work: "업무 표현",
+  daily: "일상 표현",
+  request: "요청 표현",
+  shopping: "쇼핑 표현",
+  direction: "길찾기 표현",
+  other: "기타",
 };
 
 const WORDS_KEY = "savedWords";
@@ -163,7 +180,10 @@ export default function ReviewPage() {
             >
               <div className="card-top">
                 <div className="jp-text">{s.japanese}</div>
-                <span className="badge">{s.category}</span>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  <span className="badge">{s.category}</span>
+                  {s.pattern && <span className="badge">{sentencePatternLabels[s.pattern] ?? "기타"}</span>}
+                </div>
               </div>
 
               <div style={{ marginTop: "12px" }}>

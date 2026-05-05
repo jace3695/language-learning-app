@@ -12,11 +12,34 @@ export type SentenceItem = {
   meaning: string;
   note: string;
   description?: string;
+  pattern?: string;
 };
 
 export type RubySegment = {
   text: string;
   reading?: string;
+};
+
+const normalizeSentencePattern = (sentence: SentenceItem): string => {
+  const normalized = sentence.pattern?.replace(/_/g, "-");
+  if (normalized) return normalized;
+
+  const text = sentence.japanese;
+  if (text.includes("どこ") || text.includes("道に迷")) return "direction";
+  if (text.includes("ください") || text.includes("お願いします")) return "request";
+  if (text.includes("いくら") || text.includes("会計") || text.includes("レシート") || text.includes("サイズ")) return "shopping";
+  if (text.includes("ですか") || text.includes("ますか") || text.includes("？") || text.includes("?")) return "question";
+  if (text.includes("で")) return "particle-de";
+  if (text.includes("に")) return "particle-ni";
+  if (text.includes("を")) return "particle-wo";
+  if (text.includes("は")) return "particle-wa";
+  if (text.includes("ます")) return "masu";
+  if (text.includes("です")) return "desu";
+
+  if (sentence.category === "여행") return "travel";
+  if (sentence.category === "업무") return "work";
+  if (sentence.category === "일상" || sentence.category === "친구") return "daily";
+  return "other";
 };
 
 export const SENTENCES: SentenceItem[] = ([
@@ -253,4 +276,5 @@ export const SENTENCES: SentenceItem[] = ([
   ...sentence,
   reading: sentence.reading ?? sentence.japanese,
   koreanPronunciation: sentence.koreanPronunciation ?? "발음 참고 준비 중",
+  pattern: normalizeSentencePattern(sentence),
 }));
