@@ -1882,7 +1882,7 @@ export default function KanaPage() {
       padding: "0.75rem 1rem",
       borderRadius: "8px",
       border: "2px solid",
-      cursor: selected !== null ? "default" : "pointer",
+      cursor: selected !== null ? "not-allowed" : "pointer",
       fontSize: "1rem",
       fontWeight: "600",
       width: "100%",
@@ -2132,6 +2132,7 @@ export default function KanaPage() {
               <button
                 key={choice}
                 onClick={() => handleChoice(choice)}
+                disabled={selected !== null}
                 style={getChoiceStyle(choice)}
               >
                 {choice}
@@ -2139,7 +2140,7 @@ export default function KanaPage() {
             ))}
           </div>
 
-          {selected !== null && (
+                    {selected !== null && (
             <div
               style={{
                 padding: "0.75rem 1rem",
@@ -2148,13 +2149,16 @@ export default function KanaPage() {
                 textAlign: "center",
                 fontWeight: "600",
                 fontSize: "0.95rem",
+                border: `1px solid ${selected === quiz.question.roman ? "#86efac" : "#fca5a5"}`,
                 background: selected === quiz.question.roman ? "#dcfce7" : "#fee2e2",
                 color: selected === quiz.question.roman ? "#15803d" : "#b91c1c",
+                wordBreak: "keep-all",
+                overflowWrap: "anywhere",
               }}
             >
               {selected === quiz.question.roman
-                ? "정답입니다!"
-                : `오답! 정답은 "${quiz.question.roman}" 입니다.`}
+                ? `정답이에요! ${quiz.question.char} = ${quiz.question.roman}`
+                : `아쉬워요. ${quiz.question.char}의 정답은 ${quiz.question.roman} 입니다.`}
             </div>
           )}
 
