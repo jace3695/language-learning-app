@@ -422,7 +422,7 @@ export default function WordsPage() {
           ) : filteredWordsByPartOfSpeech.map((w) => {
             const saved = isSaved(w);
             return (
-              <div key={getWordKey(w)} className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div key={getWordKey(w)} className="flex h-full flex-col rounded-xl border-2 border-red-500 bg-white p-4 shadow-sm">
                 <div className="flex-1 space-y-2">
                   <div className="card-top">
                     <div className="jp-text"><FuriganaText text={w.word} rubySegments={w.rubySegments} showReading={settings.showReading} /></div>
