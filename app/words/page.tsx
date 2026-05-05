@@ -414,7 +414,12 @@ export default function WordsPage() {
 
       {/* ===== 학습 모드 ===== */}
       {mode === "study" && (
-        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div style={{
+          marginTop: "24px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(360px, 100%), 1fr))",
+          gap: "16px",
+        }}>
           {filteredWordsByPartOfSpeech.length === 0 ? (
             <div className="card" style={{ textAlign: "center", color: "#888", padding: "24px 16px" }}>
               해당 조건의 단어가 없습니다.
@@ -422,8 +427,18 @@ export default function WordsPage() {
           ) : filteredWordsByPartOfSpeech.map((w) => {
             const saved = isSaved(w);
             return (
-              <div key={getWordKey(w)} className="flex h-full flex-col rounded-xl border-2 border-red-500 bg-white p-4 shadow-sm">
-                <div className="flex-1 space-y-2">
+              <div key={getWordKey(w)} className="card"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                  padding: "16px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "14px",
+                  background: "#fff",
+                  boxShadow: "0 1px 2px rgba(15, 23, 42, 0.06)",
+                }}>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
                   <div className="card-top">
                     <div className="jp-text"><FuriganaText text={w.word} rubySegments={w.rubySegments} showReading={settings.showReading} /></div>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
@@ -464,7 +479,14 @@ export default function WordsPage() {
                     </>
                   )}
                 </div>
-                <div className="mt-4 flex flex-wrap items-center gap-2 sm:justify-end">
+                <div style={{
+                  marginTop: "16px",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "8px",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                }}>
                   <button
                     onClick={() => speakJapaneseText(w.word)}
                     className="btn"
