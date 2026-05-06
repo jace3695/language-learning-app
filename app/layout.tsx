@@ -23,6 +23,7 @@ const navItems = [
   { href: "/", label: "홈" },
   { href: "/words", label: "단어" },
   { href: "/sentences", label: "문장" },
+  { href: "/grammar", label: "문법" },
   { href: "/writing", label: "쓰기" },
   { href: "/conversation", label: "AI 회화" },
   { href: "/kana", label: "가나" },
