@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   GRAMMAR_LESSONS,
   GRAMMAR_PROGRESS_KEY,
@@ -183,6 +184,27 @@ export default function GrammarPage() {
                   </div>
                 ))}
               </div>
+
+              {lesson.sentencePattern && (
+                <div>
+                  <Link
+                    href={`/sentences?pattern=${encodeURIComponent(lesson.sentencePattern)}`}
+                    style={{
+                      display: "inline-block",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "8px",
+                      padding: "8px 12px",
+                      background: "#fff",
+                      color: "#111827",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      textDecoration: "none",
+                    }}
+                  >
+                    관련 문장 학습
+                  </Link>
+                </div>
+              )}
 
               <div style={{ borderTop: "1px solid var(--line)", paddingTop: "10px", display: "grid", gap: "8px" }}>
                 <div style={{ fontSize: "14px", fontWeight: 700 }}>연습 문제 보기</div>

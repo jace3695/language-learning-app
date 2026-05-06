@@ -8,6 +8,7 @@ export type GrammarLesson = {
   summary: string;
   explanation: string;
   pattern: string;
+  sentencePattern?: string;
   examples: { japanese: string; reading?: string; meaning: string }[];
   quiz: { question: string; choices: string[]; answer: string; explanation: string };
 };
@@ -34,6 +35,7 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: "명사나 상태를 공손하게 말할 때 사용해요.",
     explanation: "처음 만나는 사람과 대화할 때 기본이 되는 공손한 종결 표현이에요.",
     pattern: "A は B です",
+    sentencePattern: "desu",
     examples: [
       { japanese: "これは水です。", meaning: "이것은 물입니다." },
       { japanese: "私は学生です。", meaning: "저는 학생입니다." },
@@ -54,6 +56,7 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: "동작을 공손하게 말할 때 사용해요.",
     explanation: "동사를 ます형으로 바꾸면 일상에서 쓰기 좋은 공손한 문장이 돼요.",
     pattern: "동사ます",
+    sentencePattern: "masu",
     examples: [
       { japanese: "日本語を勉強します。", meaning: "일본어를 공부합니다." },
       { japanese: "駅に行きます。", meaning: "역에 갑니다." },
@@ -74,6 +77,7 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: "문장의 주제나 대상을 꺼낼 때 사용해요.",
     explanation: "‘무엇에 대해 말하는지’를 먼저 제시할 때 자주 쓰는 핵심 조사예요.",
     pattern: "A は B です",
+    sentencePattern: "particle-wa",
     examples: [
       { japanese: "私は会社員です。", meaning: "저는 회사원입니다." },
       { japanese: "これは本です。", meaning: "이것은 책입니다." },
@@ -94,6 +98,7 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: "동작의 대상을 나타낼 때 사용해요.",
     explanation: "무엇을 먹고, 마시고, 공부하는지 같은 목적어를 붙일 때 사용해요.",
     pattern: "A を 동사",
+    sentencePattern: "particle-wo",
     examples: [
       { japanese: "水を飲みます。", meaning: "물을 마십니다." },
       { japanese: "ご飯を食べます。", meaning: "밥을 먹습니다." },
@@ -114,6 +119,7 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: "목적지, 시간, 대상 등을 나타낼 때 사용해요.",
     explanation: "어디에 가는지, 누구를 만나는지 같은 도착점·대상을 표현할 때 써요.",
     pattern: "장소 に 行きます",
+    sentencePattern: "particle-ni",
     examples: [
       { japanese: "駅に行きます。", meaning: "역에 갑니다." },
       { japanese: "会社に行きます。", meaning: "회사에 갑니다." },
@@ -134,6 +140,7 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: "장소나 수단을 나타낼 때 사용해요.",
     explanation: "어디에서 행동하는지, 무엇으로 이동하는지에 쓰는 조사예요.",
     pattern: "장소 で 동사",
+    sentencePattern: "particle-de",
     examples: [
       { japanese: "レストランで食べます。", meaning: "레스토랑에서 먹습니다." },
       { japanese: "会社で働きます。", meaning: "회사에서 일합니다." },
@@ -154,6 +161,7 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: "물건을 가리킬 때 사용해요.",
     explanation: "가까운 것(これ), 상대 쪽 것(それ), 멀리 있는 것(あれ)을 구분해요.",
     pattern: "これ / それ / あれ",
+    sentencePattern: "question",
     examples: [
       { japanese: "これは何ですか。", meaning: "이것은 무엇입니까?" },
       { japanese: "それは水です。", meaning: "그것은 물입니다." },
@@ -174,6 +182,7 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: "장소를 가리킬 때 사용해요.",
     explanation: "위치 표현의 기본 세트로, 장소 질문과 안내에서 자주 나와요.",
     pattern: "ここ / そこ / あそこ",
+    sentencePattern: "direction",
     examples: [
       { japanese: "ここは駅です。", meaning: "여기는 역입니다." },
       { japanese: "そこはトイレです。", meaning: "거기는 화장실입니다." },

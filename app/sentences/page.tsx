@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 import { SENTENCES, type SentenceItem as Sentence } from "@/data/sentences";
 import FuriganaText from "@/components/FuriganaText";
@@ -195,6 +196,7 @@ function JapaneseTextBlock({
 }
 
 export default function SentencesPage() {
+  const router = useRouter();
   const [savedSentences, setSavedSentences] = useState<Sentence[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [mode, setMode] = useState<Mode>("학습");
@@ -203,6 +205,20 @@ export default function SentencesPage() {
   const [patternFilter, setPatternFilter] = useState<PatternFilter>("all");
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const queryPattern = new URLSearchParams(window.location.search).get("pattern");
+    if (!queryPattern) return;
+    const validPatterns: PatternFilter[] = [
+      "desu","masu","particle-wa","particle-wo","particle-ni","particle-de","question","travel","work","daily","request","shopping","direction","other",
+    ];
+    if (validPatterns.includes(queryPattern as PatternFilter)) {
+      setPatternFilter(queryPattern as PatternFilter);
+      return;
+    }
+    setPatternFilter("all");
+  }, []);
 
   useEffect(() => {
     try {
@@ -376,6 +392,18 @@ export default function SentencesPage() {
     { label: "기타", value: "other" },
   ];
 
+  const handlePatternFilterChange = (nextPattern: PatternFilter) => {
+    setPatternFilter(nextPattern);
+    const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+    if (nextPattern === "all") {
+      params.delete("pattern");
+    } else {
+      params.set("pattern", nextPattern);
+    }
+    const query = params.toString();
+    router.replace(query ? `/sentences?${query}` : "/sentences");
+  };
+
   return (
     <section className="mx-auto w-full max-w-6xl">
       <div className="page-header">
@@ -427,7 +455,7 @@ export default function SentencesPage() {
         {PATTERNS.map((pattern) => (
           <button
             key={pattern.value}
-            onClick={() => setPatternFilter(pattern.value)}
+            onClick={() => handlePatternFilterChange(pattern.value)}
             className="btn"
             style={{
               fontSize: "13px",
@@ -499,7 +527,7 @@ export default function SentencesPage() {
                     showKoreanPronunciation={settings.showKoreanPronunciation}
                   />
                   <div>
-                    <span className="badge">{sentencePatternLabels[s.pattern ?? "other"] ?? "기타"}</span>
+                    <span className="badge">문법 패턴: {sentencePatternLabels[s.pattern ?? "other"] ?? "기타"}</span>
                   </div>
                   <div style={{ marginTop: "12px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -542,7 +570,14 @@ export default function SentencesPage() {
           })}
           {filteredSentencesByPattern.length === 0 && (
             <div style={{ color: "#888", textAlign: "center", padding: "32px 0" }}>
-              해당 카테고리의 문장이 없습니다.
+              {patternFilter !== "all" ? "해당 패턴의 문장이 아직 없습니다." : "해당 카테고리의 문장이 없습니다."}
+              {patternFilter !== "all" && (
+                <div style={{ marginTop: "12px" }}>
+                  <button type="button" className="btn" onClick={() => handlePatternFilterChange("all")}>
+                    전체 문장 보기
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
