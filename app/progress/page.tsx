@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { WORDS } from "@/data/words";
 import { SENTENCES } from "@/data/sentences";
+import { GRAMMAR_LESSONS, GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from "@/data/grammar";
 
 type SectionKey = "wrongKana" | "wrongWords" | "wrongSentences";
 
@@ -423,6 +424,7 @@ export default function ProgressPage() {
   const [sentenceSelected, setSentenceSelected] = useState<string | null>(null);
   const [sentenceIsCorrect, setSentenceIsCorrect] = useState<boolean | null>(null);
   const [confusingKanaChars, setConfusingKanaChars] = useState<string[]>([]);
+  const [grammarProgress, setGrammarProgress] = useState<GrammarProgressItem[]>([]);
 
   const buildKanaQuiz = useCallback((items: AnyItem[]) => {
     const qi = getKanaQuizItems(items);
@@ -476,7 +478,18 @@ export default function ProgressPage() {
     const wrongKana = loadFromStorage("wrongKana");
     const wrongWords = loadFromStorage("wrongWords");
     const wrongSentences = loadFromStorage("wrongSentences");
+    let grammarItems: GrammarProgressItem[] = [];
+    try {
+      const rawGrammar = localStorage.getItem(GRAMMAR_PROGRESS_KEY);
+      if (rawGrammar) {
+        const parsed = JSON.parse(rawGrammar);
+        if (Array.isArray(parsed)) grammarItems = parsed as GrammarProgressItem[];
+      }
+    } catch {
+      grammarItems = [];
+    }
     setData({ wrongKana, wrongWords, wrongSentences });
+    setGrammarProgress(grammarItems);
     const rawConfusingKana = loadFromStorage("wrongKanaChars");
     const rawConfusingKanaLegacy = loadFromStorage("confusingKana");
     const confusingChars = [...rawConfusingKana, ...rawConfusingKanaLegacy]
@@ -529,6 +542,20 @@ export default function ProgressPage() {
     });
     return Array.from(map.values()).sort((a, b) => b.count - a.count).slice(0, 10);
   }, [data.wrongKana]);
+
+  const grammarSummary = useMemo(() => {
+    const total = GRAMMAR_LESSONS.length;
+    const solved = grammarProgress.length;
+    const correctTotal = grammarProgress.reduce((sum, item) => sum + item.correctCount, 0);
+    const wrongTotal = grammarProgress.reduce((sum, item) => sum + item.wrongCount, 0);
+    const reviewCount = grammarProgress.filter((item) => item.wrongCount > 0 || item.lastResult === "wrong").length;
+    return { total, solved, correctTotal, wrongTotal, reviewCount };
+  }, [grammarProgress]);
+
+  const topWrongGrammar = useMemo(
+    () => grammarProgress.filter((item) => item.wrongCount > 0).sort((a, b) => b.wrongCount - a.wrongCount).slice(0, 10),
+    [grammarProgress],
+  );
 
   function clearSection(key: SectionKey) {
     try {
@@ -744,6 +771,32 @@ export default function ProgressPage() {
       <p style={{ color: "#666", marginBottom: "2rem" }}>
         퀴즈에서 틀렸거나 헷갈린 항목이 여기에 기록됩니다.
       </p>
+
+      <section style={{ marginBottom: "2rem" }}>
+        <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>문법 진도</h2>
+        <article style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem", marginBottom: "0.75rem" }}>
+          <p style={{ margin: "0 0 6px" }}>전체 {grammarSummary.total}개 · 풀이 {grammarSummary.solved}개</p>
+          <p style={{ margin: "0 0 6px" }}>정답 {grammarSummary.correctTotal}회 · 오답 {grammarSummary.wrongTotal}회</p>
+          <p style={{ margin: 0 }}>복습 필요 {grammarSummary.reviewCount}개</p>
+        </article>
+        <article style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem" }}>
+          <h3 style={{ marginTop: 0 }}>자주 틀린 문법</h3>
+          {topWrongGrammar.length === 0 ? (
+            <p className="muted" style={{ margin: 0 }}>아직 틀린 문법 기록이 없습니다.</p>
+          ) : (
+            <div style={{ display: "grid", gap: "10px" }}>
+              {topWrongGrammar.map((item) => (
+                <div key={item.lessonId} style={{ border: "1px solid #eee", borderRadius: 8, padding: "10px" }}>
+                  <div style={{ fontWeight: 700 }}>{item.title}</div>
+                  <div className="muted" style={{ fontSize: "13px" }}>{item.category} · {item.pattern}</div>
+                  <div style={{ fontSize: "13px", marginTop: 4 }}>오답 {item.wrongCount}회 · 최근 {item.lastResult === "correct" ? "정답" : "오답"}</div>
+                  <Link href={`/grammar?lesson=${item.lessonId}`}>문법 다시 학습</Link>
+                </div>
+              ))}
+            </div>
+          )}
+        </article>
+      </section>
 
       <section style={{ marginBottom: "2rem" }}>
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>가나 진도 요약</h2>

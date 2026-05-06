@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from "@/data/grammar";
 
 type Word = {
   word: string;
@@ -56,6 +58,7 @@ const SENTENCES_KEY = "savedSentences";
 export default function ReviewPage() {
   const [savedWords, setSavedWords] = useState<Word[]>([]);
   const [savedSentences, setSavedSentences] = useState<Sentence[]>([]);
+  const [grammarReviewItems, setGrammarReviewItems] = useState<GrammarProgressItem[]>([]);
 
   // 초기 로드: localStorage에서 저장된 단어/문장 불러오기
   useEffect(() => {
@@ -75,6 +78,17 @@ export default function ReviewPage() {
       }
     } catch {
       // 무시 (잘못된 JSON 등)
+    }
+
+    try {
+      const rawGrammar = localStorage.getItem(GRAMMAR_PROGRESS_KEY);
+      if (!rawGrammar) return;
+      const parsed = JSON.parse(rawGrammar);
+      if (!Array.isArray(parsed)) return;
+      const items = (parsed as GrammarProgressItem[]).filter((item) => item.wrongCount > 0 || item.lastResult === "wrong");
+      setGrammarReviewItems(items);
+    } catch {
+      setGrammarReviewItems([]);
     }
   }, []);
 
@@ -203,6 +217,34 @@ export default function ReviewPage() {
                 >
                   삭제
                 </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="section-title">
+        <h2>문법 복습</h2>
+        <span className="count">{grammarReviewItems.length}개</span>
+      </div>
+      {grammarReviewItems.length === 0 ? (
+        <div className="empty-state">복습할 문법이 없습니다. 문법 기초를 풀어 보세요.</div>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {grammarReviewItems.map((item) => (
+            <li key={item.lessonId} className="card" style={{ marginBottom: "14px" }}>
+              <div className="card-top">
+                <div className="jp-text">{item.title}</div>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  <span className="badge">{item.category}</span>
+                  <span className="badge">{item.pattern}</span>
+                </div>
+              </div>
+              <div style={{ marginTop: "10px", fontSize: "14px" }}>
+                오답 {item.wrongCount}회 · 최근 결과: {item.lastResult === "correct" ? "정답" : "오답"}
+              </div>
+              <div className="card-actions">
+                <Link href={`/grammar?lesson=${item.lessonId}`} className="btn">문법 다시 학습</Link>
               </div>
             </li>
           ))}
