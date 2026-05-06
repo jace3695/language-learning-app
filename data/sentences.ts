@@ -13,6 +13,7 @@ export type SentenceItem = {
   note: string;
   description?: string;
   pattern?: string;
+  relatedWords?: string[];
 };
 
 export type RubySegment = {
@@ -40,6 +41,13 @@ const normalizeSentencePattern = (sentence: SentenceItem): string => {
   if (sentence.category === "업무") return "work";
   if (sentence.category === "일상" || sentence.category === "친구") return "daily";
   return "other";
+};
+
+const inferRelatedWords = (sentence: SentenceItem): string[] => {
+  if (sentence.relatedWords && sentence.relatedWords.length > 0) return sentence.relatedWords;
+  const source = sentence.rubySegments?.map((segment) => segment.text).join("") || sentence.japanese;
+  const matches = source.match(/[一-龯ぁ-んァ-ンー]{2,}/g) ?? [];
+  return Array.from(new Set(matches)).slice(0, 4);
 };
 
 export const SENTENCES: SentenceItem[] = ([
@@ -277,4 +285,5 @@ export const SENTENCES: SentenceItem[] = ([
   reading: sentence.reading ?? sentence.japanese,
   koreanPronunciation: sentence.koreanPronunciation ?? "발음 참고 준비 중",
   pattern: normalizeSentencePattern(sentence),
+  relatedWords: inferRelatedWords(sentence),
 }));

@@ -203,6 +203,7 @@ export default function SentencesPage() {
   const [category, setCategory] = useState<Category>("전체");
   const [levelFilter, setLevelFilter] = useState<LevelFilter>("all");
   const [patternFilter, setPatternFilter] = useState<PatternFilter>("all");
+  const [wordFilter, setWordFilter] = useState("");
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
@@ -218,6 +219,12 @@ export default function SentencesPage() {
       return;
     }
     setPatternFilter("all");
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const queryWord = new URLSearchParams(window.location.search).get("word")?.trim() ?? "";
+    setWordFilter(queryWord);
   }, []);
 
   useEffect(() => {
@@ -264,6 +271,10 @@ export default function SentencesPage() {
   const filteredSentencesByPattern = filteredSentencesByLevel.filter(
     (s) => patternFilter === "all" || (s.pattern ?? "other") === patternFilter
   );
+  const filteredSentencesByWord = filteredSentencesByPattern.filter((s) => {
+    if (!wordFilter) return true;
+    return s.japanese.includes(wordFilter) || s.relatedWords?.some((word) => word.includes(wordFilter));
+  });
 
   const startQuiz = useCallback(() => {
     const pool = SENTENCES.filter(
@@ -504,7 +515,17 @@ export default function SentencesPage() {
           gridTemplateColumns: "repeat(auto-fit, minmax(min(360px, 100%), 1fr))",
           gap: "16px",
         }}>
-          {filteredSentencesByPattern.map((s) => {
+          {wordFilter && (
+            <div className="card" style={{ gridColumn: "1 / -1", padding: "12px 16px" }}>
+              <div style={{ fontSize: "14px", color: "#444" }}>
+                {patternFilter !== "all" ? `패턴: ${sentencePatternLabels[patternFilter]} · ` : ""}관련 단어: {wordFilter}
+              </div>
+              <div style={{ marginTop: "8px" }}>
+                <button type="button" className="btn" onClick={() => router.replace("/sentences")}>전체 문장 보기</button>
+              </div>
+            </div>
+          )}
+          {filteredSentencesByWord.map((s) => {
             const saved = isSaved(s);
             return (
               <div key={s.japanese} className="card"
@@ -541,6 +562,13 @@ export default function SentencesPage() {
                     <div className="label">설명</div>
                     <div style={{ color: "#555" }}>{s.note}</div>
                   </div>
+                  {s.relatedWords && s.relatedWords.length > 0 && (
+                    <div style={{ marginTop: "10px", display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                      {s.relatedWords.map((word) => (
+                        <span key={`${s.japanese}-${word}`} className="badge">{word}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div style={{
@@ -568,12 +596,12 @@ export default function SentencesPage() {
               </div>
             );
           })}
-          {filteredSentencesByPattern.length === 0 && (
+          {filteredSentencesByWord.length === 0 && (
             <div style={{ color: "#888", textAlign: "center", padding: "32px 0" }}>
-              {patternFilter !== "all" ? "해당 패턴의 문장이 아직 없습니다." : "해당 카테고리의 문장이 없습니다."}
-              {patternFilter !== "all" && (
+              {wordFilter ? "해당 단어가 포함된 문장이 아직 없습니다." : patternFilter !== "all" ? "해당 패턴의 문장이 아직 없습니다." : "해당 카테고리의 문장이 없습니다."}
+              {(patternFilter !== "all" || wordFilter) && (
                 <div style={{ marginTop: "12px" }}>
-                  <button type="button" className="btn" onClick={() => handlePatternFilterChange("all")}>
+                  <button type="button" className="btn" onClick={() => router.replace("/sentences")}>
                     전체 문장 보기
                   </button>
                 </div>

@@ -17,6 +17,7 @@ export type WordItem = {
   exampleRubySegments?: RubySegment[];
   exampleKoreanPronunciation?: string;
   partOfSpeech?: PartOfSpeech;
+  sentenceKeyword?: string;
 };
 
 export type RubySegment = {
@@ -24,7 +25,17 @@ export type RubySegment = {
   reading?: string;
 };
 
-export const WORDS: WordItem[] = [
+const inferSentenceKeyword = (word: WordItem): string => {
+  if (word.sentenceKeyword) return word.sentenceKeyword;
+  if (word.partOfSpeech === "verb") {
+    if (word.word.endsWith("する")) return word.word.slice(0, -2);
+    if (word.word.endsWith("くる")) return word.word.slice(0, -2);
+    if (word.word.endsWith("る") || word.word.endsWith("く") || word.word.endsWith("む")) return word.word.slice(0, -1);
+  }
+  return word.word;
+};
+
+export const WORDS: WordItem[] = ([
   // ===== 여행 =====
   { level: "beginner", word: "入口", reading: "いりぐち", rubySegments: [{ text: "入", reading: "い" }, { text: "り" }, { text: "口", reading: "ぐち" }], koreanPronunciation: "이리구치", partOfSpeech: "noun", meaning: "입구", example: "入口はどこですか？", exampleReading: "いりぐちはどこですか？", exampleRubySegments: [{ text: "入", reading: "い" }, { text: "り" }, { text: "口", reading: "ぐち" }, { text: "はどこですか？" }], exampleKoreanPronunciation: "이리구치와 도코데스카?", exampleMeaning: "입구가 어디인가요?", category: "여행" },
   { level: "beginner", word: "出口", reading: "でぐち", rubySegments: [{ text: "出", reading: "で" }, { text: "口", reading: "ぐち" }], koreanPronunciation: "데구치", partOfSpeech: "noun", meaning: "출구", example: "出口はこちらです", exampleMeaning: "출구는 이쪽입니다", exampleReading: "でぐちはこちらです", exampleRubySegments: [{ text: "出", reading: "で" }, { text: "口", reading: "ぐち" }, { text: "はこちらです" }], exampleKoreanPronunciation: "데구치와 고치라데스", category: "여행" },
@@ -32,7 +43,7 @@ export const WORDS: WordItem[] = [
   { level: "basic", word: "予約", reading: "よやく", rubySegments: [{ text: "予", reading: "よ" }, { text: "約", reading: "やく" }], koreanPronunciation: "요야쿠", partOfSpeech: "noun", meaning: "예약", example: "予約しています", exampleMeaning: "예약했습니다", exampleReading: "よやくしています", exampleRubySegments: [{ text: "予", reading: "よ" }, { text: "約", reading: "やく" }, { text: "しています" }], exampleKoreanPronunciation: "요야쿠시테이마스", category: "여행" },
   { level: "basic", word: "注文", reading: "ちゅうもん", rubySegments: [{ text: "注", reading: "ちゅう" }, { text: "文", reading: "もん" }], koreanPronunciation: "츄몬", partOfSpeech: "noun", meaning: "주문", example: "注文いいですか？", exampleMeaning: "주문해도 될까요?", exampleReading: "ちゅうもんいいですか？", exampleRubySegments: [{ text: "注", reading: "ちゅう" }, { text: "文", reading: "もん" }, { text: "いいですか？" }], exampleKoreanPronunciation: "츄몬 이이데스카?", category: "여행" },
   { level: "basic", word: "おすすめ", partOfSpeech: "expression", reading: "おすすめ", koreanPronunciation: "오스스메", meaning: "추천", example: "おすすめは何ですか？", exampleMeaning: "추천 메뉴는 무엇인가요?", exampleReading: "おすすめはなんですか？", exampleRubySegments: [{ text: "おすすめは" }, { text: "何", reading: "なん" }, { text: "ですか？" }], exampleKoreanPronunciation: "오스스메와 난데스카?", category: "여행" },
-  { level: "practical", word: "水", reading: "みず", rubySegments: [{ text: "水", reading: "みず" }], koreanPronunciation: "미즈", partOfSpeech: "noun", meaning: "물", example: "水をください", exampleMeaning: "물 주세요", exampleReading: "みずをください", exampleRubySegments: [{ text: "水", reading: "みず" }, { text: "をください" }], exampleKoreanPronunciation: "미즈오 구다사이", category: "여행" },
+  { level: "practical", word: "水", reading: "みず", rubySegments: [{ text: "水", reading: "みず" }], koreanPronunciation: "미즈", partOfSpeech: "noun", meaning: "물", example: "水をください", exampleMeaning: "물 주세요", exampleReading: "みずをください", exampleRubySegments: [{ text: "水", reading: "みず" }, { text: "をください" }], exampleKoreanPronunciation: "미즈오 구다사이", category: "여행", sentenceKeyword: "水" },
   { level: "practical", word: "お茶", reading: "おちゃ", rubySegments: [{ text: "お茶", reading: "おちゃ" }], koreanPronunciation: "오챠", partOfSpeech: "noun", meaning: "차", example: "お茶お願いします", exampleMeaning: "차 부탁드립니다", exampleReading: "おちゃおねがいします", exampleRubySegments: [{ text: "お茶", reading: "おちゃ" }, { text: "お願いします" }], exampleKoreanPronunciation: "오챠 오네가이시마스", category: "여행" },
   { level: "practical", word: "トイレ", reading: "トイレ", koreanPronunciation: "토이레", partOfSpeech: "noun", meaning: "화장실", example: "トイレはどこですか？", exampleMeaning: "화장실은 어디인가요?", exampleReading: "トイレはどこですか？", exampleKoreanPronunciation: "토이레와 도코데스카?", category: "여행" },
   { word: "駅", reading: "えき", rubySegments: [{ text: "駅", reading: "えき" }], koreanPronunciation: "에키", partOfSpeech: "noun", meaning: "역", example: "駅に行きます", exampleMeaning: "역에 갑니다", exampleReading: "えきにいきます", exampleRubySegments: [{ text: "駅", reading: "えき" }, { text: "に行きます" }], exampleKoreanPronunciation: "에키니 이키마스", category: "여행" },
@@ -238,4 +249,7 @@ export const WORDS: WordItem[] = [
   { word: "既読", reading: "きどく", koreanPronunciation: "키도쿠", partOfSpeech: "noun", meaning: "읽음", example: "既読だけついてる。", exampleMeaning: "읽음만 뜨네.", exampleReading: "きどくだけついてる。", exampleKoreanPronunciation: "키도쿠다케 츠이테루", category: "친구" },
   { word: "未読", reading: "みどく", koreanPronunciation: "미도쿠", partOfSpeech: "noun", meaning: "안 읽음", example: "まだ未読みたい。", exampleMeaning: "아직 안 읽은 것 같아.", exampleReading: "まだみどくみたい。", exampleKoreanPronunciation: "마다 미도쿠미타이", category: "친구" },
 
-];
+] as WordItem[]).map((word) => ({
+  ...word,
+  sentenceKeyword: inferSentenceKeyword(word),
+}));

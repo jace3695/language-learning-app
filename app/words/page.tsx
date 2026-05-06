@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 import { WORDS, type WordItem as Word } from "@/data/words";
 import FuriganaText from "@/components/FuriganaText";
@@ -82,6 +83,9 @@ function getWordKey(w: Pick<Word, "word" | "meaning" | "category">) {
 function getEffectiveLevel(word: Word): Exclude<LevelFilter, "all"> {
   return word.level ?? "beginner";
 }
+function getSentenceKeyword(word: Pick<Word, "word" | "sentenceKeyword">): string {
+  return word.sentenceKeyword?.trim() || word.word;
+}
 
 function normalizeSavedWord(item: Partial<Word>): Word | null {
   if (!item.word || !item.meaning || !item.example || !item.category) return null;
@@ -95,6 +99,7 @@ function normalizeSavedWord(item: Partial<Word>): Word | null {
     exampleReading: item.exampleReading,
     exampleKoreanPronunciation: item.exampleKoreanPronunciation,
     exampleMeaning: item.exampleMeaning,
+    sentenceKeyword: item.sentenceKeyword,
     category: item.category as Word["category"],
   };
 }
@@ -143,6 +148,7 @@ function getChoices(correct: Word, pool: Word[], quizType: QuizType): string[] {
 }
 
 export default function WordsPage() {
+  const router = useRouter();
   const [savedWords, setSavedWords] = useState<Word[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [mode, setMode] = useState<PageMode>("study");
@@ -536,6 +542,12 @@ export default function WordsPage() {
                     className="btn"
                   >
                     {saved ? "저장 취소" : "저장"}
+                  </button>
+                  <button
+                    onClick={() => router.push(`/sentences?word=${encodeURIComponent(getSentenceKeyword(w))}`)}
+                    className="btn"
+                  >
+                    관련 문장
                   </button>
                 </div>
               </div>
