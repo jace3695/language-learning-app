@@ -3,15 +3,374 @@ import { useMemo, useState } from "react";
 
 type GrammarCategory = "です/ます" | "조사" | "지시어" | "기타";
 type GrammarFilter = "전체" | GrammarCategory;
-type GrammarLesson = { id:string; title:string; level:"beginner"; category:GrammarCategory; summary:string; explanation:string; pattern:string; examples:{japanese:string; reading?:string; meaning:string;}[]; quiz:{question:string; choices:string[]; answer:string; explanation:string;};};
+type GrammarLesson = {
+  id: string;
+  title: string;
+  level: "beginner";
+  category: GrammarCategory;
+  summary: string;
+  explanation: string;
+  pattern: string;
+  examples: { japanese: string; reading?: string; meaning: string }[];
+  quiz: { question: string; choices: string[]; answer: string; explanation: string };
+};
+
 const GRAMMAR_LESSONS: GrammarLesson[] = [
-{id:"desu",title:"です 문장",level:"beginner",category:"です/ます",summary:"명사나 상태를 공손하게 말할 때 사용해요.",explanation:"처음 만나는 사람과 대화할 때 기본이 되는 공손한 종결 표현이에요.",pattern:"A は B です",examples:[{japanese:"これは水です。",meaning:"이것은 물입니다."},{japanese:"私は学生です。",meaning:"저는 학생입니다."},{japanese:"ここは駅です。",meaning:"여기는 역입니다."}],quiz:{question:"‘저는 학생입니다’를 일본어로 자연스럽게 표현한 것은?",choices:["私は学生です。","私を学生です。","私に学生です。","私で学生です。"],answer:"私は学生です。",explanation:"주제는 は를 사용하고, 공손한 명사 문장은 です로 끝내요."}},
-{id:"masu",title:"ます 문장",level:"beginner",category:"です/ます",summary:"동작을 공손하게 말할 때 사용해요.",explanation:"동사를 ます형으로 바꾸면 일상에서 쓰기 좋은 공손한 문장이 돼요.",pattern:"동사ます",examples:[{japanese:"日本語を勉強します。",meaning:"일본어를 공부합니다."},{japanese:"駅に行きます。",meaning:"역에 갑니다."},{japanese:"水を飲みます。",meaning:"물을 마십니다."}],quiz:{question:"공손한 동사 문장에 맞는 표현은?",choices:["食べます","食べるだ","食べです","食べに"],answer:"食べます",explanation:"동작을 공손하게 말할 때는 동사 ます형을 사용해요."}},
-{id:"wa",title:"は 패턴",level:"beginner",category:"조사",summary:"문장의 주제나 대상을 꺼낼 때 사용해요.",explanation:"‘무엇에 대해 말하는지’를 먼저 제시할 때 자주 쓰는 핵심 조사예요.",pattern:"A は B です",examples:[{japanese:"私は会社員です。",meaning:"저는 회사원입니다."},{japanese:"これは本です。",meaning:"이것은 책입니다."},{japanese:"駅はどこですか。",meaning:"역은 어디입니까?"}],quiz:{question:"문장의 주제를 나타내는 조사는 무엇인가요?",choices:["は","を","に","で"],answer:"は",explanation:"は는 문장의 화제를 제시하는 역할을 해요."}},
-{id:"wo",title:"を 패턴",level:"beginner",category:"조사",summary:"동작의 대상을 나타낼 때 사용해요.",explanation:"무엇을 먹고, 마시고, 공부하는지 같은 목적어를 붙일 때 사용해요.",pattern:"A を 동사",examples:[{japanese:"水を飲みます。",meaning:"물을 마십니다."},{japanese:"ご飯を食べます。",meaning:"밥을 먹습니다."},{japanese:"日本語を勉強します。",meaning:"일본어를 공부합니다."}],quiz:{question:"‘일본어를 공부합니다’에서 목적어를 나타내는 조사는?",choices:["を","に","で","は"],answer:"を",explanation:"동사의 직접 대상(목적어)에는 を를 사용해요."}},
-{id:"ni",title:"に 패턴",level:"beginner",category:"조사",summary:"목적지, 시간, 대상 등을 나타낼 때 사용해요.",explanation:"어디에 가는지, 누구를 만나는지 같은 도착점·대상을 표현할 때 써요.",pattern:"장소 に 行きます",examples:[{japanese:"駅に行きます。",meaning:"역에 갑니다."},{japanese:"会社に行きます。",meaning:"회사에 갑니다."},{japanese:"友だちに会います。",meaning:"친구를 만납니다."}],quiz:{question:"‘역에 갑니다’에서 ‘에’에 해당하는 조사는?",choices:["に","を","で","は"],answer:"に",explanation:"목적지나 대상을 나타낼 때 に를 사용해요."}},
-{id:"de",title:"で 패턴",level:"beginner",category:"조사",summary:"장소나 수단을 나타낼 때 사용해요.",explanation:"어디에서 행동하는지, 무엇으로 이동하는지에 쓰는 조사예요.",pattern:"장소 で 동사",examples:[{japanese:"レストランで食べます。",meaning:"레스토랑에서 먹습니다."},{japanese:"会社で働きます。",meaning:"회사에서 일합니다."},{japanese:"電車で行きます。",meaning:"전철로 갑니다."}],quiz:{question:"‘회사에서 일합니다’에서 장소를 나타내는 조사는?",choices:["で","に","を","は"],answer:"で",explanation:"행동이 일어나는 장소와 수단은 で를 써요."}},
-{id:"kore-sore-are",title:"これ・それ・あれ",level:"beginner",category:"지시어",summary:"물건을 가리킬 때 사용해요.",explanation:"가까운 것(これ), 상대 쪽 것(それ), 멀리 있는 것(あれ)을 구분해요.",pattern:"これ / それ / あれ",examples:[{japanese:"これは何ですか。",meaning:"이것은 무엇입니까?"},{japanese:"それは水です。",meaning:"그것은 물입니다."},{japanese:"あれは駅です。",meaning:"저것은 역입니다."}],quiz:{question:"화자에게서 멀리 있는 ‘저것’을 가리키는 말은?",choices:["あれ","これ","それ","どれ"],answer:"あれ",explanation:"あれ는 화자와 청자 모두에게서 멀리 있는 사물을 가리켜요."}},
-{id:"koko-soko-asoko",title:"ここ・そこ・あそこ",level:"beginner",category:"지시어",summary:"장소를 가리킬 때 사용해요.",explanation:"위치 표현의 기본 세트로, 장소 질문과 안내에서 자주 나와요.",pattern:"ここ / そこ / あそこ",examples:[{japanese:"ここは駅です。",meaning:"여기는 역입니다."},{japanese:"そこはトイレです。",meaning:"거기는 화장실입니다."},{japanese:"あそこは会社です。",meaning:"저기는 회사입니다."}],quiz:{question:"듣는 사람 가까운 장소 ‘거기’에 해당하는 표현은?",choices:["そこ","ここ","あそこ","どこ"],answer:"そこ",explanation:"そこ는 청자 가까운 장소를 가리킬 때 써요."}},
+  {
+    id: "desu",
+    title: "です 문장",
+    level: "beginner",
+    category: "です/ます",
+    summary: "명사나 상태를 공손하게 말할 때 사용해요.",
+    explanation: "처음 만나는 사람과 대화할 때 기본이 되는 공손한 종결 표현이에요.",
+    pattern: "A は B です",
+    examples: [
+      { japanese: "これは水です。", meaning: "이것은 물입니다." },
+      { japanese: "私は学生です。", meaning: "저는 학생입니다." },
+      { japanese: "ここは駅です。", meaning: "여기는 역입니다." },
+    ],
+    quiz: {
+      question: "‘저는 학생입니다’를 일본어로 자연스럽게 표현한 것은?",
+      choices: ["私は学生です。", "私を学生です。", "私に学生です。", "私で学生です。"],
+      answer: "私は学生です。",
+      explanation: "주제는 は를 사용하고, 공손한 명사 문장은 です로 끝내요.",
+    },
+  },
+  {
+    id: "masu",
+    title: "ます 문장",
+    level: "beginner",
+    category: "です/ます",
+    summary: "동작을 공손하게 말할 때 사용해요.",
+    explanation: "동사를 ます형으로 바꾸면 일상에서 쓰기 좋은 공손한 문장이 돼요.",
+    pattern: "동사ます",
+    examples: [
+      { japanese: "日本語を勉強します。", meaning: "일본어를 공부합니다." },
+      { japanese: "駅に行きます。", meaning: "역에 갑니다." },
+      { japanese: "水を飲みます。", meaning: "물을 마십니다." },
+    ],
+    quiz: {
+      question: "공손한 동사 문장에 맞는 표현은?",
+      choices: ["食べます", "食べるだ", "食べです", "食べに"],
+      answer: "食べます",
+      explanation: "동작을 공손하게 말할 때는 동사 ます형을 사용해요.",
+    },
+  },
+  {
+    id: "wa",
+    title: "は 패턴",
+    level: "beginner",
+    category: "조사",
+    summary: "문장의 주제나 대상을 꺼낼 때 사용해요.",
+    explanation: "‘무엇에 대해 말하는지’를 먼저 제시할 때 자주 쓰는 핵심 조사예요.",
+    pattern: "A は B です",
+    examples: [
+      { japanese: "私は会社員です。", meaning: "저는 회사원입니다." },
+      { japanese: "これは本です。", meaning: "이것은 책입니다." },
+      { japanese: "駅はどこですか。", meaning: "역은 어디입니까?" },
+    ],
+    quiz: {
+      question: "문장의 주제를 나타내는 조사는 무엇인가요?",
+      choices: ["は", "を", "に", "で"],
+      answer: "は",
+      explanation: "は는 문장의 화제를 제시하는 역할을 해요.",
+    },
+  },
+  {
+    id: "wo",
+    title: "を 패턴",
+    level: "beginner",
+    category: "조사",
+    summary: "동작의 대상을 나타낼 때 사용해요.",
+    explanation: "무엇을 먹고, 마시고, 공부하는지 같은 목적어를 붙일 때 사용해요.",
+    pattern: "A を 동사",
+    examples: [
+      { japanese: "水を飲みます。", meaning: "물을 마십니다." },
+      { japanese: "ご飯を食べます。", meaning: "밥을 먹습니다." },
+      { japanese: "日本語を勉強します。", meaning: "일본어를 공부합니다." },
+    ],
+    quiz: {
+      question: "‘일본어를 공부합니다’에서 목적어를 나타내는 조사는?",
+      choices: ["を", "に", "で", "は"],
+      answer: "を",
+      explanation: "동사의 직접 대상(목적어)에는 を를 사용해요.",
+    },
+  },
+  {
+    id: "ni",
+    title: "に 패턴",
+    level: "beginner",
+    category: "조사",
+    summary: "목적지, 시간, 대상 등을 나타낼 때 사용해요.",
+    explanation: "어디에 가는지, 누구를 만나는지 같은 도착점·대상을 표현할 때 써요.",
+    pattern: "장소 に 行きます",
+    examples: [
+      { japanese: "駅に行きます。", meaning: "역에 갑니다." },
+      { japanese: "会社に行きます。", meaning: "회사에 갑니다." },
+      { japanese: "友だちに会います。", meaning: "친구를 만납니다." },
+    ],
+    quiz: {
+      question: "‘역에 갑니다’에서 ‘에’에 해당하는 조사는?",
+      choices: ["に", "を", "で", "は"],
+      answer: "に",
+      explanation: "목적지나 대상을 나타낼 때 に를 사용해요.",
+    },
+  },
+  {
+    id: "de",
+    title: "で 패턴",
+    level: "beginner",
+    category: "조사",
+    summary: "장소나 수단을 나타낼 때 사용해요.",
+    explanation: "어디에서 행동하는지, 무엇으로 이동하는지에 쓰는 조사예요.",
+    pattern: "장소 で 동사",
+    examples: [
+      { japanese: "レストランで食べます。", meaning: "레스토랑에서 먹습니다." },
+      { japanese: "会社で働きます。", meaning: "회사에서 일합니다." },
+      { japanese: "電車で行きます。", meaning: "전철로 갑니다." },
+    ],
+    quiz: {
+      question: "‘회사에서 일합니다’에서 장소를 나타내는 조사는?",
+      choices: ["で", "に", "を", "は"],
+      answer: "で",
+      explanation: "행동이 일어나는 장소와 수단은 で를 써요.",
+    },
+  },
+  {
+    id: "kore-sore-are",
+    title: "これ・それ・あれ",
+    level: "beginner",
+    category: "지시어",
+    summary: "물건을 가리킬 때 사용해요.",
+    explanation: "가까운 것(これ), 상대 쪽 것(それ), 멀리 있는 것(あれ)을 구분해요.",
+    pattern: "これ / それ / あれ",
+    examples: [
+      { japanese: "これは何ですか。", meaning: "이것은 무엇입니까?" },
+      { japanese: "それは水です。", meaning: "그것은 물입니다." },
+      { japanese: "あれは駅です。", meaning: "저것은 역입니다." },
+    ],
+    quiz: {
+      question: "화자에게서 멀리 있는 ‘저것’을 가리키는 말은?",
+      choices: ["あれ", "これ", "それ", "どれ"],
+      answer: "あれ",
+      explanation: "あれ는 화자와 청자 모두에게서 멀리 있는 사물을 가리켜요.",
+    },
+  },
+  {
+    id: "koko-soko-asoko",
+    title: "ここ・そこ・あそこ",
+    level: "beginner",
+    category: "지시어",
+    summary: "장소를 가리킬 때 사용해요.",
+    explanation: "위치 표현의 기본 세트로, 장소 질문과 안내에서 자주 나와요.",
+    pattern: "ここ / そこ / あそこ",
+    examples: [
+      { japanese: "ここは駅です。", meaning: "여기는 역입니다." },
+      { japanese: "そこはトイレです。", meaning: "거기는 화장실입니다." },
+      { japanese: "あそこは会社です。", meaning: "저기는 회사입니다." },
+    ],
+    quiz: {
+      question: "듣는 사람 가까운 장소 ‘거기’에 해당하는 표현은?",
+      choices: ["そこ", "ここ", "あそこ", "どこ"],
+      answer: "そこ",
+      explanation: "そこ는 청자 가까운 장소를 가리킬 때 써요.",
+    },
+  },
 ];
-export default function GrammarPage(){const [filter,setFilter]=useState<GrammarFilter>("전체");const [quizResults,setQuizResults]=useState<Record<string,string>>({});const visibleLessons=useMemo(()=>filter==="전체"?GRAMMAR_LESSONS:GRAMMAR_LESSONS.filter((l)=>l.category===filter),[filter]);const handleSelectAnswer=(lesson:GrammarLesson,choice:string)=>{const isCorrect=choice===lesson.quiz.answer;const feedback=isCorrect?`정답이에요! ${lesson.quiz.explanation}`:`아쉬워요. 정답은 ${lesson.quiz.answer} 입니다. ${lesson.quiz.explanation}`;setQuizResults((prev)=>({...prev,[lesson.id]:feedback}));};return <section><div style={{marginBottom:"16px"}}><h1 style={{fontSize:"28px",margin:"0 0 8px"}}>문법 기초</h1><p className="muted" style={{margin:0}}>문장을 이해하고 직접 만들기 위한 기본 문법을 짧게 연습해요.</p></div><div style={{display:"flex",flexWrap:"wrap",gap:"8px",marginBottom:"16px"}}>{(["전체","です/ます","조사","지시어","기타"] as const).map((item)=><button key={item} type="button" onClick={()=>setFilter(item)} style={{border:"1px solid var(--line)",borderRadius:"999px",padding:"8px 12px",fontSize:"13px",fontWeight:600,background:filter===item?"var(--line)":"var(--card)",color:"inherit",cursor:"pointer"}}>{item}</button>)}</div><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))",gap:"12px"}}>{visibleLessons.map((lesson)=><article key={lesson.id} className="card" style={{padding:"14px",display:"grid",gap:"10px"}}><div style={{display:"flex",justifyContent:"space-between",gap:"8px",alignItems:"center"}}><h2 style={{fontSize:"18px",margin:0}}>{lesson.title}</h2><span style={{fontSize:"12px",fontWeight:700,borderRadius:"999px",border:"1px solid var(--line)",padding:"4px 8px"}}>{lesson.category}</span></div><p className="muted" style={{margin:0}}>{lesson.summary}</p><div style={{fontSize:"14px",fontWeight:700}}>핵심 패턴: {lesson.pattern}</div><p className="muted" style={{margin:0,fontSize:"14px"}}>{lesson.explanation}</p><div style={{display:"grid",gap:"6px"}}>{lesson.examples.map((e)=><div key={`${lesson.id}-${e.japanese}`} style={{fontSize:"14px"}}><div>{e.japanese}</div><div className="muted">{e.meaning}</div></div>)}</div><div style={{borderTop:"1px solid var(--line)",paddingTop:"10px",display:"grid",gap:"8px"}}><div style={{fontSize:"14px",fontWeight:700}}>연습 문제 보기</div><p style={{margin:0,fontSize:"14px"}}>{lesson.quiz.question}</p><div style={{display:"grid",gap:"6px"}}>{lesson.quiz.choices.map((c)=><button key={`${lesson.id}-${c}`} type="button" onClick={()=>handleSelectAnswer(lesson,c)} style={{textAlign:"left",border:"1px solid var(--line)",borderRadius:"8px",padding:"8px 10px",background:"var(--card)",color:"inherit",cursor:"pointer"}}>{c}</button>)}</div>{quizResults[lesson.id]&&<p className="muted" style={{margin:0,fontSize:"13px",fontWeight:600}}>{quizResults[lesson.id]}</p>}</div></article>)}</div></section>}
+
+export default function GrammarPage() {
+  const [filter, setFilter] = useState<GrammarFilter>("전체");
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+
+  const visibleLessons = useMemo(
+    () => (filter === "전체" ? GRAMMAR_LESSONS : GRAMMAR_LESSONS.filter((l) => l.category === filter)),
+    [filter],
+  );
+
+  const handleSelectAnswer = (lesson: GrammarLesson, choice: string) => {
+    if (selectedAnswers[lesson.id]) {
+      return;
+    }
+
+    setSelectedAnswers((prev) => ({ ...prev, [lesson.id]: choice }));
+  };
+
+  const resetLessonQuiz = (lessonId: string) => {
+    setSelectedAnswers((prev) => {
+      const next = { ...prev };
+      delete next[lessonId];
+      return next;
+    });
+  };
+
+  const handleSpeak = (text: string) => {
+    try {
+      if (typeof window === "undefined" || !window.speechSynthesis) {
+        console.error("speechSynthesis를 사용할 수 없습니다.");
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "ja-JP";
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error("예문 듣기 처리 중 오류가 발생했습니다.", error);
+    }
+  };
+
+  return (
+    <section>
+      <div style={{ marginBottom: "16px" }}>
+        <h1 style={{ fontSize: "28px", margin: "0 0 8px" }}>문법 기초</h1>
+        <p className="muted" style={{ margin: 0 }}>
+          문장을 이해하고 직접 만들기 위한 기본 문법을 짧게 연습해요.
+        </p>
+      </div>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "16px" }}>
+        {(["전체", "です/ます", "조사", "지시어", "기타"] as const).map((item) => {
+          const isActive = filter === item;
+          return (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setFilter(item)}
+              style={{
+                border: isActive ? "1px solid #111827" : "1px solid #d1d5db",
+                borderRadius: "999px",
+                padding: "8px 12px",
+                fontSize: "13px",
+                fontWeight: 700,
+                background: isActive ? "#111827" : "#ffffff",
+                color: isActive ? "#ffffff" : "#111827",
+                cursor: "pointer",
+              }}
+            >
+              {item}
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "12px" }}>
+        {visibleLessons.map((lesson) => {
+          const selectedAnswer = selectedAnswers[lesson.id];
+          const isCorrect = selectedAnswer === lesson.quiz.answer;
+
+          return (
+            <article key={lesson.id} className="card" style={{ padding: "14px", display: "grid", gap: "10px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                <h2 style={{ fontSize: "18px", margin: 0 }}>{lesson.title}</h2>
+                <span style={{ fontSize: "12px", fontWeight: 700, borderRadius: "999px", border: "1px solid var(--line)", padding: "4px 8px" }}>{lesson.category}</span>
+              </div>
+              <p className="muted" style={{ margin: 0 }}>{lesson.summary}</p>
+              <div style={{ fontSize: "14px", fontWeight: 700 }}>핵심 패턴: {lesson.pattern}</div>
+              <p className="muted" style={{ margin: 0, fontSize: "14px" }}>{lesson.explanation}</p>
+
+              <div style={{ display: "grid", gap: "6px" }}>
+                {lesson.examples.map((e) => (
+                  <div key={`${lesson.id}-${e.japanese}`} style={{ fontSize: "14px" }}>
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
+                      <span>{e.japanese}</span>
+                      <button type="button" onClick={() => handleSpeak(e.japanese)} style={{ border: "1px solid #d1d5db", borderRadius: "8px", padding: "6px 10px", background: "#fff", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>듣기</button>
+                    </div>
+                    <div className="muted">{e.meaning}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ borderTop: "1px solid var(--line)", paddingTop: "10px", display: "grid", gap: "8px" }}>
+                <div style={{ fontSize: "14px", fontWeight: 700 }}>연습 문제 보기</div>
+                <p style={{ margin: 0, fontSize: "14px" }}>{lesson.quiz.question}</p>
+                <div style={{ display: "grid", gap: "8px" }}>
+                  {lesson.quiz.choices.map((c) => {
+                    const isAnswer = c === lesson.quiz.answer;
+                    const isSelected = selectedAnswer === c;
+                    const answered = Boolean(selectedAnswer);
+
+                    let background = "#ffffff";
+                    let border = "1px solid #d1d5db";
+                    let color = "#111827";
+
+                    if (answered && isAnswer) {
+                      background = "#dcfce7";
+                      border = "1px solid #22c55e";
+                      color = "#166534";
+                    } else if (answered && isSelected && !isAnswer) {
+                      background = "#fee2e2";
+                      border = "1px solid #ef4444";
+                      color = "#991b1b";
+                    } else if (answered) {
+                      background = "#f9fafb";
+                      color = "#6b7280";
+                    }
+
+                    return (
+                      <button
+                        key={`${lesson.id}-${c}`}
+                        type="button"
+                        onClick={() => handleSelectAnswer(lesson, c)}
+                        disabled={answered}
+                        style={{
+                          width: "100%",
+                          minHeight: "44px",
+                          padding: "10px 12px",
+                          textAlign: "left",
+                          border,
+                          borderRadius: "10px",
+                          background,
+                          color,
+                          cursor: answered ? "default" : "pointer",
+                        }}
+                      >
+                        {c}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selectedAnswer && (
+                  <div
+                    style={{
+                      marginTop: "4px",
+                      borderRadius: "10px",
+                      padding: "10px 12px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      background: isCorrect ? "#ecfdf5" : "#fff7ed",
+                      border: isCorrect ? "1px solid #86efac" : "1px solid #fdba74",
+                      color: isCorrect ? "#166534" : "#9a3412",
+                    }}
+                  >
+                    <div>{isCorrect ? "정답이에요!" : `아쉬워요. 정답은 ${lesson.quiz.answer} 입니다.`}</div>
+                    {lesson.quiz.explanation && <div style={{ marginTop: "4px" }}>{lesson.quiz.explanation}</div>}
+                  </div>
+                )}
+
+                {selectedAnswer && (
+                  <button
+                    type="button"
+                    onClick={() => resetLessonQuiz(lesson.id)}
+                    style={{
+                      width: "fit-content",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "8px",
+                      padding: "8px 12px",
+                      background: "#fff",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    다시 풀기
+                  </button>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
