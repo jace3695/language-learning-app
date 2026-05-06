@@ -34,6 +34,13 @@ const todayRoutine: RoutineItem[] = [
     cta: "문장 연습",
   },
   {
+    href: "/grammar",
+    title: "문법 기초 2개 익히기",
+    desc: "です/ます, 조사, 지시어를 짧은 카드로 빠르게 익혀요.",
+    duration: "약 6분",
+    cta: "문법 기초",
+  },
+  {
     href: "/speaking",
     title: "말하기 훈련 3문장",
     desc: "핵심 표현 3문장을 직접 말하며 발화를 자연스럽게 만들어요.",
