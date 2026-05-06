@@ -10,6 +10,7 @@ type Word = {
   example: string;
   category: "일상" | "여행" | "업무" | "친구";
   partOfSpeech?: string;
+  sentenceKeyword?: string;
 };
 
 const partOfSpeechLabels: Record<string, string> = {
@@ -158,6 +159,9 @@ export default function ReviewPage() {
               </div>
 
               <div className="card-actions">
+                <Link href={`/sentences?word=${encodeURIComponent(w.sentenceKeyword || w.word)}`} className="btn">
+                  관련 문장
+                </Link>
                 <button
                   onClick={() => handleDeleteWord(w)}
                   className="btn btn-danger"
