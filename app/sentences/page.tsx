@@ -254,10 +254,12 @@ export default function SentencesPage() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        setSavedSentences(JSON.parse(raw) as Sentence[]);
+        const parsed = JSON.parse(raw) as unknown;
+        setSavedSentences(Array.isArray(parsed) ? (parsed as Sentence[]) : []);
       }
     } catch {
       // 무시
+      setSavedSentences([]);
     }
   }, []);
 
