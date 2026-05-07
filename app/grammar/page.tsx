@@ -178,7 +178,7 @@ export default function GrammarPage() {
                   <div key={`${lesson.id}-${e.japanese}`} style={{ fontSize: "14px" }}>
                     <div style={{ display: "flex", gap: "8px", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
                       <span>{e.japanese}</span>
-                      <button type="button" onClick={() => handleSpeak(e.japanese)} style={{ border: "1px solid #d1d5db", borderRadius: "8px", padding: "6px 10px", background: "#fff", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>듣기</button>
+                      <button type="button" onClick={() => handleSpeak(e.japanese)} style={{ border: "1px solid #d1d5db", borderRadius: "8px", padding: "6px 10px", background: "#fff", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>예문 듣기</button>
                     </div>
                     <div className="muted">{e.meaning}</div>
                   </div>
@@ -207,7 +207,7 @@ export default function GrammarPage() {
               )}
 
               <div style={{ borderTop: "1px solid var(--line)", paddingTop: "10px", display: "grid", gap: "8px" }}>
-                <div style={{ fontSize: "14px", fontWeight: 700 }}>연습 문제 보기</div>
+                <div style={{ fontSize: "14px", fontWeight: 700 }}>연습 문제</div>
                 <p style={{ margin: 0, fontSize: "14px" }}>{lesson.quiz.question}</p>
                 <div style={{ display: "grid", gap: "8px" }}>
                   {lesson.quiz.choices.map((c) => {
