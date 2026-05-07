@@ -8,6 +8,7 @@ import { SENTENCES } from "@/data/sentences";
 import { GRAMMAR_LESSONS, GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from "@/data/grammar";
 
 type SectionKey = "wrongKana" | "wrongWords" | "wrongSentences";
+type ProgressTab = "all" | "kana" | "words" | "sentences" | "grammar";
 
 const SECTIONS: { key: SectionKey; label: string; href: string; linkLabel: string }[] = [
   { key: "wrongKana", label: "헷갈린 글자", href: "/kana", linkLabel: "Kana 다시 학습" },
@@ -425,6 +426,7 @@ export default function ProgressPage() {
   const [sentenceIsCorrect, setSentenceIsCorrect] = useState<boolean | null>(null);
   const [confusingKanaChars, setConfusingKanaChars] = useState<string[]>([]);
   const [grammarProgress, setGrammarProgress] = useState<GrammarProgressItem[]>([]);
+  const [activeProgressTab, setActiveProgressTab] = useState<ProgressTab>("all");
 
   const buildKanaQuiz = useCallback((items: AnyItem[]) => {
     const qi = getKanaQuizItems(items);
@@ -761,6 +763,29 @@ export default function ProgressPage() {
     }
   }
 
+  const learningSummary = useMemo(() => {
+    const kanaCount = data.wrongKana.length + confusingKanaChars.length;
+    const wordsCount = data.wrongWords.length;
+    const sentencesCount = data.wrongSentences.length;
+    const grammarCount = grammarSummary.reviewCount;
+    const reviewTotal = kanaCount + wordsCount + sentencesCount + grammarCount;
+    return { kanaCount, wordsCount, sentencesCount, grammarCount, reviewTotal };
+  }, [confusingKanaChars.length, data.wrongKana.length, data.wrongWords.length, data.wrongSentences.length, grammarSummary.reviewCount]);
+
+  const progressTabs: { key: ProgressTab; label: string }[] = [
+    { key: "all", label: "전체" },
+    { key: "kana", label: "가나" },
+    { key: "words", label: "단어" },
+    { key: "sentences", label: "문장" },
+    { key: "grammar", label: "문법" },
+  ];
+
+  const showAll = activeProgressTab === "all";
+  const showKana = showAll || activeProgressTab === "kana";
+  const showWords = showAll || activeProgressTab === "words";
+  const showSentences = showAll || activeProgressTab === "sentences";
+  const showGrammar = showAll || activeProgressTab === "grammar";
+
   const currentQuiz = quizItems[quizIndex] ?? null;
   const currentWordQuiz = wordQuizItems[wordQuizIndex] ?? null;
   const currentSentenceQuiz = sentenceQuizItems[sentenceQuizIndex] ?? null;
@@ -768,10 +793,52 @@ export default function ProgressPage() {
   return (
     <div style={{ maxWidth: 640, margin: "0 auto", padding: "2rem 1rem" }}>
       <h1 style={{ fontSize: "1.8rem", marginBottom: "0.5rem" }}>학습 진도</h1>
-      <p style={{ color: "#666", marginBottom: "2rem" }}>
+      <p style={{ color: "#666", marginBottom: "1rem" }}>
         퀴즈에서 틀렸거나 헷갈린 항목이 여기에 기록됩니다.
       </p>
 
+      <section style={{ marginBottom: "1rem", border: "1px solid #dbe3f4", borderRadius: 12, padding: "1rem", background: "#fff" }}>
+        <h2 style={{ fontSize: "1.05rem", margin: "0 0 0.7rem" }}>학습 요약</h2>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+          {[
+            `가나 ${learningSummary.kanaCount}개`,
+            `단어 ${learningSummary.wordsCount}개`,
+            `문장 ${learningSummary.sentencesCount}개`,
+            `문법 ${learningSummary.grammarCount}개`,
+            `복습 필요 ${learningSummary.reviewTotal}개`,
+          ].map((text) => (
+            <span key={text} style={{ border: "1px solid #d1d5db", borderRadius: 999, padding: "0.3rem 0.65rem", fontSize: "0.82rem", background: "#f8fafc" }}>{text}</span>
+          ))}
+        </div>
+      </section>
+
+      <section style={{ marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          {progressTabs.map((tab) => {
+            const active = activeProgressTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveProgressTab(tab.key)}
+                style={{
+                  border: active ? "1px solid #1d4ed8" : "1px solid #d1d5db",
+                  background: active ? "#2563eb" : "#fff",
+                  color: active ? "#fff" : "#374151",
+                  padding: "0.4rem 0.9rem",
+                  borderRadius: 999,
+                  fontWeight: 600,
+                  fontSize: "0.86rem",
+                  cursor: "pointer",
+                }}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {showGrammar && (
       <section style={{ marginBottom: "2rem" }}>
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>문법 진도</h2>
         <article style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem", marginBottom: "0.75rem" }}>
@@ -782,7 +849,7 @@ export default function ProgressPage() {
         <article style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem" }}>
           <h3 style={{ marginTop: 0 }}>자주 틀린 문법</h3>
           {topWrongGrammar.length === 0 ? (
-            <p className="muted" style={{ margin: 0 }}>아직 틀린 문법 기록이 없습니다.</p>
+            <p className="muted" style={{ margin: 0 }}>{activeProgressTab === "grammar" ? "문법 복습 항목이 없습니다. [문법]에서 연습 문제를 풀어 보세요." : "아직 틀린 문법 기록이 없습니다."}</p>
           ) : (
             <div style={{ display: "grid", gap: "10px" }}>
               {topWrongGrammar.map((item) => (
@@ -797,9 +864,15 @@ export default function ProgressPage() {
           )}
         </article>
       </section>
+      )}
 
+      {showKana && (
+      <>
       <section style={{ marginBottom: "2rem" }}>
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>가나 진도 요약</h2>
+        {activeProgressTab === "kana" && data.wrongKana.length === 0 && confusingKanaChars.length === 0 && (
+          <p style={{ color: "#6b7280", margin: "0 0 0.75rem" }}>가나 오답이 없습니다. [가나]에서 퀴즈를 풀어 보세요.</p>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" style={{ gap: "0.75rem" }}>
           {kanaSummaryCards.map((card) => (
             <article key={card.key} style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: "0.85rem", background: "#fff" }}>
@@ -961,8 +1034,11 @@ export default function ProgressPage() {
           </div>
         ) : null}
       </section>
+      </>
+      )}
 
       {/* 단어 오답 퀴즈 섹션 */}
+      {showWords && (
       <section
         style={{
           marginBottom: "2rem",
@@ -1086,8 +1162,10 @@ export default function ProgressPage() {
           </div>
         ) : null}
       </section>
+      )}
 
       {/* 문장 오답 퀴즈 섹션 */}
+      {showSentences && (
       <section
         style={{
           marginBottom: "2rem",
@@ -1220,9 +1298,11 @@ export default function ProgressPage() {
           </div>
         ) : null}
       </section>
+      )}
 
-      {SECTIONS.map(({ key, label, href, linkLabel }) => {
+      {((showKana && activeProgressTab !== "all") || showWords || showSentences) && SECTIONS.map(({ key, label, href, linkLabel }) => {
         const items = data[key];
+        if ((activeProgressTab === "kana" && key !== "wrongKana") || (activeProgressTab === "words" && key !== "wrongWords") || (activeProgressTab === "sentences" && key !== "wrongSentences")) return null;
         return (
           <section
             key={key}
@@ -1278,7 +1358,7 @@ export default function ProgressPage() {
             </div>
 
             {items.length === 0 ? (
-              <p style={{ color: "#999", margin: 0 }}>아직 기록이 없습니다. {linkLabel.replace("다시 ", "")}을 시작해 보세요!</p>
+              <p style={{ color: "#999", margin: 0 }}>{activeProgressTab === "words" ? "단어 오답이 없습니다. [단어]에서 단어 퀴즈를 풀어 보세요." : activeProgressTab === "sentences" ? "문장 오답이 없습니다. [문장]에서 문장 퀴즈를 풀어 보세요." : "아직 기록이 없습니다. " + linkLabel.replace("다시 ", "") + "을 시작해 보세요!"}</p>
             ) : key === "wrongKana" ? (
               <ul style={{ margin: 0, paddingLeft: 0 }}>
                 {items.map((item, i) => (
