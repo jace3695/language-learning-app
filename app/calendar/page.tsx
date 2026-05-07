@@ -133,7 +133,10 @@ export default function CalendarPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", gap: "8px", flexWrap: "wrap" }}>
           <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}>이전 달</button>
           <h2 style={{ margin: 0 }}>{viewDate.getFullYear()}년 {viewDate.getMonth() + 1}월</h2>
-          <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}>다음 달</button>
+          <div style={{ display: "flex", gap: "6px" }}>
+            <button type="button" onClick={() => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))}>이번 달</button>
+            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}>다음 달</button>
+          </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "6px", marginBottom: "6px" }}>
