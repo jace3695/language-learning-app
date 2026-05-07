@@ -19,15 +19,15 @@ const todayRoutine: RoutineItem[] = [
     title: "가나 5문제 풀기",
     desc: "히라가나·가타카나를 빠르게 확인하며 감각을 깨워요.",
     duration: "약 5분",
-    cta: "가나 시작",
+    cta: "가나 학습하기",
   },
   {
     id: "words",
     href: "/words",
-    title: "단어 퀴즈 5문제",
+    title: "단어 퀴즈 풀기 5문제",
     desc: "자주 쓰는 단어를 짧은 퀴즈로 반복해 기억을 강화해요.",
     duration: "약 7분",
-    cta: "단어 퀴즈",
+    cta: "단어 퀴즈 풀기",
   },
   {
     id: "sentences",
@@ -35,7 +35,7 @@ const todayRoutine: RoutineItem[] = [
     title: "문장 3개 듣고 따라 말하기",
     desc: "짧은 문장을 듣고 소리 내어 말하며 리듬을 익혀요.",
     duration: "약 8분",
-    cta: "문장 연습",
+    cta: "문장 학습하기",
   },
   {
     id: "grammar",
@@ -43,7 +43,7 @@ const todayRoutine: RoutineItem[] = [
     title: "문법 1개 풀기",
     desc: "기본 문법을 짧게 확인하고 문제로 점검해요.",
     duration: "약 5분",
-    cta: "문법 학습",
+    cta: "문법 학습하기",
   },
   {
     id: "review",
