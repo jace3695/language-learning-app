@@ -29,6 +29,7 @@ const navItems = [
   { href: "/kana", label: "가나" },
   { href: "/review", label: "복습" },
   { href: "/speaking", label: "말하기" },
+  { href: "/calendar", label: "달력" },
   { href: "/settings", label: "설정" },
   { href: "/progress", label: "진도" },
 ];

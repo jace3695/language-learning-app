@@ -75,11 +75,21 @@ const practicalPractice: RoutineItem[] = [
 ];
 
 const DAILY_ROUTINE_STORAGE_KEY = "dailyRoutineProgress";
+const DAILY_LEARNING_HISTORY_STORAGE_KEY = "dailyLearningHistory";
 
 type DailyRoutineStorage = {
   date: string;
   completedIds: string[];
 };
+
+type DailyLearningHistoryItem = {
+  completedIds: string[];
+  completedCount: number;
+  totalCount: number;
+  updatedAt: string;
+};
+
+type DailyLearningHistoryStorage = Record<string, DailyLearningHistoryItem>;
 
 type RecommendationState = {
   hasGrammarWrong: boolean;
@@ -184,6 +194,24 @@ export default function HomePage() {
       completedIds,
     };
     window.localStorage.setItem(DAILY_ROUTINE_STORAGE_KEY, JSON.stringify(data));
+
+    try {
+      const historyRaw = window.localStorage.getItem(DAILY_LEARNING_HISTORY_STORAGE_KEY);
+      const parsedHistory: unknown = historyRaw ? JSON.parse(historyRaw) : {};
+      const safeHistory: DailyLearningHistoryStorage =
+        typeof parsedHistory === "object" && parsedHistory !== null ? { ...(parsedHistory as DailyLearningHistoryStorage) } : {};
+
+      safeHistory[todayKey] = {
+        completedIds: [...completedIds],
+        completedCount: completedIds.length,
+        totalCount: todayRoutine.length,
+        updatedAt: new Date().toISOString(),
+      };
+
+      window.localStorage.setItem(DAILY_LEARNING_HISTORY_STORAGE_KEY, JSON.stringify(safeHistory));
+    } catch {
+      // localStorage가 손상된 경우에도 홈 루틴 동작은 유지합니다.
+    }
   }, [completedIds, todayKey]);
 
   const completedCount = completedIds.length;
