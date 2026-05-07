@@ -175,7 +175,8 @@ export default function SpeakingPage() {
     try {
       const raw = localStorage.getItem("savedSentences");
       if (raw) {
-        const saved: SavedSentence[] = JSON.parse(raw);
+        const parsed = JSON.parse(raw) as unknown;
+        const saved: SavedSentence[] = Array.isArray(parsed) ? (parsed as SavedSentence[]) : [];
         const converted: Question[] = saved.map((s) => ({
           korean: s.meaning,
           japanese: s.japanese,
@@ -189,6 +190,7 @@ export default function SpeakingPage() {
       }
     } catch {
       // ignore
+      setAllQuestions(BASE_QUESTIONS);
     }
   }, []);
 
