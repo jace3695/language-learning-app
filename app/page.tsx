@@ -187,6 +187,8 @@ export default function HomePage() {
   }, [completedIds, todayKey]);
 
   const completedCount = completedIds.length;
+  const progressPercent = Math.round((completedCount / todayRoutine.length) * 100);
+  const isAllCompleted = completedCount === todayRoutine.length;
 
   const toggleCompleted = (id: string) => {
     setCompletedIds((prev) =>
@@ -210,6 +212,49 @@ export default function HomePage() {
           <p className="muted" style={{ margin: "8px 0 0", fontWeight: 600 }}>
             오늘 완료 {completedCount} / {todayRoutine.length}
           </p>
+          <div style={{ margin: "10px auto 0", maxWidth: "420px", width: "100%" }}>
+            <div
+              aria-hidden="true"
+              style={{
+                width: "100%",
+                height: "9px",
+                borderRadius: "999px",
+                background: "#e5e7eb",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${progressPercent}%`,
+                  height: "100%",
+                  borderRadius: "999px",
+                  background: "#3b82f6",
+                  transition: "width 0.2s ease",
+                }}
+              />
+            </div>
+            <p className="muted" style={{ margin: "6px 0 0", fontSize: "12px" }}>
+              {progressPercent}% 완료
+            </p>
+          </div>
+          {isAllCompleted && (
+            <p
+              style={{
+                margin: "10px auto 0",
+                maxWidth: "420px",
+                width: "100%",
+                borderRadius: "10px",
+                border: "1px solid #86efac",
+                background: "#f0fdf4",
+                padding: "10px 12px",
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#166534",
+              }}
+            >
+              오늘 루틴을 모두 완료했어요! 잘했어요.
+            </p>
+          )}
         </div>
 
         <section className="card" style={{ padding: "14px", marginBottom: "14px" }}>
@@ -241,19 +286,33 @@ export default function HomePage() {
                   display: "grid",
                   gap: "10px",
                   padding: "14px",
-                  background: isCompleted ? "#f0fff4" : "var(--card)",
+                  background: isCompleted ? "#f0fdf4" : "var(--card)",
+                  border: isCompleted ? "1px solid #22c55e" : "1px solid var(--line)",
                 }}
               >
                 <div>
-                  <h2 style={{ fontSize: "17px", margin: "0 0 6px" }}>{item.title}</h2>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "6px" }}>
+                    <h2 style={{ fontSize: "17px", margin: 0 }}>{item.title}</h2>
+                    {isCompleted && (
+                      <span
+                        style={{
+                          borderRadius: "999px",
+                          border: "1px solid #22c55e",
+                          background: "#dcfce7",
+                          color: "#166534",
+                          padding: "3px 8px",
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        ✓ 완료됨
+                      </span>
+                    )}
+                  </div>
                   <p className="muted" style={{ margin: "0 0 8px" }}>
                     {item.desc}
                   </p>
-                  {isCompleted && (
-                    <p className="muted" style={{ margin: "0 0 8px", fontWeight: 700 }}>
-                      ✓ 완료됨
-                    </p>
-                  )}
                   <p className="muted" style={{ margin: 0, fontSize: "13px" }}>
                     예상 소요 시간: {item.duration}
                   </p>
@@ -280,13 +339,13 @@ export default function HomePage() {
                     type="button"
                     onClick={() => toggleCompleted(item.id)}
                     style={{
-                      border: "1px solid var(--line)",
+                      border: isCompleted ? "1px solid #16a34a" : "1px solid #94a3b8",
                       borderRadius: "8px",
                       padding: "8px 12px",
                       fontSize: "14px",
                       fontWeight: 600,
-                      color: "inherit",
-                      background: isCompleted ? "#dcfce7" : "var(--card)",
+                      color: isCompleted ? "#166534" : "#1f2937",
+                      background: isCompleted ? "#dcfce7" : "#ffffff",
                       cursor: "pointer",
                     }}
                   >
