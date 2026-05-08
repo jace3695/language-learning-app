@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getLocalDateKey } from "@/utils/dateKey";
+import {
+  getTodayRoutineCompletedIds,
+  saveTodayRoutineCompletedIds,
+} from "@/utils/dailyRoutineProgress";
 
 type RoutineItem = {
   id: string;
@@ -75,23 +79,6 @@ const practicalPractice: RoutineItem[] = [
   },
 ];
 
-const DAILY_ROUTINE_STORAGE_KEY = "dailyRoutineProgress";
-const DAILY_LEARNING_HISTORY_STORAGE_KEY = "dailyLearningHistory";
-
-type DailyRoutineStorage = {
-  date: string;
-  completedIds: string[];
-};
-
-type DailyLearningHistoryItem = {
-  completedIds: string[];
-  completedCount: number;
-  totalCount: number;
-  updatedAt: string;
-};
-
-type DailyLearningHistoryStorage = Record<string, DailyLearningHistoryItem>;
-
 type RecommendationState = {
   hasGrammarWrong: boolean;
   hasReviewItems: boolean;
@@ -119,26 +106,8 @@ export default function HomePage() {
     if (typeof window === "undefined") return;
 
     try {
-      const raw = window.localStorage.getItem(DAILY_ROUTINE_STORAGE_KEY);
-      if (!raw) {
-        setCompletedIds([]);
-      } else {
-        const parsed: unknown = JSON.parse(raw);
-        const isValidObject = typeof parsed === "object" && parsed !== null;
-        const parsedDate = isValidObject && "date" in parsed ? (parsed as { date?: unknown }).date : null;
-        const parsedIds =
-          isValidObject && "completedIds" in parsed
-            ? (parsed as { completedIds?: unknown }).completedIds
-            : null;
-
-        if (parsedDate === todayKey && Array.isArray(parsedIds)) {
-          setCompletedIds(getSafeCompletedIds(parsedIds));
-        } else {
-          // 오늘 데이터가 없으면 메모리 상태만 초기화합니다.
-          // 실제 저장은 사용자가 완료 상태를 변경할 때에만 갱신합니다.
-          setCompletedIds([]);
-        }
-      }
+      const todayCompletedIds = getTodayRoutineCompletedIds(todayKey);
+      setCompletedIds(getSafeCompletedIds(todayCompletedIds));
 
       const grammarProgressRaw = window.localStorage.getItem("grammarProgress");
       const wrongKanaRaw = window.localStorage.getItem("wrongKana");
@@ -189,29 +158,7 @@ export default function HomePage() {
     if (!hasLoadedRoutine) return;
 
     const safeCompletedIds = Array.from(new Set(getSafeCompletedIds(completedIds)));
-    const data: DailyRoutineStorage = {
-      date: todayKey,
-      completedIds: safeCompletedIds,
-    };
-    window.localStorage.setItem(DAILY_ROUTINE_STORAGE_KEY, JSON.stringify(data));
-
-    try {
-      const historyRaw = window.localStorage.getItem(DAILY_LEARNING_HISTORY_STORAGE_KEY);
-      const parsedHistory: unknown = historyRaw ? JSON.parse(historyRaw) : {};
-      const safeHistory: DailyLearningHistoryStorage =
-        typeof parsedHistory === "object" && parsedHistory !== null ? { ...(parsedHistory as DailyLearningHistoryStorage) } : {};
-
-      safeHistory[todayKey] = {
-        completedIds: safeCompletedIds,
-        completedCount: safeCompletedIds.length,
-        totalCount: todayRoutine.length,
-        updatedAt: new Date().toISOString(),
-      };
-
-      window.localStorage.setItem(DAILY_LEARNING_HISTORY_STORAGE_KEY, JSON.stringify(safeHistory));
-    } catch {
-      // localStorage가 손상된 경우에도 홈 루틴 동작은 유지합니다.
-    }
+    saveTodayRoutineCompletedIds(todayKey, safeCompletedIds, todayRoutine.length);
   }, [completedIds, hasLoadedRoutine, todayKey]);
 
   const completedCount = completedIds.length;
