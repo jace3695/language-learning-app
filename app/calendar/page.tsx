@@ -39,6 +39,29 @@ const parseDateKey = (dateKey: string) => {
 const isSameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
+const getCompletedCount = (entry?: DailyLearningHistoryItem) => {
+  if (!entry) return 0;
+
+  const countFromField = Number.isFinite(entry.completedCount) ? entry.completedCount : 0;
+  const countFromIds = getSafeCompletedIds(entry.completedIds).length;
+
+  return Math.max(countFromField, countFromIds, 0);
+};
+
+const getDayVisual = (completedCount: number) => {
+  if (completedCount >= 5) {
+    return { background: "#bbf7d0", tone: "#14532d", label: "5/5" };
+  }
+  if (completedCount >= 3) {
+    return { background: "#dcfce7", tone: "#166534", label: `${Math.min(completedCount, 5)}/5` };
+  }
+  if (completedCount >= 1) {
+    return { background: "#f0fdf4", tone: "#15803d", label: `${Math.min(completedCount, 5)}/5` };
+  }
+
+  return { background: "#ffffff", tone: "#6b7280", label: "" };
+};
+
 const getStreakDays = (history: DailyLearningHistoryStorage, today: Date) => {
   let streak = 0;
   const cursor = new Date(today);
@@ -121,7 +144,7 @@ export default function CalendarPage() {
 
     return Object.entries(history).reduce(
       (acc, [dateKey, entry]) => {
-        if (!entry || entry.completedCount <= 0) return acc;
+        if (!entry || getCompletedCount(entry) <= 0) return acc;
 
         const date = parseDateKey(dateKey);
         if (!date) return acc;
@@ -129,7 +152,7 @@ export default function CalendarPage() {
 
         return {
           learnedDays: acc.learnedDays + 1,
-          totalCompletedRoutines: acc.totalCompletedRoutines + entry.completedCount,
+          totalCompletedRoutines: acc.totalCompletedRoutines + getCompletedCount(entry),
         };
       },
       { learnedDays: 0, totalCompletedRoutines: 0 },
@@ -138,7 +161,8 @@ export default function CalendarPage() {
 
   const streakDays = useMemo(() => getStreakDays(history, today), [history, today]);
   const todayEntry = history[toDateKey(today)];
-  const todayRate = todayEntry ? Math.round((todayEntry.completedCount / Math.max(todayEntry.totalCount, 1)) * 100) : 0;
+  const todayCompletedCount = getCompletedCount(todayEntry);
+  const todayRate = todayEntry ? Math.round((todayCompletedCount / Math.max(todayEntry.totalCount, 1)) * 100) : 0;
 
   const moveMonth = (diff: number) => {
     const nextMonthDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + diff, 1);
@@ -194,9 +218,14 @@ export default function CalendarPage() {
 
             const dateKey = toDateKey(day);
             const entry = history[dateKey];
-            const isLearned = !!entry && entry.completedCount > 0;
+            const completedCount = getCompletedCount(entry);
             const isToday = isSameDay(day, today);
             const isSelected = selectedDateKey === dateKey;
+            const visual = getDayVisual(completedCount);
+            const baseBorder = isSelected ? "2px solid #2563eb" : "1px solid #d1d5db";
+            const todayShadow = isToday
+              ? "inset 0 0 0 1px rgba(37, 99, 235, 0.35), 0 0 0 1px rgba(37, 99, 235, 0.2)"
+              : "none";
 
             return (
               <button
@@ -206,14 +235,24 @@ export default function CalendarPage() {
                 style={{
                   minHeight: "62px",
                   borderRadius: "10px",
-                  border: isSelected ? "2px solid #2563eb" : "1px solid #d1d5db",
-                  background: isLearned ? "#dcfce7" : "#ffffff",
+                  border: baseBorder,
+                  background: visual.background,
                   color: "#111827",
                   fontWeight: isToday ? 700 : 500,
+                  boxShadow: todayShadow,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "2px",
                 }}
               >
                 <div>{day.getDate()}</div>
-                {isLearned && <div style={{ fontSize: "11px", color: "#166534" }}>학습</div>}
+                {visual.label && (
+                  <div style={{ fontSize: "11px", color: visual.tone, fontWeight: 600 }}>
+                    {visual.label}
+                  </div>
+                )}
               </button>
             );
           })}
