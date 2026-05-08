@@ -140,6 +140,18 @@ export default function CalendarPage() {
   const todayEntry = history[toDateKey(today)];
   const todayRate = todayEntry ? Math.round((todayEntry.completedCount / Math.max(todayEntry.totalCount, 1)) * 100) : 0;
 
+  const moveMonth = (diff: number) => {
+    const nextMonthDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + diff, 1);
+    setViewDate(nextMonthDate);
+    setSelectedDateKey(toDateKey(nextMonthDate));
+  };
+
+  const moveToCurrentMonth = () => {
+    const currentMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    setViewDate(currentMonthDate);
+    setSelectedDateKey(toDateKey(today));
+  };
+
   const selectedEntry = history[selectedDateKey];
   const selectedCompletedIds = getSafeCompletedIds(selectedEntry?.completedIds);
   const selectedDateLabel = selectedDateKey.replaceAll("-", ".");
@@ -162,11 +174,11 @@ export default function CalendarPage() {
 
       <section className="card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", gap: "8px", flexWrap: "wrap" }}>
-          <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}>이전 달</button>
+          <button type="button" onClick={() => moveMonth(-1)}>이전 달</button>
           <h2 style={{ margin: 0 }}>{viewDate.getFullYear()}년 {viewDate.getMonth() + 1}월</h2>
           <div style={{ display: "flex", gap: "6px" }}>
-            <button type="button" onClick={() => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))}>이번 달</button>
-            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}>다음 달</button>
+            <button type="button" onClick={moveToCurrentMonth}>이번 달</button>
+            <button type="button" onClick={() => moveMonth(1)}>다음 달</button>
           </div>
         </div>
 
