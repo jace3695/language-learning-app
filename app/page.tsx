@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getLocalDateKey } from "@/utils/dateKey";
 
 type RoutineItem = {
   id: string;
@@ -96,13 +97,6 @@ type RecommendationState = {
   hasReviewItems: boolean;
 };
 
-const getTodayKey = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
 
 const getArrayLength = (value: unknown) => (Array.isArray(value) ? value.length : 0);
 const getSafeCompletedIds = (value: unknown) => {
@@ -118,7 +112,7 @@ export default function HomePage() {
     hasGrammarWrong: false,
     hasReviewItems: false,
   });
-  const todayKey = useMemo(() => getTodayKey(), []);
+  const todayKey = useMemo(() => getLocalDateKey(), []);
   const hasLoadedRoutineRef = useRef(false);
 
   useEffect(() => {
@@ -138,9 +132,10 @@ export default function HomePage() {
             : null;
 
         if (parsedDate === todayKey && Array.isArray(parsedIds)) {
-          const validIds = getSafeCompletedIds(parsedIds);
-          setCompletedIds(validIds);
+          setCompletedIds(getSafeCompletedIds(parsedIds));
         } else {
+          // 오늘 데이터가 없으면 메모리 상태만 초기화합니다.
+          // 실제 저장은 사용자가 완료 상태를 변경할 때에만 갱신합니다.
           setCompletedIds([]);
         }
       }
@@ -193,9 +188,10 @@ export default function HomePage() {
     if (typeof window === "undefined") return;
     if (!hasLoadedRoutineRef.current) return;
 
+    const safeCompletedIds = Array.from(new Set(getSafeCompletedIds(completedIds)));
     const data: DailyRoutineStorage = {
       date: todayKey,
-      completedIds,
+      completedIds: safeCompletedIds,
     };
     window.localStorage.setItem(DAILY_ROUTINE_STORAGE_KEY, JSON.stringify(data));
 
@@ -205,7 +201,6 @@ export default function HomePage() {
       const safeHistory: DailyLearningHistoryStorage =
         typeof parsedHistory === "object" && parsedHistory !== null ? { ...(parsedHistory as DailyLearningHistoryStorage) } : {};
 
-      const safeCompletedIds = getSafeCompletedIds(completedIds);
       safeHistory[todayKey] = {
         completedIds: safeCompletedIds,
         completedCount: safeCompletedIds.length,

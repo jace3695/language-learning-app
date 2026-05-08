@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getLocalDateKey } from "@/utils/dateKey";
 
 const DAILY_LEARNING_HISTORY_STORAGE_KEY = "dailyLearningHistory";
 
@@ -23,12 +24,7 @@ const routineLabelMap: Record<string, string> = {
   review: "복습",
 };
 
-const toDateKey = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
+const toDateKey = getLocalDateKey;
 
 const parseDateKey = (dateKey: string) => {
   const [year, month, day] = dateKey.split("-").map(Number);
@@ -84,17 +80,33 @@ export default function CalendarPage() {
   const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDateKey, setSelectedDateKey] = useState(toDateKey(today));
 
-  const history = useMemo<DailyLearningHistoryStorage>(() => {
-    if (typeof window === "undefined") return {};
+  const [history, setHistory] = useState<DailyLearningHistoryStorage>({});
 
-    try {
-      const raw = window.localStorage.getItem(DAILY_LEARNING_HISTORY_STORAGE_KEY);
-      if (!raw) return {};
-      const parsed: unknown = JSON.parse(raw);
-      return typeof parsed === "object" && parsed !== null ? (parsed as DailyLearningHistoryStorage) : {};
-    } catch {
-      return {};
-    }
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const loadHistory = () => {
+      try {
+        const raw = window.localStorage.getItem(DAILY_LEARNING_HISTORY_STORAGE_KEY);
+        if (!raw) {
+          setHistory({});
+          return;
+        }
+        const parsed: unknown = JSON.parse(raw);
+        setHistory(typeof parsed === "object" && parsed !== null ? (parsed as DailyLearningHistoryStorage) : {});
+      } catch {
+        setHistory({});
+      }
+    };
+
+    loadHistory();
+    window.addEventListener("storage", loadHistory);
+    window.addEventListener("focus", loadHistory);
+
+    return () => {
+      window.removeEventListener("storage", loadHistory);
+      window.removeEventListener("focus", loadHistory);
+    };
   }, []);
 
   const calendarDays = useMemo(() => getMonthDays(viewDate), [viewDate]);
