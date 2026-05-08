@@ -297,9 +297,37 @@ export default function CalendarPage() {
         )}
 
         {isSelectedToday && (
-          <div style={{ marginTop: "12px" }}>
-            <Link href="/">
-              <button type="button">[홈]에서 오늘 루틴 이어서 하기</button>
+          <div
+            style={{
+              marginTop: "14px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "10px",
+              flexWrap: "wrap",
+              borderTop: "1px solid #e5e7eb",
+              paddingTop: "12px",
+            }}
+          >
+            <p className="muted" style={{ margin: 0 }}>
+              오늘 기록을 확인했으면 [홈]으로 돌아가 남은 루틴을 이어서 진행해 보세요.
+            </p>
+            <Link
+              href="/"
+              style={{
+                display: "inline-block",
+                textDecoration: "none",
+                border: "1px solid #86efac",
+                borderRadius: "8px",
+                padding: "8px 12px",
+                fontSize: "14px",
+                fontWeight: 700,
+                color: "#166534",
+                background: "#f0fdf4",
+                whiteSpace: "nowrap",
+              }}
+            >
+              홈으로 돌아가 오늘 루틴 하기
             </Link>
           </div>
         )}

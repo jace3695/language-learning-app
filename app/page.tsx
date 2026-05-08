@@ -387,24 +387,42 @@ export default function HomePage() {
 
         <section className="card" style={{ padding: "14px", marginBottom: "20px" }}>
           <p className="muted" style={{ margin: "0 0 10px" }}>
-            오늘 학습 상태는 [진도]에서 자세히 볼 수 있어요.
+            오늘 학습 상태는 [진도]와 [달력]에서 자세히 확인할 수 있어요.
           </p>
-          <Link
-            href="/progress"
-            style={{
-              display: "inline-block",
-              textDecoration: "none",
-              border: "1px solid var(--line)",
-              borderRadius: "8px",
-              padding: "8px 12px",
-              fontSize: "14px",
-              fontWeight: 600,
-              color: "inherit",
-              background: "var(--card)",
-            }}
-          >
-            진도 보기
-          </Link>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <Link
+              href="/progress"
+              style={{
+                display: "inline-block",
+                textDecoration: "none",
+                border: "1px solid var(--line)",
+                borderRadius: "8px",
+                padding: "8px 12px",
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "inherit",
+                background: "var(--card)",
+              }}
+            >
+              진도 보기
+            </Link>
+            <Link
+              href="/calendar"
+              style={{
+                display: "inline-block",
+                textDecoration: "none",
+                border: "1px solid #93c5fd",
+                borderRadius: "8px",
+                padding: "8px 12px",
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#1d4ed8",
+                background: "#eff6ff",
+              }}
+            >
+              달력 보기
+            </Link>
+          </div>
         </section>
 
         <section style={{ marginTop: "8px" }}>
