@@ -21,17 +21,17 @@ export const metadata: Metadata = {
 
 const navItems = [
   { href: "/", label: "홈" },
+  { href: "/kana", label: "가나" },
   { href: "/words", label: "단어" },
   { href: "/sentences", label: "문장" },
   { href: "/grammar", label: "문법" },
+  { href: "/review", label: "복습" },
+  { href: "/progress", label: "진도" },
+  { href: "/calendar", label: "달력" },
   { href: "/writing", label: "쓰기" },
   { href: "/conversation", label: "AI 회화" },
-  { href: "/kana", label: "가나" },
-  { href: "/review", label: "복습" },
   { href: "/speaking", label: "말하기" },
-  { href: "/calendar", label: "달력" },
   { href: "/settings", label: "설정" },
-  { href: "/progress", label: "진도" },
 ];
 
 export default function RootLayout({
