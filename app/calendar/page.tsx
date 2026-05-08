@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getLocalDateKey } from "@/utils/dateKey";
 
@@ -24,6 +25,9 @@ const routineLabelMap: Record<string, string> = {
   review: "복습",
 };
 
+
+
+const routineOrder = ["kana", "words", "sentences", "grammar", "review"] as const;
 const toDateKey = getLocalDateKey;
 
 const parseDateKey = (dateKey: string) => {
@@ -178,7 +182,12 @@ export default function CalendarPage() {
 
   const selectedEntry = history[selectedDateKey];
   const selectedCompletedIds = getSafeCompletedIds(selectedEntry?.completedIds);
+  const selectedCompletedIdSet = new Set(selectedCompletedIds);
+  const completedRoutines = routineOrder.filter((id) => selectedCompletedIdSet.has(id));
+  const incompletedRoutines = routineOrder.filter((id) => !selectedCompletedIdSet.has(id));
+  const hasLearningRecord = Boolean(selectedEntry && selectedCompletedIds.length > 0);
   const selectedDateLabel = selectedDateKey.replaceAll("-", ".");
+  const isSelectedToday = selectedDateKey === toDateKey(today);
 
   return (
     <section>
@@ -260,15 +269,39 @@ export default function CalendarPage() {
       </section>
 
       <section className="card" style={{ marginTop: "12px" }}>
-        <h2 style={{ marginTop: 0 }}>{selectedDateLabel} 완료 루틴</h2>
-        {!selectedEntry || selectedCompletedIds.length === 0 ? (
-          <p className="muted" style={{ marginBottom: 0 }}>완료한 루틴이 없습니다.</p>
+        <h2 style={{ marginTop: 0, marginBottom: "12px" }}>{selectedDateLabel} 학습 상세</h2>
+
+        {!hasLearningRecord ? (
+          <p className="muted" style={{ marginTop: 0, marginBottom: isSelectedToday ? "12px" : 0 }}>
+            이 날짜에는 완료된 학습 기록이 없습니다.
+          </p>
         ) : (
-          <ul style={{ margin: 0, paddingLeft: "18px" }}>
-            {selectedCompletedIds.map((id) => (
-              <li key={id}>{routineLabelMap[id] ?? id}</li>
-            ))}
-          </ul>
+          <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+            <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: "10px", padding: "10px" }}>
+              <h3 style={{ margin: "0 0 8px", fontSize: "14px", color: "#166534" }}>완료 루틴</h3>
+              <ul style={{ margin: 0, paddingLeft: "18px" }}>
+                {completedRoutines.map((id) => (
+                  <li key={id}>{routineLabelMap[id] ?? id}</li>
+                ))}
+              </ul>
+            </div>
+            <div style={{ border: "1px solid #e5e7eb", background: "#f9fafb", borderRadius: "10px", padding: "10px" }}>
+              <h3 style={{ margin: "0 0 8px", fontSize: "14px", color: "#4b5563" }}>미완료 루틴</h3>
+              <ul style={{ margin: 0, paddingLeft: "18px" }}>
+                {incompletedRoutines.map((id) => (
+                  <li key={id}>{routineLabelMap[id] ?? id}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {isSelectedToday && (
+          <div style={{ marginTop: "12px" }}>
+            <Link href="/">
+              <button type="button">[홈]에서 오늘 루틴 이어서 하기</button>
+            </Link>
+          </div>
         )}
       </section>
     </section>
