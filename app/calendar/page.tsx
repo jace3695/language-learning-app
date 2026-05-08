@@ -73,7 +73,7 @@ const getStreakDays = (history: DailyLearningHistoryStorage, today: Date) => {
   while (true) {
     const key = toDateKey(cursor);
     const entry = history[key];
-    if (!entry || entry.completedCount <= 0) break;
+    if (!entry || getCompletedCount(entry) <= 0) break;
 
     streak += 1;
     cursor.setDate(cursor.getDate() - 1);
@@ -166,7 +166,10 @@ export default function CalendarPage() {
   const streakDays = useMemo(() => getStreakDays(history, today), [history, today]);
   const todayEntry = history[toDateKey(today)];
   const todayCompletedCount = getCompletedCount(todayEntry);
-  const todayRate = todayEntry ? Math.round((todayCompletedCount / Math.max(todayEntry.totalCount, 1)) * 100) : 0;
+  const todayTotalCount = Number.isFinite(todayEntry?.totalCount) && (todayEntry?.totalCount ?? 0) > 0
+    ? (todayEntry?.totalCount as number)
+    : routineOrder.length;
+  const todayRate = todayEntry ? Math.round((todayCompletedCount / Math.max(todayTotalCount, 1)) * 100) : 0;
 
   const moveMonth = (diff: number) => {
     const nextMonthDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + diff, 1);
