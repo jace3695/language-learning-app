@@ -12,6 +12,8 @@ type DailyLearningHistoryItem = {
 };
 
 type DailyLearningHistoryStorage = Record<string, DailyLearningHistoryItem>;
+const getSafeCompletedIds = (value: unknown) =>
+  Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : [];
 
 const routineLabelMap: Record<string, string> = {
   kana: "가나",
@@ -112,6 +114,7 @@ export default function CalendarPage() {
   const todayRate = todayEntry ? Math.round((todayEntry.completedCount / Math.max(todayEntry.totalCount, 1)) * 100) : 0;
 
   const selectedEntry = history[selectedDateKey];
+  const selectedCompletedIds = getSafeCompletedIds(selectedEntry?.completedIds);
   const selectedDateLabel = selectedDateKey.replaceAll("-", ".");
 
   return (
@@ -179,11 +182,11 @@ export default function CalendarPage() {
 
       <section className="card" style={{ marginTop: "12px" }}>
         <h2 style={{ marginTop: 0 }}>{selectedDateLabel} 완료 루틴</h2>
-        {!selectedEntry || selectedEntry.completedIds.length === 0 ? (
+        {!selectedEntry || selectedCompletedIds.length === 0 ? (
           <p className="muted" style={{ marginBottom: 0 }}>완료한 루틴이 없습니다.</p>
         ) : (
           <ul style={{ margin: 0, paddingLeft: "18px" }}>
-            {selectedEntry.completedIds.map((id) => (
+            {selectedCompletedIds.map((id) => (
               <li key={id}>{routineLabelMap[id] ?? id}</li>
             ))}
           </ul>

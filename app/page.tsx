@@ -105,6 +105,12 @@ const getTodayKey = () => {
 };
 
 const getArrayLength = (value: unknown) => (Array.isArray(value) ? value.length : 0);
+const getSafeCompletedIds = (value: unknown) => {
+  if (!Array.isArray(value)) return [];
+  return todayRoutine
+    .map((item) => item.id)
+    .filter((id) => value.includes(id));
+};
 
 export default function HomePage() {
   const [completedIds, setCompletedIds] = useState<string[]>([]);
@@ -132,9 +138,7 @@ export default function HomePage() {
             : null;
 
         if (parsedDate === todayKey && Array.isArray(parsedIds)) {
-          const validIds = parsedIds.filter(
-            (id): id is string => typeof id === "string" && todayRoutine.some((item) => item.id === id),
-          );
+          const validIds = getSafeCompletedIds(parsedIds);
           setCompletedIds(validIds);
         } else {
           setCompletedIds([]);
@@ -201,9 +205,10 @@ export default function HomePage() {
       const safeHistory: DailyLearningHistoryStorage =
         typeof parsedHistory === "object" && parsedHistory !== null ? { ...(parsedHistory as DailyLearningHistoryStorage) } : {};
 
+      const safeCompletedIds = getSafeCompletedIds(completedIds);
       safeHistory[todayKey] = {
-        completedIds: [...completedIds],
-        completedCount: completedIds.length,
+        completedIds: safeCompletedIds,
+        completedCount: safeCompletedIds.length,
         totalCount: todayRoutine.length,
         updatedAt: new Date().toISOString(),
       };
