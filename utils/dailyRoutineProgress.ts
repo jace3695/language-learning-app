@@ -30,7 +30,7 @@ const normalizeCompletedIds = (value: unknown) => {
   return Array.from(new Set(value.filter(isRoutineId)));
 };
 
-const getTodayCompletedIds = (todayKey: string) => {
+export const getTodayRoutineCompletedIds = (todayKey: string) => {
   const raw = window.localStorage.getItem(DAILY_ROUTINE_STORAGE_KEY);
   if (!raw) return [];
 
@@ -49,7 +49,11 @@ const getTodayCompletedIds = (todayKey: string) => {
   }
 };
 
-const saveDailyRoutineProgress = (todayKey: string, completedIds: string[]) => {
+export const saveTodayRoutineCompletedIds = (
+  todayKey: string,
+  completedIds: string[],
+  totalCount: number = TOTAL_ROUTINE_COUNT,
+) => {
   const safeCompletedIds = normalizeCompletedIds(completedIds);
 
   const routineData: DailyRoutineStorage = {
@@ -69,7 +73,7 @@ const saveDailyRoutineProgress = (todayKey: string, completedIds: string[]) => {
     safeHistory[todayKey] = {
       completedIds: safeCompletedIds,
       completedCount: safeCompletedIds.length,
-      totalCount: TOTAL_ROUTINE_COUNT,
+      totalCount,
       updatedAt: new Date().toISOString(),
     };
 
@@ -83,8 +87,8 @@ export const markTodayRoutineCompleted = (routineId: RoutineId) => {
   if (typeof window === "undefined") return;
 
   const todayKey = getLocalDateKey();
-  const completedIds = getTodayCompletedIds(todayKey);
+  const completedIds = getTodayRoutineCompletedIds(todayKey);
   if (completedIds.includes(routineId)) return;
 
-  saveDailyRoutineProgress(todayKey, [...completedIds, routineId]);
+  saveTodayRoutineCompletedIds(todayKey, [...completedIds, routineId]);
 };
