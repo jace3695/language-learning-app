@@ -28,7 +28,12 @@ const toDateKey = getLocalDateKey;
 
 const parseDateKey = (dateKey: string) => {
   const [year, month, day] = dateKey.split("-").map(Number);
-  return new Date(year, (month ?? 1) - 1, day ?? 1);
+  if (!year || !month || !day) return null;
+
+  const date = new Date(year, month - 1, day);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date;
 };
 
 const isSameDay = (a: Date, b: Date) =>
@@ -110,15 +115,25 @@ export default function CalendarPage() {
   }, []);
 
   const calendarDays = useMemo(() => getMonthDays(viewDate), [viewDate]);
-  const currentMonthLearnedDays = useMemo(() => {
+  const monthStats = useMemo(() => {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
 
-    return Object.entries(history).filter(([dateKey, entry]) => {
-      if (!entry || entry.completedCount <= 0) return false;
-      const date = parseDateKey(dateKey);
-      return date.getFullYear() === year && date.getMonth() === month;
-    }).length;
+    return Object.entries(history).reduce(
+      (acc, [dateKey, entry]) => {
+        if (!entry || entry.completedCount <= 0) return acc;
+
+        const date = parseDateKey(dateKey);
+        if (!date) return acc;
+        if (date.getFullYear() !== year || date.getMonth() !== month) return acc;
+
+        return {
+          learnedDays: acc.learnedDays + 1,
+          totalCompletedRoutines: acc.totalCompletedRoutines + entry.completedCount,
+        };
+      },
+      { learnedDays: 0, totalCompletedRoutines: 0 },
+    );
   }, [history, viewDate]);
 
   const streakDays = useMemo(() => getStreakDays(history, today), [history, today]);
@@ -139,7 +154,8 @@ export default function CalendarPage() {
       <section className="card" style={{ marginBottom: "12px" }}>
         <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
           <div><strong>연속 학습일</strong><div>{streakDays}일</div></div>
-          <div><strong>이번 달 학습일</strong><div>{currentMonthLearnedDays}일</div></div>
+          <div><strong>이번 달 학습일</strong><div>{monthStats.learnedDays}일</div></div>
+          <div><strong>이번 달 총 완료 루틴</strong><div>{monthStats.totalCompletedRoutines}개</div></div>
           <div><strong>오늘 완료율</strong><div>{todayRate}%</div></div>
         </div>
       </section>
