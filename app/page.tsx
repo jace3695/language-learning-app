@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getLocalDateKey } from "@/utils/dateKey";
 
 type RoutineItem = {
@@ -113,7 +113,7 @@ export default function HomePage() {
     hasReviewItems: false,
   });
   const todayKey = useMemo(() => getLocalDateKey(), []);
-  const hasLoadedRoutineRef = useRef(false);
+  const [hasLoadedRoutine, setHasLoadedRoutine] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -180,13 +180,13 @@ export default function HomePage() {
       setCompletedIds([]);
       setRecommendation({ hasGrammarWrong: false, hasReviewItems: false });
     } finally {
-      hasLoadedRoutineRef.current = true;
+      setHasLoadedRoutine(true);
     }
   }, [todayKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!hasLoadedRoutineRef.current) return;
+    if (!hasLoadedRoutine) return;
 
     const safeCompletedIds = Array.from(new Set(getSafeCompletedIds(completedIds)));
     const data: DailyRoutineStorage = {
@@ -212,7 +212,7 @@ export default function HomePage() {
     } catch {
       // localStorage가 손상된 경우에도 홈 루틴 동작은 유지합니다.
     }
-  }, [completedIds, todayKey]);
+  }, [completedIds, hasLoadedRoutine, todayKey]);
 
   const completedCount = completedIds.length;
   const progressPercent = Math.round((completedCount / todayRoutine.length) * 100);
