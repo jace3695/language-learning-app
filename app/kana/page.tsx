@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 
 const hiragana = [
   { char: "あ", roman: "a" }, { char: "い", roman: "i" }, { char: "う", roman: "u" }, { char: "え", roman: "e" }, { char: "お", roman: "o" },
@@ -1835,10 +1836,16 @@ export default function KanaPage() {
     if (selected !== null) return;
     setSelected(choice);
     const isCorrect = choice === quiz.question.roman;
-    setScore((prev) => ({
-      correct: prev.correct + (isCorrect ? 1 : 0),
-      total: prev.total + 1,
-    }));
+    setScore((prev) => {
+      const nextTotal = prev.total + 1;
+      if (nextTotal >= 5) {
+        markTodayRoutineCompleted("kana");
+      }
+      return {
+        correct: prev.correct + (isCorrect ? 1 : 0),
+        total: nextTotal,
+      };
+    });
     if (!isCorrect) {
       saveWrongKana(quiz.question.char, quiz.question.roman, tab, "quiz");
       setWrongKanaChars((prev) => new Set(prev).add(quiz.question.char));
