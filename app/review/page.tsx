@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from "@/data/grammar";
+import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 
 type Word = {
   word: string;
@@ -93,6 +94,8 @@ export default function ReviewPage() {
   const [wrongKanaChars, setWrongKanaChars] = useState<string[]>([]);
   const [wrongWords, setWrongWords] = useState<WrongItem[]>([]);
   const [wrongSentences, setWrongSentences] = useState<WrongItem[]>([]);
+  const [reviewedItemIds, setReviewedItemIds] = useState<string[]>([]);
+  const hasMarkedReviewCompletedRef = useRef(false);
 
   useEffect(() => {
     const words = loadArray<Word>(WORDS_KEY);
@@ -132,6 +135,18 @@ export default function ReviewPage() {
     const next = savedSentences.filter((x) => x.japanese !== s.japanese);
     setSavedSentences(next);
     localStorage.setItem(SENTENCES_KEY, JSON.stringify(next));
+  };
+
+  const trackReviewAction = (itemId: string) => {
+    setReviewedItemIds((prev) => {
+      if (prev.includes(itemId)) return prev;
+      const next = [...prev, itemId];
+      if (next.length >= 3 && !hasMarkedReviewCompletedRef.current) {
+        markTodayRoutineCompleted("review");
+        hasMarkedReviewCompletedRef.current = true;
+      }
+      return next;
+    });
   };
 
   const showWords = activeReviewTab === "all" || activeReviewTab === "words";
@@ -189,13 +204,13 @@ export default function ReviewPage() {
           {savedWords.length === 0 ? <div className="empty-state">저장한 단어가 없습니다. <Link href="/words">[단어]</Link>에서 단어를 저장해 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {savedWords.map((w) => (
-                <li key={w.word} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word" }}>
+                <li key={w.word} className="card" onClick={() => trackReviewAction(`saved-word:${w.word}`)} style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word" }}>
                   <div className="card-top"><div className="jp-text">{w.word}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{w.category}</span>{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)] && <span className="badge">{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)]}</span>}</div></div>
                   <div style={{ marginTop: "12px" }}><div className="label">뜻</div><div>{w.meaning}</div></div>
                   <div style={{ marginTop: "10px" }}><div className="label">예문</div><div style={{ color: "#555" }}>{w.example}</div></div>
                   <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     <Link href={`/sentences?word=${encodeURIComponent(w.sentenceKeyword || w.word)}`} className="btn">관련 문장 보기</Link>
-                    <button onClick={() => handleDeleteWord(w)} className="btn btn-danger">삭제</button>
+                    <button onClick={(event) => { event.stopPropagation(); handleDeleteWord(w); }} className="btn btn-danger">삭제</button>
                   </div>
                 </li>
               ))}
@@ -205,7 +220,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>틀린 단어</h2><span className="count">{wrongWords.length}개</span></div>
           {wrongWords.length === 0 ? <div className="empty-state">틀린 단어가 없습니다.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongWords.map((item, idx) => <li key={`ww-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}>{renderWrongItem(item)}</li>)}
+              {wrongWords.map((item, idx) => <li key={`ww-${idx}`} className="card" onClick={() => trackReviewAction(`wrong-word:${renderWrongItem(item)}:${idx}`)} style={{ marginBottom: "10px", overflowWrap: "anywhere" }}>{renderWrongItem(item)}</li>)}
             </ul>
           )}
         </>
@@ -217,13 +232,13 @@ export default function ReviewPage() {
           {savedSentences.length === 0 ? <div className="empty-state">저장한 문장이 없습니다. <Link href="/sentences">[문장]</Link>에서 문장을 저장해 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {savedSentences.map((s) => (
-                <li key={s.japanese} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word" }}>
+                <li key={s.japanese} className="card" onClick={() => trackReviewAction(`saved-sentence:${s.japanese}`)} style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word" }}>
                   <div className="card-top"><div className="jp-text">{s.japanese}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{s.category}</span>{s.pattern && <span className="badge">{sentencePatternLabels[s.pattern] ?? "기타"}</span>}</div></div>
                   <div style={{ marginTop: "12px" }}><div className="label">뜻</div><div>{s.meaning}</div></div>
                   <div style={{ marginTop: "10px" }}><div className="label">설명</div><div style={{ color: "#555" }}>{s.note}</div></div>
                   <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     <Link href="/sentences" className="btn">문장 다시 학습</Link>
-                    <button onClick={() => handleDeleteSentence(s)} className="btn btn-danger">삭제</button>
+                    <button onClick={(event) => { event.stopPropagation(); handleDeleteSentence(s); }} className="btn btn-danger">삭제</button>
                   </div>
                 </li>
               ))}
@@ -233,7 +248,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>틀린 문장</h2><span className="count">{wrongSentences.length}개</span></div>
           {wrongSentences.length === 0 ? <div className="empty-state">틀린 문장이 없습니다.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongSentences.map((item, idx) => <li key={`ws-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}>{renderWrongItem(item)}</li>)}
+              {wrongSentences.map((item, idx) => <li key={`ws-${idx}`} className="card" onClick={() => trackReviewAction(`wrong-sentence:${renderWrongItem(item)}:${idx}`)} style={{ marginBottom: "10px", overflowWrap: "anywhere" }}>{renderWrongItem(item)}</li>)}
             </ul>
           )}
         </>
@@ -245,7 +260,7 @@ export default function ReviewPage() {
           {grammarReviewItems.length === 0 ? <div className="empty-state">복습할 문법이 없습니다. <Link href="/grammar">[문법]</Link>에서 연습 문제를 풀어 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {grammarReviewItems.map((item) => (
-                <li key={item.lessonId} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere" }}>
+                <li key={item.lessonId} className="card" onClick={() => trackReviewAction(`grammar:${item.lessonId}`)} style={{ marginBottom: "14px", overflowWrap: "anywhere" }}>
                   <div className="card-top"><div className="jp-text">{item.title}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{item.category}</span><span className="badge">{item.pattern}</span></div></div>
                   <div style={{ marginTop: "10px", fontSize: "14px" }}>오답 {item.wrongCount}회 · 최근 결과: {item.lastResult === "correct" ? "정답" : "오답"}</div>
                   <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><Link href={`/grammar?lesson=${item.lessonId}`} className="btn">문법 다시 학습</Link></div>
@@ -261,13 +276,13 @@ export default function ReviewPage() {
           <div className="section-title"><h2>가나 복습</h2><span className="count">{wrongKana.length}개</span></div>
           {wrongKana.length === 0 ? <div className="empty-state">가나 오답이 없습니다. <Link href="/kana">[가나]</Link>에서 퀴즈를 풀어 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongKana.map((item, idx) => <li key={`wk-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}>{renderWrongItem(item)}</li>)}
+              {wrongKana.map((item, idx) => <li key={`wk-${idx}`} className="card" onClick={() => trackReviewAction(`wrong-kana:${renderWrongItem(item)}:${idx}`)} style={{ marginBottom: "10px", overflowWrap: "anywhere" }}>{renderWrongItem(item)}</li>)}
             </ul>
           )}
 
           <div className="section-title"><h2>헷갈린 글자</h2><span className="count">{wrongKanaChars.length}개</span></div>
           {wrongKanaChars.length === 0 ? <div className="empty-state">헷갈린 글자가 없습니다.</div> : (
-            <div className="card" style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px" }}>{wrongKanaChars.map((char, idx) => <span key={`kc-${char}-${idx}`} className="badge" style={{ fontSize: "18px" }}>{char}</span>)}</div>
+            <div className="card" style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px" }}>{wrongKanaChars.map((char, idx) => <button key={`kc-${char}-${idx}`} type="button" onClick={() => trackReviewAction(`kana-char:${char}`)} className="badge" style={{ fontSize: "18px", cursor: "pointer", border: "none" }}>{char}</button>)}</div>
           )}
 
           <div className="card-actions" style={{ justifyContent: "flex-end", marginBottom: "18px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
