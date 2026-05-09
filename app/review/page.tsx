@@ -61,6 +61,8 @@ const WRONG_WORDS_KEY = "wrongWords";
 const WRONG_SENTENCES_KEY = "wrongSentences";
 const REVIEW_COMPLETED_ITEMS_KEY = "reviewCompletedItemsByDate";
 
+type ReviewCompletedItemsByDate = Record<string, string[]>;
+
 function getTodayLocalDateKey(): string {
   const now = new Date();
   const year = now.getFullYear();
@@ -82,6 +84,38 @@ function loadArray<T>(key: string): T[] {
     return Array.isArray(parsed) ? (parsed as T[]) : [];
   } catch {
     return [];
+  }
+}
+
+function loadReviewCompletedItemsByDate(): ReviewCompletedItemsByDate {
+  try {
+    const raw = localStorage.getItem(REVIEW_COMPLETED_ITEMS_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+
+    if (Array.isArray(parsed)) {
+      const migrated: ReviewCompletedItemsByDate = {};
+      parsed.forEach((entry) => {
+        if (!entry || typeof entry !== "object") return;
+        const date = typeof (entry as { date?: unknown }).date === "string" ? (entry as { date: string }).date : "";
+        const items = Array.isArray((entry as { items?: unknown }).items)
+          ? (entry as { items: unknown[] }).items.filter((item): item is string => typeof item === "string")
+          : [];
+        if (!date) return;
+        migrated[date] = Array.from(new Set(items));
+      });
+      return migrated;
+    }
+
+    if (!parsed || typeof parsed !== "object") return {};
+
+    return Object.entries(parsed as Record<string, unknown>).reduce<ReviewCompletedItemsByDate>((acc, [date, items]) => {
+      if (!Array.isArray(items)) return acc;
+      acc[date] = Array.from(new Set(items.filter((item): item is string => typeof item === "string")));
+      return acc;
+    }, {});
+  } catch {
+    return {};
   }
 }
 
@@ -116,6 +150,7 @@ export default function ReviewPage() {
   const [wrongWords, setWrongWords] = useState<WrongItem[]>([]);
   const [wrongSentences, setWrongSentences] = useState<WrongItem[]>([]);
   const [reviewedItemIds, setReviewedItemIds] = useState<string[]>([]);
+  const [isReviewStateHydrated, setIsReviewStateHydrated] = useState(false);
   const hasMarkedReviewCompletedRef = useRef(false);
 
   useEffect(() => {
@@ -139,26 +174,23 @@ export default function ReviewPage() {
     setWrongSentences(wSentences);
 
     const dateKey = getTodayLocalDateKey();
-    const completedByDate = loadArray<Record<string, unknown>>(REVIEW_COMPLETED_ITEMS_KEY);
-    const todayEntry = completedByDate.find((entry) => entry && entry.date === dateKey);
-    const todayItems = Array.isArray(todayEntry?.items)
-      ? todayEntry.items.filter((item): item is string => typeof item === "string")
-      : [];
+    const completedByDate = loadReviewCompletedItemsByDate();
+    const todayItems = completedByDate[dateKey] ?? [];
     setReviewedItemIds(todayItems);
     if (todayItems.length >= 3) {
       hasMarkedReviewCompletedRef.current = true;
     }
+    setIsReviewStateHydrated(true);
   }, []);
 
   useEffect(() => {
+    if (!isReviewStateHydrated) return;
+
     const dateKey = getTodayLocalDateKey();
-    const completedByDate = loadArray<Record<string, unknown>>(REVIEW_COMPLETED_ITEMS_KEY).filter(
-      (entry) => entry && typeof entry.date === "string",
-    );
-    const filtered = completedByDate.filter((entry) => entry.date !== dateKey);
-    const next = [...filtered, { date: dateKey, items: reviewedItemIds }];
-    localStorage.setItem(REVIEW_COMPLETED_ITEMS_KEY, JSON.stringify(next));
-  }, [reviewedItemIds]);
+    const completedByDate = loadReviewCompletedItemsByDate();
+    completedByDate[dateKey] = Array.from(new Set(reviewedItemIds));
+    localStorage.setItem(REVIEW_COMPLETED_ITEMS_KEY, JSON.stringify(completedByDate));
+  }, [isReviewStateHydrated, reviewedItemIds]);
 
   const kanaReviewCount = useMemo(() => {
     const charsFromWrongKana = wrongKana
