@@ -8,6 +8,7 @@ import {
   type GrammarLesson,
   type GrammarProgressItem,
 } from "@/data/grammar";
+import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 
 type GrammarFilter = "전체" | GrammarCategory;
 
@@ -87,6 +88,7 @@ export default function GrammarPage() {
       : [...grammarProgress, nextItem];
 
     saveGrammarProgress(nextProgress);
+    markTodayRoutineCompleted("grammar");
   };
 
   const resetLessonQuiz = (lessonId: string) => {
