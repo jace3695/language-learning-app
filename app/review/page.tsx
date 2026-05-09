@@ -117,6 +117,7 @@ export default function ReviewPage() {
   const [wrongSentences, setWrongSentences] = useState<WrongItem[]>([]);
   const [reviewedItemIds, setReviewedItemIds] = useState<string[]>([]);
   const hasMarkedReviewCompletedRef = useRef(false);
+  const hasLoadedReviewedItemsRef = useRef(false);
 
   useEffect(() => {
     const words = loadArray<Word>(WORDS_KEY);
@@ -139,18 +140,24 @@ export default function ReviewPage() {
     setWrongSentences(wSentences);
 
     const dateKey = getTodayLocalDateKey();
-    const completedByDate = loadArray<Record<string, unknown>>(REVIEW_COMPLETED_ITEMS_KEY);
-    const todayEntry = completedByDate.find((entry) => entry && entry.date === dateKey);
+    const completedByDate = loadArray<Record<string, unknown>>(REVIEW_COMPLETED_ITEMS_KEY).filter(
+      (entry) => entry && typeof entry.date === "string",
+    );
+    const todayEntry = completedByDate.find((entry) => entry.date === dateKey);
     const todayItems = Array.isArray(todayEntry?.items)
       ? todayEntry.items.filter((item): item is string => typeof item === "string")
       : [];
+
     setReviewedItemIds(todayItems);
+    hasLoadedReviewedItemsRef.current = true;
     if (todayItems.length >= 3) {
       hasMarkedReviewCompletedRef.current = true;
     }
   }, []);
 
   useEffect(() => {
+    if (!hasLoadedReviewedItemsRef.current) return;
+
     const dateKey = getTodayLocalDateKey();
     const completedByDate = loadArray<Record<string, unknown>>(REVIEW_COMPLETED_ITEMS_KEY).filter(
       (entry) => entry && typeof entry.date === "string",
