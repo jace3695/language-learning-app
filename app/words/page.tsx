@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
+import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 import { WORDS, type WordItem as Word } from "@/data/words";
 import FuriganaText from "@/components/FuriganaText";
 import type { RubySegment } from "@/data/words";
@@ -271,10 +272,16 @@ export default function WordsPage() {
     if (!isCorrect) {
       saveWrongWord(currentWord, quizType);
     }
-    setScore((s) => ({
-      correct: s.correct + (isCorrect ? 1 : 0),
-      total: s.total + 1,
-    }));
+    setScore((s) => {
+      const nextTotal = s.total + 1;
+      if (nextTotal >= 5) {
+        markTodayRoutineCompleted("words");
+      }
+      return {
+        correct: s.correct + (isCorrect ? 1 : 0),
+        total: nextTotal,
+      };
+    });
   };
 
   const handleNext = () => {
