@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
+import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 import { SENTENCES, type SentenceItem as Sentence } from "@/data/sentences";
 import FuriganaText from "@/components/FuriganaText";
 import type { RubySegment } from "@/data/sentences";
@@ -359,10 +360,16 @@ export default function SentencesPage() {
 
     const updatedQuiz = { ...quiz, selected: choice, isCorrect };
     setQuiz(updatedQuiz);
-    setScore((prev) => ({
-      correct: prev.correct + (isCorrect ? 1 : 0),
-      total: prev.total + 1,
-    }));
+    setScore((prev) => {
+      const nextTotal = prev.total + 1;
+      if (nextTotal === 3) {
+        markTodayRoutineCompleted("sentences");
+      }
+      return {
+        correct: prev.correct + (isCorrect ? 1 : 0),
+        total: nextTotal,
+      };
+    });
 
     if (!isCorrect) {
       saveWrongSentence(updatedQuiz);
