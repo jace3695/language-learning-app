@@ -59,6 +59,15 @@ const WRONG_KANA_KEY = "wrongKana";
 const WRONG_KANA_CHARS_KEY = "wrongKanaChars";
 const WRONG_WORDS_KEY = "wrongWords";
 const WRONG_SENTENCES_KEY = "wrongSentences";
+const REVIEW_COMPLETED_ITEMS_KEY = "reviewCompletedItemsByDate";
+
+function getTodayLocalDateKey(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 function normalizePartOfSpeech(partOfSpeech?: string): string {
   if (!partOfSpeech) return "other";
@@ -83,6 +92,18 @@ function renderWrongItem(item: WrongItem): string {
   const meaning = typeof item.meaning === "string" ? item.meaning : "";
   const main = word || jp || "복습 항목";
   return meaning ? `${main} (${meaning})` : main;
+}
+
+function buildWrongItemId(prefix: string, item: WrongItem): string {
+  if (typeof item === "string") return `${prefix}:${item}`;
+  const word = typeof item.word === "string" ? item.word : "";
+  const japanese = typeof item.japanese === "string" ? item.japanese : "";
+  const meaning = typeof item.meaning === "string" ? item.meaning : "";
+  const char = typeof item.char === "string" ? item.char : "";
+  const answer = typeof item.answer === "string" ? item.answer : "";
+  const question = typeof item.question === "string" ? item.question : "";
+  const fallback = JSON.stringify(item);
+  return `${prefix}:${word}|${japanese}|${meaning}|${char}|${answer}|${question}|${fallback}`;
 }
 
 export default function ReviewPage() {
@@ -116,7 +137,28 @@ export default function ReviewPage() {
     setWrongKanaChars(chars);
     setWrongWords(wWords);
     setWrongSentences(wSentences);
+
+    const dateKey = getTodayLocalDateKey();
+    const completedByDate = loadArray<Record<string, unknown>>(REVIEW_COMPLETED_ITEMS_KEY);
+    const todayEntry = completedByDate.find((entry) => entry && entry.date === dateKey);
+    const todayItems = Array.isArray(todayEntry?.items)
+      ? todayEntry.items.filter((item): item is string => typeof item === "string")
+      : [];
+    setReviewedItemIds(todayItems);
+    if (todayItems.length >= 3) {
+      hasMarkedReviewCompletedRef.current = true;
+    }
   }, []);
+
+  useEffect(() => {
+    const dateKey = getTodayLocalDateKey();
+    const completedByDate = loadArray<Record<string, unknown>>(REVIEW_COMPLETED_ITEMS_KEY).filter(
+      (entry) => entry && typeof entry.date === "string",
+    );
+    const filtered = completedByDate.filter((entry) => entry.date !== dateKey);
+    const next = [...filtered, { date: dateKey, items: reviewedItemIds }];
+    localStorage.setItem(REVIEW_COMPLETED_ITEMS_KEY, JSON.stringify(next));
+  }, [reviewedItemIds]);
 
   const kanaReviewCount = useMemo(() => {
     const charsFromWrongKana = wrongKana
@@ -230,7 +272,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>틀린 단어</h2><span className="count">{wrongWords.length}개</span></div>
           {wrongWords.length === 0 ? <div className="empty-state">틀린 단어가 없습니다.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongWords.map((item, idx) => { const itemId = `wrong-word:${renderWrongItem(item)}:${idx}`; return <li key={`ww-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={{ background: isReviewed(itemId) ? "#16a34a" : undefined, color: isReviewed(itemId) ? "#fff" : undefined }}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
+              {wrongWords.map((item, idx) => { const itemId = buildWrongItemId("wrong-word", item); return <li key={`ww-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={{ background: isReviewed(itemId) ? "#16a34a" : undefined, color: isReviewed(itemId) ? "#fff" : undefined }}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
             </ul>
           )}
         </>
@@ -266,7 +308,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>틀린 문장</h2><span className="count">{wrongSentences.length}개</span></div>
           {wrongSentences.length === 0 ? <div className="empty-state">틀린 문장이 없습니다.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongSentences.map((item, idx) => { const itemId = `wrong-sentence:${renderWrongItem(item)}:${idx}`; return <li key={`ws-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={{ background: isReviewed(itemId) ? "#16a34a" : undefined, color: isReviewed(itemId) ? "#fff" : undefined }}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
+              {wrongSentences.map((item, idx) => { const itemId = buildWrongItemId("wrong-sentence", item); return <li key={`ws-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={{ background: isReviewed(itemId) ? "#16a34a" : undefined, color: isReviewed(itemId) ? "#fff" : undefined }}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
             </ul>
           )}
         </>
@@ -294,7 +336,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>가나 복습</h2><span className="count">{wrongKana.length}개</span></div>
           {wrongKana.length === 0 ? <div className="empty-state">가나 오답이 없습니다. <Link href="/kana">[가나]</Link>에서 퀴즈를 풀어 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongKana.map((item, idx) => { const itemId = `wrong-kana:${renderWrongItem(item)}:${idx}`; return <li key={`wk-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={{ background: isReviewed(itemId) ? "#16a34a" : undefined, color: isReviewed(itemId) ? "#fff" : undefined }}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
+              {wrongKana.map((item, idx) => { const itemId = buildWrongItemId("wrong-kana", item); return <li key={`wk-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={{ background: isReviewed(itemId) ? "#16a34a" : undefined, color: isReviewed(itemId) ? "#fff" : undefined }}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
             </ul>
           )}
 
