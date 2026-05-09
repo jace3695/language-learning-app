@@ -61,6 +61,48 @@ const WRONG_WORDS_KEY = "wrongWords";
 const WRONG_SENTENCES_KEY = "wrongSentences";
 const REVIEW_COMPLETED_ITEMS_KEY = "reviewCompletedItemsByDate";
 
+type ReviewCompletedItemsEntry = {
+  date: string;
+  items: string[];
+};
+
+function readReviewedItemsByDate(): ReviewCompletedItemsEntry[] {
+  try {
+    const raw = localStorage.getItem(REVIEW_COMPLETED_ITEMS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter((entry): entry is { date?: unknown; items?: unknown } => !!entry && typeof entry === "object")
+      .map((entry) => ({
+        date: typeof entry.date === "string" ? entry.date : "",
+        items: Array.isArray(entry.items)
+          ? entry.items.filter((item): item is string => typeof item === "string")
+          : [],
+      }))
+      .filter((entry) => entry.date.length > 0);
+  } catch {
+    return [];
+  }
+}
+
+function writeReviewedItemsByDate(entries: ReviewCompletedItemsEntry[]): void {
+  localStorage.setItem(REVIEW_COMPLETED_ITEMS_KEY, JSON.stringify(entries));
+}
+
+function getReviewedItemsForDate(date: string): string[] {
+  const todayEntry = readReviewedItemsByDate().find((entry) => entry.date === date);
+  if (!todayEntry) return [];
+  return [...new Set(todayEntry.items)];
+}
+
+function saveReviewedItemsForDate(date: string, itemIds: string[]): void {
+  const uniqueItems = [...new Set(itemIds)];
+  const completedByDate = readReviewedItemsByDate().filter((entry) => entry.date !== date);
+  writeReviewedItemsByDate([...completedByDate, { date, items: uniqueItems }]);
+}
+
 function getTodayLocalDateKey(): string {
   const now = new Date();
   const year = now.getFullYear();
@@ -117,7 +159,6 @@ export default function ReviewPage() {
   const [wrongSentences, setWrongSentences] = useState<WrongItem[]>([]);
   const [reviewedItemIds, setReviewedItemIds] = useState<string[]>([]);
   const hasMarkedReviewCompletedRef = useRef(false);
-  const hasLoadedReviewedItemsRef = useRef(false);
 
   useEffect(() => {
     const words = loadArray<Word>(WORDS_KEY);
@@ -140,32 +181,14 @@ export default function ReviewPage() {
     setWrongSentences(wSentences);
 
     const dateKey = getTodayLocalDateKey();
-    const completedByDate = loadArray<Record<string, unknown>>(REVIEW_COMPLETED_ITEMS_KEY).filter(
-      (entry) => entry && typeof entry.date === "string",
-    );
-    const todayEntry = completedByDate.find((entry) => entry.date === dateKey);
-    const todayItems = Array.isArray(todayEntry?.items)
-      ? todayEntry.items.filter((item): item is string => typeof item === "string")
-      : [];
+    const todayItems = getReviewedItemsForDate(dateKey);
 
     setReviewedItemIds(todayItems);
-    hasLoadedReviewedItemsRef.current = true;
     if (todayItems.length >= 3) {
       hasMarkedReviewCompletedRef.current = true;
     }
   }, []);
 
-  useEffect(() => {
-    if (!hasLoadedReviewedItemsRef.current) return;
-
-    const dateKey = getTodayLocalDateKey();
-    const completedByDate = loadArray<Record<string, unknown>>(REVIEW_COMPLETED_ITEMS_KEY).filter(
-      (entry) => entry && typeof entry.date === "string",
-    );
-    const filtered = completedByDate.filter((entry) => entry.date !== dateKey);
-    const next = [...filtered, { date: dateKey, items: reviewedItemIds }];
-    localStorage.setItem(REVIEW_COMPLETED_ITEMS_KEY, JSON.stringify(next));
-  }, [reviewedItemIds]);
 
   const kanaReviewCount = useMemo(() => {
     const charsFromWrongKana = wrongKana
@@ -187,13 +210,19 @@ export default function ReviewPage() {
   };
 
   const trackReviewAction = (itemId: string) => {
+    const dateKey = getTodayLocalDateKey();
+
     setReviewedItemIds((prev) => {
       if (prev.includes(itemId)) return prev;
+
       const next = [...prev, itemId];
+      saveReviewedItemsForDate(dateKey, next);
+
       if (next.length >= 3 && !hasMarkedReviewCompletedRef.current) {
         markTodayRoutineCompleted("review");
         hasMarkedReviewCompletedRef.current = true;
       }
+
       return next;
     });
   };
