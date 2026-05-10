@@ -185,6 +185,7 @@ export default function ReviewPage() {
 
     setReviewedItemIds(todayItems);
     if (todayItems.length >= 3) {
+      markTodayRoutineCompleted("review");
       hasMarkedReviewCompletedRef.current = true;
     }
   }, []);
