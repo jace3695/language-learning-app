@@ -378,7 +378,7 @@ export default function SettingsPage() {
         dailyGoalCount,
       }),
     );
-    setSaveMessage("학습 목표가 저장됐어요.");
+    setSaveMessage("학습 목표가 저장됐어요. 오늘부터 홈과 달력에 반영돼요.");
   };
 
   return (
@@ -386,15 +386,15 @@ export default function SettingsPage() {
       <div className="page-header">
         <h1>학습 설정</h1>
         <p className="muted" style={{ marginBottom: 0 }}>
-          나에게 맞는 하루 학습 목표를 설정할 수 있어요.
+          나에게 맞는 하루 학습 목표를 정하고, 매일 꾸준히 학습해 보세요.
         </p>
       </div>
 
       <div className="card" style={{ display: "grid", gap: "12px" }}>
-        <h2 style={{ margin: 0 }}>하루 목표 루틴 수 설정</h2>
+        <h2 style={{ margin: 0 }}>하루 학습 목표</h2>
         <div>
           <label htmlFor="daily-goal-count" style={{ display: "block", fontWeight: 600, marginBottom: "6px" }}>
-            하루 목표 루틴 수
+            하루에 완료하고 싶은 루틴 개수
           </label>
           <select
             id="daily-goal-count"
@@ -412,6 +412,12 @@ export default function SettingsPage() {
             ))}
           </select>
         </div>
+        <p className="muted" style={{ margin: 0 }}>
+          하루에 완료하고 싶은 루틴 개수를 선택해 주세요.
+        </p>
+        <p className="muted" style={{ margin: 0 }}>
+          목표는 홈의 진행률과 달력의 목표 달성률에 반영돼요.
+        </p>
         <button type="button" className="btn" onClick={handleSaveLearningSettings}>
           설정 저장
         </button>
