@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { getLocalDateKey } from "@/utils/dateKey";
 
 const DAILY_LEARNING_HISTORY_STORAGE_KEY = "dailyLearningHistory";
+const LEARNING_SETTINGS_STORAGE_KEY = "learningSettings";
+const DEFAULT_DAILY_GOAL_COUNT = 5;
 
 type DailyLearningHistoryItem = {
   completedIds: string[];
@@ -14,6 +16,9 @@ type DailyLearningHistoryItem = {
 };
 
 type DailyLearningHistoryStorage = Record<string, DailyLearningHistoryItem>;
+type LearningSettings = {
+  dailyGoalCount?: number;
+};
 const getSafeCompletedIds = (value: unknown) =>
   Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : [];
 
@@ -107,12 +112,22 @@ const getMonthDays = (viewDate: Date) => {
   return days;
 };
 
+const getSafeDailyGoalCount = (value: unknown) => {
+  if (!Number.isFinite(value)) return DEFAULT_DAILY_GOAL_COUNT;
+
+  const rounded = Math.round(value as number);
+  if (rounded < 1 || rounded > 5) return DEFAULT_DAILY_GOAL_COUNT;
+
+  return rounded;
+};
+
 export default function CalendarPage() {
   const today = useMemo(() => new Date(), []);
   const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDateKey, setSelectedDateKey] = useState(toDateKey(today));
 
   const [history, setHistory] = useState<DailyLearningHistoryStorage>({});
+  const [dailyGoalCount, setDailyGoalCount] = useState(DEFAULT_DAILY_GOAL_COUNT);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -131,13 +146,36 @@ export default function CalendarPage() {
       }
     };
 
+    const loadLearningSettings = () => {
+      try {
+        const raw = window.localStorage.getItem(LEARNING_SETTINGS_STORAGE_KEY);
+        if (!raw) {
+          setDailyGoalCount(DEFAULT_DAILY_GOAL_COUNT);
+          return;
+        }
+
+        const parsed: unknown = JSON.parse(raw);
+        const dailyGoal = typeof parsed === "object" && parsed !== null
+          ? (parsed as LearningSettings).dailyGoalCount
+          : undefined;
+        setDailyGoalCount(getSafeDailyGoalCount(dailyGoal));
+      } catch {
+        setDailyGoalCount(DEFAULT_DAILY_GOAL_COUNT);
+      }
+    };
+
     loadHistory();
+    loadLearningSettings();
     window.addEventListener("storage", loadHistory);
+    window.addEventListener("storage", loadLearningSettings);
     window.addEventListener("focus", loadHistory);
+    window.addEventListener("focus", loadLearningSettings);
 
     return () => {
       window.removeEventListener("storage", loadHistory);
+      window.removeEventListener("storage", loadLearningSettings);
       window.removeEventListener("focus", loadHistory);
+      window.removeEventListener("focus", loadLearningSettings);
     };
   }, []);
 
@@ -166,10 +204,8 @@ export default function CalendarPage() {
   const streakDays = useMemo(() => getStreakDays(history, today), [history, today]);
   const todayEntry = history[toDateKey(today)];
   const todayCompletedCount = getCompletedCount(todayEntry);
-  const todayTotalCount = Number.isFinite(todayEntry?.totalCount) && (todayEntry?.totalCount ?? 0) > 0
-    ? (todayEntry?.totalCount as number)
-    : routineOrder.length;
-  const todayRate = todayEntry ? Math.round((todayCompletedCount / Math.max(todayTotalCount, 1)) * 100) : 0;
+  const todayGoalRate = Math.round(Math.min(todayCompletedCount / dailyGoalCount, 1) * 100);
+  const todayOverallRate = Math.round((todayCompletedCount / routineOrder.length) * 100);
 
   const moveMonth = (diff: number) => {
     const nextMonthDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + diff, 1);
@@ -204,7 +240,8 @@ export default function CalendarPage() {
           <div><strong>연속 학습일</strong><div>{streakDays}일</div></div>
           <div><strong>이번 달 학습일</strong><div>{monthStats.learnedDays}일</div></div>
           <div><strong>이번 달 총 완료 루틴</strong><div>{monthStats.totalCompletedRoutines}개</div></div>
-          <div><strong>오늘 완료율</strong><div>{todayRate}%</div></div>
+          <div><strong>목표 달성률</strong><div>{todayGoalRate}%</div></div>
+          <div><strong>전체 완료율</strong><div>{todayOverallRate}%</div></div>
         </div>
       </section>
 
