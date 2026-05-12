@@ -26,6 +26,8 @@ type JapaneseAppSettings = {
 };
 
 const SETTINGS_STORAGE_KEY = "japaneseAppSettings";
+const LEARNING_SETTINGS_STORAGE_KEY = "learningSettings";
+const DAILY_GOAL_OPTIONS = [1, 2, 3, 4, 5] as const;
 
 const SECTION_LABELS: Record<LearningSection, string> = {
   kana: "가나",
@@ -175,6 +177,8 @@ function parseSettings(raw: string | null): JapaneseAppSettings {
 export default function SettingsPage() {
   const [settings, setSettings] = useState<JapaneseAppSettings>(DEFAULT_SETTINGS);
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+  const [dailyGoalCount, setDailyGoalCount] = useState<number>(5);
+  const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -182,6 +186,23 @@ export default function SettingsPage() {
     const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
     const nextSettings = parseSettings(raw);
     setSettings(nextSettings);
+
+    const learningSettingsRaw = window.localStorage.getItem(LEARNING_SETTINGS_STORAGE_KEY);
+    if (learningSettingsRaw) {
+      try {
+        const parsed = JSON.parse(learningSettingsRaw) as unknown;
+        if (
+          typeof parsed === "object" &&
+          parsed !== null &&
+          "dailyGoalCount" in parsed &&
+          DAILY_GOAL_OPTIONS.includes((parsed as { dailyGoalCount?: unknown }).dailyGoalCount as (typeof DAILY_GOAL_OPTIONS)[number])
+        ) {
+          setDailyGoalCount((parsed as { dailyGoalCount: number }).dailyGoalCount);
+        }
+      } catch {
+        setDailyGoalCount(5);
+      }
+    }
     setIsSettingsLoaded(true);
   }, []);
 
@@ -348,13 +369,57 @@ export default function SettingsPage() {
     );
   };
 
+  const handleSaveLearningSettings = () => {
+    if (typeof window === "undefined") return;
+
+    window.localStorage.setItem(
+      LEARNING_SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        dailyGoalCount,
+      }),
+    );
+    setSaveMessage("학습 목표가 저장됐어요.");
+  };
+
   return (
     <section>
       <div className="page-header">
-        <h1>설정</h1>
+        <h1>학습 설정</h1>
         <p className="muted" style={{ marginBottom: 0 }}>
-          학습 영역별 옵션을 여기서 관리할 수 있어요.
+          나에게 맞는 하루 학습 목표를 설정할 수 있어요.
         </p>
+      </div>
+
+      <div className="card" style={{ display: "grid", gap: "12px" }}>
+        <h2 style={{ margin: 0 }}>하루 목표 루틴 수 설정</h2>
+        <div>
+          <label htmlFor="daily-goal-count" style={{ display: "block", fontWeight: 600, marginBottom: "6px" }}>
+            하루 목표 루틴 수
+          </label>
+          <select
+            id="daily-goal-count"
+            value={dailyGoalCount}
+            onChange={(event) => {
+              setDailyGoalCount(Number(event.target.value));
+              setSaveMessage("");
+            }}
+            style={{ width: "100%" }}
+          >
+            {DAILY_GOAL_OPTIONS.map((goal) => (
+              <option key={goal} value={goal}>
+                {goal}개
+              </option>
+            ))}
+          </select>
+        </div>
+        <button type="button" className="btn" onClick={handleSaveLearningSettings}>
+          설정 저장
+        </button>
+        {saveMessage && (
+          <p className="muted" style={{ margin: 0, fontWeight: 600 }}>
+            {saveMessage}
+          </p>
+        )}
       </div>
 
       <div style={{ display: "grid", gap: "12px" }}>

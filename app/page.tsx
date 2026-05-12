@@ -84,6 +84,8 @@ type RecommendationState = {
   hasReviewItems: boolean;
 };
 
+const LEARNING_SETTINGS_STORAGE_KEY = "learningSettings";
+const DEFAULT_DAILY_GOAL_COUNT = 5;
 
 const getArrayLength = (value: unknown) => (Array.isArray(value) ? value.length : 0);
 const getSafeCompletedIds = (value: unknown) => {
@@ -95,6 +97,7 @@ const getSafeCompletedIds = (value: unknown) => {
 
 export default function HomePage() {
   const [completedIds, setCompletedIds] = useState<string[]>([]);
+  const [dailyGoalCount, setDailyGoalCount] = useState(DEFAULT_DAILY_GOAL_COUNT);
   const [recommendation, setRecommendation] = useState<RecommendationState>({
     hasGrammarWrong: false,
     hasReviewItems: false,
@@ -145,9 +148,21 @@ export default function HomePage() {
         hasGrammarWrong,
         hasReviewItems: hasGrammarWrong || reviewCount > 0,
       });
+
+      const learningSettingsRaw = window.localStorage.getItem(LEARNING_SETTINGS_STORAGE_KEY);
+      const parsedLearningSettings = learningSettingsRaw ? (JSON.parse(learningSettingsRaw) as unknown) : null;
+      const nextGoalCount =
+        typeof parsedLearningSettings === "object" &&
+        parsedLearningSettings !== null &&
+        "dailyGoalCount" in parsedLearningSettings &&
+        [1, 2, 3, 4, 5].includes((parsedLearningSettings as { dailyGoalCount?: unknown }).dailyGoalCount as number)
+          ? ((parsedLearningSettings as { dailyGoalCount: number }).dailyGoalCount ?? DEFAULT_DAILY_GOAL_COUNT)
+          : DEFAULT_DAILY_GOAL_COUNT;
+      setDailyGoalCount(nextGoalCount);
     } catch {
       setCompletedIds([]);
       setRecommendation({ hasGrammarWrong: false, hasReviewItems: false });
+      setDailyGoalCount(DEFAULT_DAILY_GOAL_COUNT);
     } finally {
       setHasLoadedRoutine(true);
     }
@@ -188,7 +203,7 @@ export default function HomePage() {
             퀴즈나 연습을 완료하면 자동으로 체크돼요. 필요할 때만 직접 완료를 눌러 주세요.
           </p>
           <p className="muted" style={{ margin: "8px 0 0", fontWeight: 600 }}>
-            오늘 완료 {completedCount} / {todayRoutine.length}
+            오늘 완료 {completedCount} / {todayRoutine.length} · 오늘 목표 {dailyGoalCount}개
           </p>
           <div style={{ margin: "10px auto 0", maxWidth: "420px", width: "100%" }}>
             <div
