@@ -184,6 +184,9 @@ export default function HomePage() {
           <p className="muted" style={{ margin: 0 }}>
             가나, 단어, 문장, 문법, 복습을 짧게 반복해 보세요.
           </p>
+          <p className="muted" style={{ margin: "8px 0 0" }}>
+            퀴즈나 연습을 완료하면 자동으로 체크돼요. 필요할 때만 직접 완료를 눌러 주세요.
+          </p>
           <p className="muted" style={{ margin: "8px 0 0", fontWeight: 600 }}>
             오늘 완료 {completedCount} / {todayRoutine.length}
           </p>
@@ -324,7 +327,7 @@ export default function HomePage() {
                       cursor: "pointer",
                     }}
                   >
-                    {isCompleted ? "완료 취소" : "완료"}
+                    {isCompleted ? "완료 취소" : "직접 완료"}
                   </button>
                 </div>
               </article>
