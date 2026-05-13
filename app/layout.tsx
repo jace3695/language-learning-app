@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,20 +18,7 @@ export const metadata: Metadata = {
   },
 };
 
-const navItems = [
-  { href: "/", label: "홈" },
-  { href: "/kana", label: "가나" },
-  { href: "/words", label: "단어" },
-  { href: "/sentences", label: "문장" },
-  { href: "/grammar", label: "문법" },
-  { href: "/review", label: "복습" },
-  { href: "/progress", label: "진도" },
-  { href: "/calendar", label: "달력" },
-  { href: "/writing", label: "쓰기" },
-  { href: "/conversation", label: "AI 회화" },
-  { href: "/speaking", label: "말하기" },
-  { href: "/settings", label: "설정" },
-];
+import TopNav from "@/components/TopNav";
 
 export default function RootLayout({
   children,
@@ -43,13 +29,7 @@ export default function RootLayout({
     <html lang="ko">
       <body>
         <header className="app-shell">
-          <nav>
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <TopNav />
         </header>
         <main className="app-main">{children}</main>
       </body>
