@@ -213,28 +213,70 @@ export default function HomePage() {
       <div style={{ maxWidth: "960px", margin: "0 auto" }}>
         <div
           style={{
-            textAlign: "center",
-            padding: "12px 0 20px",
+            padding: "8px 0 18px",
           }}
         >
-          <h1 style={{ fontSize: "28px", margin: "0 0 8px" }}>오늘 학습 루틴</h1>
-          <p className="muted" style={{ margin: 0 }}>
-            가나, 단어, 문장, 문법, 복습을 짧게 반복해 보세요.
-          </p>
-          <p className="muted" style={{ margin: "8px 0 0" }}>
-            퀴즈나 연습을 완료하면 자동으로 체크돼요. 필요할 때만 직접 완료를 눌러 주세요.
-          </p>
+          <div
+            className="card"
+            style={{
+              padding: "18px 16px",
+              borderRadius: "18px",
+              border: "1px solid #dbeafe",
+              background: "linear-gradient(180deg, #f8fbff 0%, #ffffff 100%)",
+              boxShadow: "0 8px 22px rgba(59,130,246,0.08)",
+            }}
+          >
+            <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "#2563eb" }}>HOME</p>
+            <h1 style={{ fontSize: "30px", margin: "6px 0 10px", color: "#0f172a" }}>오늘 학습 루틴</h1>
+            <p className="muted" style={{ margin: 0 }}>
+              오늘도 일본어 한 걸음씩 쌓아볼까요?
+            </p>
+            <p className="muted" style={{ margin: "8px 0 0" }}>
+              퀴즈나 연습을 완료하면 자동으로 체크돼요. 필요할 때만 직접 완료를 눌러 주세요.
+            </p>
+          </div>
+        </div>
+
+        <section
+          className="card"
+          style={{
+            padding: "16px",
+            marginBottom: "14px",
+            borderRadius: "16px",
+            border: "1px solid #dbeafe",
+            background: "#ffffff",
+            boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+            <h2 style={{ fontSize: "18px", margin: 0, color: "#0f172a" }}>오늘 목표 진행률</h2>
+            <span
+              style={{
+                borderRadius: "999px",
+                background: "#eff6ff",
+                color: "#1d4ed8",
+                padding: "4px 10px",
+                fontSize: "12px",
+                fontWeight: 700,
+              }}
+            >
+              {progressPercent}% 완료
+            </span>
+          </div>
           <p className="muted" style={{ margin: "8px 0 0", fontWeight: 600 }}>
-            오늘 완료 {completedCount} / {todayRoutine.length} · {goalStatusText}
+            {goalStatusText}
           </p>
-          <div style={{ margin: "10px auto 0", maxWidth: "420px", width: "100%" }}>
+          <p className="muted" style={{ margin: "6px 0 0" }}>
+            오늘 완료 {completedCount} / {todayRoutine.length}
+          </p>
+          <div style={{ margin: "12px auto 0", maxWidth: "100%", width: "100%" }}>
             <div
               aria-hidden="true"
               style={{
                 width: "100%",
-                height: "9px",
+                height: "10px",
                 borderRadius: "999px",
-                background: "#e5e7eb",
+                background: "#dbeafe",
                 overflow: "hidden",
               }}
             >
@@ -243,23 +285,18 @@ export default function HomePage() {
                   width: `${progressPercent}%`,
                   height: "100%",
                   borderRadius: "999px",
-                  background: "#3b82f6",
+                  background: "linear-gradient(90deg, #60a5fa 0%, #2563eb 100%)",
                   transition: "width 0.2s ease",
                 }}
               />
             </div>
-            <p className="muted" style={{ margin: "6px 0 0", fontSize: "12px" }}>
-              {progressPercent}% 완료
-            </p>
           </div>
           {isAllCompleted && (
             <p
               style={{
-                margin: "10px auto 0",
-                maxWidth: "420px",
-                width: "100%",
-                borderRadius: "10px",
-                border: "1px solid #86efac",
+                margin: "12px auto 0",
+                borderRadius: "12px",
+                border: "1px solid #bbf7d0",
                 background: "#f0fdf4",
                 padding: "10px 12px",
                 fontSize: "14px",
@@ -270,10 +307,10 @@ export default function HomePage() {
               오늘 루틴을 모두 완료했어요! 잘했어요.
             </p>
           )}
-        </div>
+        </section>
 
-        <section className="card" style={{ padding: "14px", marginBottom: "14px" }}>
-          <h2 style={{ fontSize: "18px", margin: "0 0 8px" }}>오늘 추천</h2>
+        <section className="card" style={{ padding: "14px", marginBottom: "14px", borderRadius: "14px", border: "1px solid #e2e8f0" }}>
+          <h2 style={{ fontSize: "17px", margin: "0 0 8px", color: "#0f172a" }}>오늘 추천</h2>
           <p className="muted" style={{ margin: 0 }}>
             {recommendation.hasGrammarWrong
               ? "문법에서 오답이 있어요. [문법] 1개를 먼저 복습해 보세요."
@@ -301,8 +338,10 @@ export default function HomePage() {
                   display: "grid",
                   gap: "10px",
                   padding: "14px",
-                  background: isCompleted ? "#f0fdf4" : "var(--card)",
-                  border: isCompleted ? "1px solid #22c55e" : "1px solid var(--line)",
+                  borderRadius: "16px",
+                  background: isCompleted ? "linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%)" : "#ffffff",
+                  border: isCompleted ? "1px solid #22c55e" : "1px solid #dbeafe",
+                  boxShadow: isCompleted ? "0 8px 18px rgba(34,197,94,0.12)" : "0 8px 18px rgba(15,23,42,0.05)",
                 }}
               >
                 <div>
@@ -339,13 +378,13 @@ export default function HomePage() {
                     style={{
                       display: "inline-block",
                       textDecoration: "none",
-                      border: "1px solid var(--line)",
-                      borderRadius: "8px",
-                      padding: "8px 12px",
+                      border: "1px solid #bfdbfe",
+                      borderRadius: "10px",
+                      padding: "9px 13px",
                       fontSize: "14px",
                       fontWeight: 600,
-                      color: "inherit",
-                      background: "var(--card)",
+                      color: "#1d4ed8",
+                      background: "#eff6ff",
                     }}
                   >
                     {item.cta}
@@ -354,9 +393,9 @@ export default function HomePage() {
                     type="button"
                     onClick={() => toggleCompleted(item.id)}
                     style={{
-                      border: isCompleted ? "1px solid #16a34a" : "1px solid #94a3b8",
-                      borderRadius: "8px",
-                      padding: "8px 12px",
+                      border: isCompleted ? "1px solid #16a34a" : "1px solid #cbd5e1",
+                      borderRadius: "10px",
+                      padding: "9px 13px",
                       fontSize: "14px",
                       fontWeight: 600,
                       color: isCompleted ? "#166534" : "#1f2937",
@@ -372,23 +411,26 @@ export default function HomePage() {
           })}
         </div>
 
-        <section className="card" style={{ padding: "14px", marginBottom: "20px" }}>
+        <section className="card" style={{ padding: "14px", marginBottom: "20px", borderRadius: "16px", border: "1px solid #dbeafe" }}>
           <p className="muted" style={{ margin: "0 0 10px" }}>
             오늘 학습 상태는 [진도]와 [달력]에서 자세히 확인할 수 있어요.
           </p>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
             <Link
               href="/progress"
               style={{
-                display: "inline-block",
+                display: "inline-flex",
+                justifyContent: "center",
+                alignItems: "center",
                 textDecoration: "none",
-                border: "1px solid var(--line)",
-                borderRadius: "8px",
-                padding: "8px 12px",
+                border: "1px solid #bfdbfe",
+                borderRadius: "12px",
+                padding: "11px 14px",
                 fontSize: "14px",
                 fontWeight: 600,
-                color: "inherit",
-                background: "var(--card)",
+                color: "#1d4ed8",
+                background: "#eff6ff",
+                boxShadow: "0 4px 10px rgba(59,130,246,0.1)",
               }}
             >
               진도 보기
@@ -396,15 +438,18 @@ export default function HomePage() {
             <Link
               href="/calendar"
               style={{
-                display: "inline-block",
+                display: "inline-flex",
+                justifyContent: "center",
+                alignItems: "center",
                 textDecoration: "none",
-                border: "1px solid #93c5fd",
-                borderRadius: "8px",
-                padding: "8px 12px",
+                border: "1px solid #fde68a",
+                borderRadius: "12px",
+                padding: "11px 14px",
                 fontSize: "14px",
                 fontWeight: 600,
-                color: "#1d4ed8",
-                background: "#eff6ff",
+                color: "#92400e",
+                background: "#fffbeb",
+                boxShadow: "0 4px 10px rgba(250,204,21,0.12)",
               }}
             >
               달력 보기
