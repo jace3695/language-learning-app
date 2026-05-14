@@ -1887,7 +1887,7 @@ export default function KanaPage() {
   const getChoiceStyle = (choice: string): React.CSSProperties => {
     const base: React.CSSProperties = {
       padding: "0.75rem 1rem",
-      borderRadius: "8px",
+      borderRadius: "14px",
       border: "2px solid",
       cursor: selected !== null ? "not-allowed" : "pointer",
       fontSize: "1rem",
@@ -1912,7 +1912,7 @@ export default function KanaPage() {
   const getConfusingChoiceStyle = (choice: string): React.CSSProperties => {
     const base: React.CSSProperties = {
       padding: "0.75rem 1.5rem",
-      borderRadius: "8px",
+      borderRadius: "14px",
       border: "2px solid",
       cursor: confusingSelected !== null ? "default" : "pointer",
       fontSize: "1.1rem",
@@ -1936,36 +1936,42 @@ export default function KanaPage() {
 
 
   const modeBtnStyle = (m: string): React.CSSProperties => ({
-    padding: "0.4rem 1rem",
-    borderRadius: "6px",
-    border: "2px solid",
+    padding: "0.6rem 1rem",
+    borderRadius: "999px",
+    border: `1px solid ${mode === m ? "#60a5fa" : "#dbeafe"}`,
     cursor: "pointer",
-    fontWeight: mode === m ? "bold" : "normal",
-    borderColor: mode === m ? "#8b5cf6" : "#d1d5db",
-    background: mode === m ? "#ede9fe" : "#fff",
-    color: mode === m ? "#7c3aed" : "#6b7280",
-    fontSize: "0.875rem",
+    fontWeight: mode === m ? 700 : 600,
+    background: mode === m ? "#eff6ff" : "#ffffff",
+    color: mode === m ? "#1d4ed8" : "#475569",
+    boxShadow: mode === m ? "0 4px 12px rgba(59,130,246,0.18)" : "0 1px 3px rgba(15,23,42,0.06)",
+    fontSize: "0.86rem",
+    whiteSpace: "nowrap",
   });
 
   return (
     <>
-    <div style={{ padding: "2rem 0", maxWidth: "72rem", margin: "0 auto" }}>
-      <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1.5rem" }}>
-        히라가나 / 가타카나 훈련
-      </h1>
+    <div style={{ padding: "1.25rem 0 2.25rem", maxWidth: "72rem", margin: "0 auto" }}>
+      <div style={{ marginBottom: "1rem", border: "1px solid #dbeafe", background: "linear-gradient(180deg, #f8fbff 0%, #ffffff 100%)", borderRadius: "16px", padding: "1rem 1.1rem", boxShadow: "0 8px 24px rgba(59,130,246,0.08)" }}>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "0.35rem", color: "#1e3a8a" }}>
+          히라가나 / 가타카나 훈련
+        </h1>
+        <p style={{ fontSize: "0.95rem", color: "#475569", lineHeight: 1.5 }}>
+          히라가나와 가타카나를 단계별로 익혀보세요. 모드와 그룹을 골라 학습, 퀴즈, 쓰기 연습까지 이어서 진행할 수 있어요.
+        </p>
+      </div>
 
       {/* 탭 */}
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", padding: "0.35rem", border: "1px solid #dbeafe", borderRadius: "999px", background: "#f8fbff", width: "fit-content" }}>
         <button
           onClick={() => handleTabChange("hiragana")}
           style={{
             padding: "0.5rem 1.25rem",
-            borderRadius: "6px",
-            border: "none",
+            borderRadius: "999px",
+            border: `1px solid ${tab === "hiragana" ? "#60a5fa" : "transparent"}`,
             cursor: "pointer",
             fontWeight: tab === "hiragana" ? "bold" : "normal",
-            background: tab === "hiragana" ? "#3b82f6" : "#e5e7eb",
-            color: tab === "hiragana" ? "#fff" : "#374151",
+            background: tab === "hiragana" ? "#3b82f6" : "transparent",
+            color: tab === "hiragana" ? "#fff" : "#475569",
           }}
         >
           히라가나
@@ -1974,12 +1980,12 @@ export default function KanaPage() {
           onClick={() => handleTabChange("katakana")}
           style={{
             padding: "0.5rem 1.25rem",
-            borderRadius: "6px",
-            border: "none",
+            borderRadius: "999px",
+            border: `1px solid ${tab === "katakana" ? "#60a5fa" : "transparent"}`,
             cursor: "pointer",
             fontWeight: tab === "katakana" ? "bold" : "normal",
-            background: tab === "katakana" ? "#3b82f6" : "#e5e7eb",
-            color: tab === "katakana" ? "#fff" : "#374151",
+            background: tab === "katakana" ? "#3b82f6" : "transparent",
+            color: tab === "katakana" ? "#fff" : "#475569",
           }}
         >
           가타카나
@@ -1993,7 +1999,7 @@ export default function KanaPage() {
           {kanaConcepts.map((concept) => {
             const opened = openConcept === concept.title;
             return (
-              <button key={concept.title} onClick={() => setOpenConcept(opened ? null : concept.title)} style={{ textAlign: "left", border: "1px solid #d1d5db", borderRadius: "8px", padding: "0.6rem", background: "#fff", cursor: "pointer" }}>
+              <button key={concept.title} onClick={() => setOpenConcept(opened ? null : concept.title)} style={{ textAlign: "left", border: "1px solid #d1d5db", borderRadius: "14px", padding: "0.6rem", background: "#fff", cursor: "pointer" }}>
                 <div style={{ fontWeight: 700, color: "#1f2937" }}>{concept.title}</div>
                 <div style={{ fontSize: "0.85rem", color: "#6b7280", marginTop: "0.2rem" }}>{concept.summary}</div>
                 {opened && <div style={{ marginTop: "0.45rem", fontSize: "0.85rem", color: "#374151", lineHeight: 1.5 }}>{concept.detail}</div>}
@@ -2003,17 +2009,17 @@ export default function KanaPage() {
         </div>
       </div>
 
-      <div style={{ marginBottom: "1.25rem" }}>
+      <div style={{ marginBottom: "1.25rem", border: "1px solid #dbeafe", borderRadius: "14px", background: "#ffffff", padding: "0.95rem", boxShadow: "0 4px 14px rgba(15,23,42,0.05)" }}>
         <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.6rem" }}>단계별 그룹 선택</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.55rem" }}>
-          <button onClick={() => toggleKanaGroup("all")} style={{ textAlign: "left", border: selectedGroupSet.has("all") ? "2px solid #6366f1" : "1px solid #d1d5db", borderRadius: "8px", padding: "0.65rem", background: selectedGroupSet.has("all") ? "#eef2ff" : "#fff", cursor: "pointer" }}>
+          <button onClick={() => toggleKanaGroup("all")} style={{ textAlign: "left", border: selectedGroupSet.has("all") ? "1px solid #60a5fa" : "1px solid #dbeafe", borderRadius: "12px", padding: "0.75rem", background: selectedGroupSet.has("all") ? "#eff6ff" : "#fff", boxShadow: selectedGroupSet.has("all") ? "0 6px 14px rgba(59,130,246,0.12)" : "0 1px 3px rgba(15,23,42,0.05)", cursor: "pointer" }}>
             <div style={{ fontWeight: 700 }}>전체</div><div style={{ fontSize: "0.8rem", color: "#6b7280" }}>{allData.length}글자</div>
           </button>
           {availableGroups.map((group) => {
             const active = selectedGroupSet.has(group.id) && !selectedGroupSet.has("all");
             const hasWrong = group.matchedChars.some((char) => wrongKanaChars.has(char));
             const preview = group.matchedChars.slice(0, 6).join(" ");
-            return <button key={group.id} onClick={() => toggleKanaGroup(group.id)} style={{ textAlign: "left", border: active ? "2px solid #6366f1" : "1px solid #d1d5db", borderRadius: "8px", padding: "0.65rem", background: active ? "#eef2ff" : "#fff", cursor: "pointer" }}>
+            return <button key={group.id} onClick={() => toggleKanaGroup(group.id)} style={{ textAlign: "left", border: active ? "1px solid #60a5fa" : "1px solid #dbeafe", borderRadius: "12px", padding: "0.75rem", background: active ? "#eff6ff" : "#fff", boxShadow: active ? "0 6px 14px rgba(59,130,246,0.12)" : "0 1px 3px rgba(15,23,42,0.05)", cursor: "pointer" }}>
               <div style={{ fontWeight: 700 }}>{group.label}</div>
               <div style={{ fontSize: "0.82rem", color: "#374151", marginTop: "0.15rem", minHeight: "1rem" }}>{preview || "준비 중"}</div>
               <div style={{ fontSize: "0.78rem", color: "#6b7280", marginTop: "0.2rem" }}>{group.matchedChars.length}글자 · {hasWrong ? "헷갈림 있음" : "헷갈림 없음"}</div>
@@ -2028,7 +2034,7 @@ export default function KanaPage() {
       </div>
 
       {/* 모드 전환 */}
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", flexWrap: "wrap", padding: "0.55rem", border: "1px solid #dbeafe", borderRadius: "14px", background: "#f8fbff" }}>
         <button onClick={() => handleModeChange("learn")} style={modeBtnStyle("learn")}>
           학습 모드
         </button>
@@ -2051,7 +2057,7 @@ export default function KanaPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(5, 1fr)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
             gap: "0.75rem",
           }}
         >
@@ -2067,9 +2073,9 @@ export default function KanaPage() {
                   alignItems: "center",
                   justifyContent: "center",
                   padding: "1rem 0.5rem",
-                  borderRadius: "8px",
-                  border: `1px solid ${isPlaying ? "#6366f1" : "#e5e7eb"}`,
-                  background: isPlaying ? "#eef2ff" : "#f9fafb",
+                  borderRadius: "14px",
+                  border: `1px solid ${isPlaying ? "#60a5fa" : "#dbeafe"}`,
+                  background: isPlaying ? "#eff6ff" : "#ffffff",
                   cursor: "pointer",
                   userSelect: "none",
                   WebkitUserSelect: "none",
@@ -2102,7 +2108,7 @@ export default function KanaPage() {
               alignItems: "center",
               marginBottom: "1.5rem",
               padding: "0.75rem 1rem",
-              borderRadius: "8px",
+              borderRadius: "14px",
               background: "#f3f4f6",
             }}
           >
@@ -2151,7 +2157,7 @@ export default function KanaPage() {
             <div
               style={{
                 padding: "0.75rem 1rem",
-                borderRadius: "8px",
+                borderRadius: "14px",
                 marginBottom: "1rem",
                 textAlign: "center",
                 fontWeight: "600",
@@ -2175,7 +2181,7 @@ export default function KanaPage() {
               style={{
                 width: "100%",
                 padding: "0.75rem",
-                borderRadius: "8px",
+                borderRadius: "14px",
                 border: "none",
                 cursor: "pointer",
                 background: "#3b82f6",
@@ -2361,7 +2367,7 @@ export default function KanaPage() {
                 onClick={() => handleSpeak(writingSubMode === "trace" ? currentWritingItem.char : writingQuizQuestion.char)}
                 style={{
                   padding: "0.45rem 0.7rem",
-                  borderRadius: "8px",
+                  borderRadius: "14px",
                   border: "1px solid #d1d5db",
                   background: "#fff",
                   cursor: "pointer",
@@ -2522,7 +2528,7 @@ export default function KanaPage() {
                 disabled={writingOrderMode === "sequence" && writingIndex === 0}
                 style={{
                   padding: "0.65rem 0.9rem",
-                  borderRadius: "8px",
+                  borderRadius: "14px",
                   border: "1px solid #d1d5db",
                   cursor: writingOrderMode === "sequence" && writingIndex === 0 ? "not-allowed" : "pointer",
                   background: writingOrderMode === "sequence" && writingIndex === 0 ? "#f3f4f6" : "#fff",
@@ -2537,7 +2543,7 @@ export default function KanaPage() {
                 disabled={writingOrderMode === "sequence" && writingIndex === data.length - 1}
                 style={{
                   padding: "0.65rem 0.9rem",
-                  borderRadius: "8px",
+                  borderRadius: "14px",
                   border: "1px solid #d1d5db",
                   cursor: writingOrderMode === "sequence" && writingIndex === data.length - 1 ? "not-allowed" : "pointer",
                   background: writingOrderMode === "sequence" && writingIndex === data.length - 1 ? "#f3f4f6" : "#fff",
@@ -2552,7 +2558,7 @@ export default function KanaPage() {
                   onClick={clearWritingCanvas}
                   style={{
                     padding: "0.65rem 0.9rem",
-                    borderRadius: "8px",
+                    borderRadius: "14px",
                     border: "1px solid #d1d5db",
                     cursor: "pointer",
                     background: "#fff",
@@ -2574,7 +2580,7 @@ export default function KanaPage() {
                   }}
                   style={{
                     padding: "0.65rem 0.9rem",
-                    borderRadius: "8px",
+                    borderRadius: "14px",
                     border: "1px solid #d1d5db",
                     cursor: "pointer",
                     background: "#fff",
@@ -2589,7 +2595,7 @@ export default function KanaPage() {
                   disabled={writingFeedbackLoading}
                   style={{
                     padding: "0.65rem 0.9rem",
-                    borderRadius: "8px",
+                    borderRadius: "14px",
                     border: "1px solid #8b5cf6",
                     cursor: writingFeedbackLoading ? "not-allowed" : "pointer",
                     background: writingFeedbackLoading ? "#f3f4f6" : "#ede9fe",
@@ -2603,7 +2609,7 @@ export default function KanaPage() {
                   onClick={() => setWritingQuizShowAnswer(true)}
                   style={{
                     padding: "0.65rem 0.9rem",
-                    borderRadius: "8px",
+                    borderRadius: "14px",
                     border: "1px solid #d1d5db",
                     cursor: "pointer",
                     background: "#fff",
@@ -2618,7 +2624,7 @@ export default function KanaPage() {
                   disabled={writingQuizAnswered}
                   style={{
                     padding: "0.65rem 0.9rem",
-                    borderRadius: "8px",
+                    borderRadius: "14px",
                     border: "1px solid #16a34a",
                     cursor: writingQuizAnswered ? "not-allowed" : "pointer",
                     background: writingQuizAnswered ? "#f3f4f6" : "#dcfce7",
@@ -2633,7 +2639,7 @@ export default function KanaPage() {
                   disabled={writingQuizAnswered}
                   style={{
                     padding: "0.65rem 0.9rem",
-                    borderRadius: "8px",
+                    borderRadius: "14px",
                     border: "1px solid #dc2626",
                     cursor: writingQuizAnswered ? "not-allowed" : "pointer",
                     background: writingQuizAnswered ? "#f3f4f6" : "#fee2e2",
@@ -2647,7 +2653,7 @@ export default function KanaPage() {
                   onClick={loadNextWritingQuizQuestion}
                   style={{
                     padding: "0.65rem 0.9rem",
-                    borderRadius: "8px",
+                    borderRadius: "14px",
                     border: "none",
                     cursor: "pointer",
                     background: "#3b82f6",
@@ -2790,7 +2796,7 @@ export default function KanaPage() {
       {mode === "confusing" && (
         <div>
           {/* 서브 탭: 카드 보기 / 비교 퀴즈 */}
-          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", flexWrap: "wrap", padding: "0.55rem", border: "1px solid #dbeafe", borderRadius: "14px", background: "#f8fbff" }}>
             <button
               onClick={() => { setConfusingView("cards"); }}
               style={{
@@ -2912,7 +2918,7 @@ export default function KanaPage() {
                   alignItems: "center",
                   marginBottom: "1.5rem",
                   padding: "0.75rem 1rem",
-                  borderRadius: "8px",
+                  borderRadius: "14px",
                   background: "#f3f4f6",
                 }}
               >
@@ -2935,7 +2941,7 @@ export default function KanaPage() {
                   gap: "0.5rem",
                   marginBottom: "1rem",
                   padding: "0.5rem 0.875rem",
-                  borderRadius: "8px",
+                  borderRadius: "14px",
                   background: "#fef3c7",
                   fontSize: "0.8rem",
                   color: "#92400e",
@@ -2998,7 +3004,7 @@ export default function KanaPage() {
                   <div
                     style={{
                       padding: "0.75rem 1rem",
-                      borderRadius: "8px",
+                      borderRadius: "14px",
                       marginBottom: "0.75rem",
                       textAlign: "center",
                       fontWeight: "600",
@@ -3015,7 +3021,7 @@ export default function KanaPage() {
                   <div
                     style={{
                       padding: "0.75rem 1rem",
-                      borderRadius: "8px",
+                      borderRadius: "14px",
                       marginBottom: "1rem",
                       background: "#f9fafb",
                       border: "1px solid #e5e7eb",
@@ -3032,7 +3038,7 @@ export default function KanaPage() {
                     style={{
                       width: "100%",
                       padding: "0.75rem",
-                      borderRadius: "8px",
+                      borderRadius: "14px",
                       border: "none",
                       cursor: "pointer",
                       background: "#f59e0b",
