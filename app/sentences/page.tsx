@@ -426,11 +426,20 @@ export default function SentencesPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      <div className="page-header">
-        <h1>문장 학습</h1>
-        <p className="muted" style={{ margin: 0 }}>
-          문장을 확인하고 저장해 보세요.{" "}
-          <span style={{ color: "#222" }}>저장 {savedSentences.length}개</span>
+      <div
+        style={{
+          marginBottom: "18px",
+          padding: "20px",
+          borderRadius: "20px",
+          border: "1px solid #dbeafe",
+          background: "linear-gradient(135deg, #eff6ff 0%, #f8fbff 60%, #ffffff 100%)",
+          boxShadow: "0 8px 20px rgba(59, 130, 246, 0.08)",
+        }}
+      >
+        <h1 style={{ margin: 0, color: "#1e3a8a" }}>문장 학습</h1>
+        <p className="muted" style={{ margin: "10px 0 0", color: "#475569", lineHeight: 1.6 }}>
+          자주 쓰는 일본어 문장을 듣고, 저장하고, 퀴즈로 익혀보세요.{" "}
+          <span style={{ color: "#1e3a8a", fontWeight: 700 }}>저장 {savedSentences.length}개</span>
         </p>
       </div>
 
@@ -443,8 +452,10 @@ export default function SentencesPage() {
             className="btn"
             style={{
               fontWeight: mode === m ? 700 : 400,
-              background: mode === m ? "#222" : undefined,
-              color: mode === m ? "#fff" : undefined,
+              background: mode === m ? "#2563eb" : "#f8fafc",
+              color: mode === m ? "#fff" : "#1e293b",
+              borderColor: mode === m ? "#2563eb" : "#dbeafe",
+              borderRadius: "999px",
             }}
           >
             {m} 모드
@@ -452,8 +463,22 @@ export default function SentencesPage() {
         ))}
       </div>
 
-      {/* 카테고리 필터 */}
-      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "20px" }}>
+      <div
+        className="card"
+        style={{
+          marginBottom: "20px",
+          borderRadius: "18px",
+          border: "1px solid #dbeafe",
+          background: "#ffffff",
+          boxShadow: "0 8px 20px rgba(15, 23, 42, 0.05)",
+        }}
+      >
+        <div style={{ fontWeight: 700, color: "#1e3a8a", marginBottom: "8px" }}>필터</div>
+        <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "10px" }}>
+          카테고리, 난이도, 문법 패턴으로 원하는 문장을 빠르게 찾을 수 있어요.
+        </div>
+        <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "6px" }}>카테고리</div>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "14px" }}>
         {CATEGORIES.map((c) => (
           <button
             key={c}
@@ -461,17 +486,20 @@ export default function SentencesPage() {
             className="btn"
             style={{
               fontSize: "13px",
-              padding: "4px 12px",
+              padding: "6px 12px",
               fontWeight: category === c ? 700 : 400,
-              background: category === c ? "#444" : undefined,
-              color: category === c ? "#fff" : undefined,
+              background: category === c ? "#2563eb" : "#f8fafc",
+              color: category === c ? "#fff" : "#334155",
+              borderColor: category === c ? "#2563eb" : "#dbeafe",
+              borderRadius: "999px",
             }}
           >
             {c}
           </button>
         ))}
       </div>
-      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "20px" }}>
+      <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "6px" }}>문법 패턴</div>
+      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "14px" }}>
         {PATTERNS.map((pattern) => (
           <button
             key={pattern.value}
@@ -479,17 +507,19 @@ export default function SentencesPage() {
             className="btn"
             style={{
               fontSize: "13px",
-              padding: "4px 12px",
+              padding: "6px 12px",
               fontWeight: patternFilter === pattern.value ? 700 : 400,
-              background: patternFilter === pattern.value ? "#444" : undefined,
-              color: patternFilter === pattern.value ? "#fff" : undefined,
+              background: patternFilter === pattern.value ? "#2563eb" : "#f8fafc",
+              color: patternFilter === pattern.value ? "#fff" : "#334155",
+              borderColor: patternFilter === pattern.value ? "#2563eb" : "#dbeafe",
+              borderRadius: "999px",
             }}
           >
             {pattern.label}
           </button>
         ))}
       </div>
-      <div className="card" style={{ marginBottom: "16px", fontSize: "13px", color: "#4b5563" }}>
+      <div className="card" style={{ marginBottom: "16px", fontSize: "13px", color: "#4b5563", background: "#f8fbff", borderColor: "#dbeafe" }}>
         <div><strong>です 문장:</strong> 명사나 상태를 공손하게 말할 때 사용해요. 예: これは水です。</div>
         <div><strong>ます 문장:</strong> 동작을 공손하게 말할 때 사용해요. 예: 日本語を勉強します。</div>
         <div><strong>は/を/に/で 패턴:</strong> 주제·대상·방향·장소를 나타내는 기본 조사 패턴이에요.</div>
@@ -497,7 +527,8 @@ export default function SentencesPage() {
       </div>
 
       {/* 난이도 필터 */}
-      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "20px" }}>
+      <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "6px" }}>난이도</div>
+      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "4px" }}>
         {LEVELS.map((level) => (
           <button
             key={level.value}
@@ -505,15 +536,18 @@ export default function SentencesPage() {
             className="btn"
             style={{
               fontSize: "13px",
-              padding: "4px 12px",
+              padding: "6px 12px",
               fontWeight: levelFilter === level.value ? 700 : 400,
-              background: levelFilter === level.value ? "#444" : undefined,
-              color: levelFilter === level.value ? "#fff" : undefined,
+              background: levelFilter === level.value ? "#2563eb" : "#f8fafc",
+              color: levelFilter === level.value ? "#fff" : "#334155",
+              borderColor: levelFilter === level.value ? "#2563eb" : "#dbeafe",
+              borderRadius: "999px",
             }}
           >
             {level.label}
           </button>
         ))}
+      </div>
       </div>
 
       {/* 학습 모드 */}
@@ -557,12 +591,14 @@ export default function SentencesPage() {
                     showKoreanPronunciation={settings.showKoreanPronunciation}
                   />
                   <div>
-                    <span className="badge">문법 패턴: {sentencePatternLabels[s.pattern ?? "other"] ?? "기타"}</span>
+                    <span className="badge" style={{ background: "#eff6ff", color: "#1d4ed8", borderColor: "#bfdbfe" }}>
+                      문법 패턴: {sentencePatternLabels[s.pattern ?? "other"] ?? "기타"}
+                    </span>
                   </div>
                   <div style={{ marginTop: "12px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <div className="label">뜻</div>
-                      <span className="badge">{s.category}</span>
+                      <span className="badge" style={{ background: "#fff7ed", color: "#c2410c", borderColor: "#fed7aa" }}>{s.category}</span>
                     </div>
                     <div>{s.meaning}</div>
                   </div>
@@ -574,7 +610,13 @@ export default function SentencesPage() {
                   {s.relatedWords && s.relatedWords.length > 0 && (
                     <div style={{ marginTop: "10px", display: "flex", gap: "6px", flexWrap: "wrap" }}>
                       {s.relatedWords.map((word) => (
-                        <span key={`${s.japanese}-${word}`} className="badge">{word}</span>
+                        <span
+                          key={`${s.japanese}-${word}`}
+                          className="badge"
+                          style={{ background: "#f1f5f9", color: "#334155", borderColor: "#e2e8f0" }}
+                        >
+                          {word}
+                        </span>
                       ))}
                     </div>
                   )}
@@ -592,12 +634,19 @@ export default function SentencesPage() {
                     onClick={() => speakJapanese(s.japanese, settings)}
                     className="btn"
                     type="button"
+                    style={{ background: "#eff6ff", color: "#1d4ed8", borderColor: "#bfdbfe", fontWeight: 600 }}
                   >
                     🔊 문장 듣기
                   </button>
                   <button
                     onClick={() => handleSave(s)}
                     className="btn"
+                    style={{
+                      background: saved ? "#fff1f2" : "#2563eb",
+                      color: saved ? "#be123c" : "#ffffff",
+                      borderColor: saved ? "#fecdd3" : "#2563eb",
+                      fontWeight: 700,
+                    }}
                   >
                     {saved ? "저장 취소" : "저장"}
                   </button>
@@ -647,15 +696,15 @@ export default function SentencesPage() {
               퀴즈를 위해 해당 카테고리에 최소 4개의 문장이 필요합니다.
             </div>
           ) : quiz ? (
-            <div className="card">
+            <div className="card" style={{ borderColor: "#dbeafe", borderRadius: "16px", boxShadow: "0 6px 16px rgba(15, 23, 42, 0.06)" }}>
               {/* 문제 유형 */}
               <div style={{ marginBottom: "8px" }}>
-                <span className="badge">
+                <span className="badge" style={{ background: "#eff6ff", color: "#1d4ed8", borderColor: "#bfdbfe" }}>
                   {quiz.quizType === "jp-to-kr"
                     ? "일본어 → 한국어"
                     : "한국어 → 일본어"}
                 </span>
-                <span className="badge" style={{ marginLeft: "6px" }}>
+                <span className="badge" style={{ marginLeft: "6px", background: "#fef9c3", color: "#92400e", borderColor: "#fde68a" }}>
                   {sentencePatternLabels[quiz.question.pattern ?? "other"] ?? "기타"}
                 </span>
               </div>
@@ -693,6 +742,7 @@ export default function SentencesPage() {
                     className="btn"
                     onClick={() => speakJapanese(quiz.question.japanese, settings)}
                     type="button"
+                    style={{ background: "#eff6ff", color: "#1d4ed8", borderColor: "#bfdbfe", fontWeight: 600 }}
                   >
                     🔊 문장 듣기
                   </button>
