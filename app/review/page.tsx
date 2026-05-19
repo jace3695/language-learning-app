@@ -60,6 +60,7 @@ const WRONG_KANA_CHARS_KEY = "wrongKanaChars";
 const WRONG_WORDS_KEY = "wrongWords";
 const WRONG_SENTENCES_KEY = "wrongSentences";
 const REVIEW_COMPLETED_ITEMS_KEY = "reviewCompletedItemsByDate";
+const EMPTY_REVIEW_MESSAGE = "아직 복습할 항목이 없어요. 단어와 문장을 저장하거나 퀴즈를 풀면 복습에 모여요.";
 
 type ReviewCompletedItemsEntry = {
   date: string;
@@ -229,6 +230,12 @@ export default function ReviewPage() {
   };
 
   const isReviewed = (itemId: string) => reviewedItemIds.includes(itemId);
+  const reviewActionButtonStyle = (done: boolean) => ({
+    borderColor: done ? "#22c55e" : "#2563eb",
+    background: done ? "#22c55e" : "#2563eb",
+    color: "#fff",
+    boxShadow: done ? "0 6px 14px rgba(34, 197, 94, 0.24)" : "0 8px 18px rgba(37, 99, 235, 0.22)",
+  });
 
   const showWords = activeReviewTab === "all" || activeReviewTab === "words";
   const showSentences = activeReviewTab === "all" || activeReviewTab === "sentences";
@@ -238,22 +245,29 @@ export default function ReviewPage() {
 
   return (
     <section>
-      <div className="page-header">
-        <h1>복습</h1>
-        <p className="muted" style={{ margin: 0 }}>저장한 단어와 문장을 다시 확인해 보세요.</p>
+      <div className="page-header card" style={{ marginBottom: "14px", padding: "18px", border: "1px solid #dbeafe", background: "linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)", boxShadow: "0 10px 22px rgba(37,99,235,0.08)" }}>
+        <h1 style={{ color: "#1e3a8a", marginBottom: "4px" }}>복습</h1>
+        <p className="muted" style={{ margin: 0, color: "#334155" }}>저장한 단어와 틀린 문제를 다시 확인해 보세요.</p>
       </div>
 
-      <div className="card" style={{ marginBottom: "14px" }}>
-        <div className="label" style={{ marginBottom: "8px" }}>복습 요약</div>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-          <span className="badge">단어 {savedWords.length}개</span>
-          <span className="badge">문장 {savedSentences.length}개</span>
-          <span className="badge">문법 {grammarReviewItems.length}개</span>
-          <span className="badge">가나 {kanaReviewCount}개</span>
+      <div className="card" style={{ marginBottom: "14px", padding: "14px", borderColor: "#dbeafe", boxShadow: "0 6px 16px rgba(15,23,42,.06)" }}>
+        <div className="label" style={{ marginBottom: "10px", color: "#1d4ed8" }}>복습 요약</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "10px" }}>
+          {[
+            { label: "저장 단어", count: savedWords.length },
+            { label: "저장 문장", count: savedSentences.length },
+            { label: "문법 복습", count: grammarReviewItems.length },
+            { label: "가나 복습", count: kanaReviewCount },
+          ].map((summary) => (
+            <div key={summary.label} style={{ borderRadius: "14px", border: "1px solid #dbeafe", background: "#f8fbff", padding: "10px 12px" }}>
+              <div style={{ fontSize: "12px", color: "#475569" }}>{summary.label}</div>
+              <div style={{ marginTop: "2px", fontWeight: 700, color: "#1d4ed8" }}>{summary.count}개</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px" }}>
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px", padding: "4px", borderRadius: "14px", background: "#f1f5ff", border: "1px solid #dbeafe" }}>
         {[
           { key: "all", label: "전체" },
           { key: "words", label: "단어" },
@@ -268,9 +282,11 @@ export default function ReviewPage() {
               onClick={() => setActiveReviewTab(tab.key as ReviewTab)}
               className="btn"
               style={{
-                borderColor: selected ? "#2563eb" : "#d1d5db",
-                background: selected ? "#2563eb" : "#fff",
-                color: selected ? "#fff" : "#111827",
+                borderRadius: "999px",
+                borderColor: selected ? "#2563eb" : "transparent",
+                background: selected ? "#2563eb" : "transparent",
+                color: selected ? "#fff" : "#334155",
+                boxShadow: selected ? "0 8px 16px rgba(37,99,235,0.24)" : "none",
               }}
             >
               {tab.label}
@@ -282,10 +298,10 @@ export default function ReviewPage() {
       {showWords && (
         <>
           <div className="section-title"><h2>저장한 단어</h2><span className="count">{savedWords.length}개</span></div>
-          {savedWords.length === 0 ? <div className="empty-state">저장한 단어가 없습니다. <Link href="/words">[단어]</Link>에서 단어를 저장해 보세요.</div> : (
+          {savedWords.length === 0 ? <div className="empty-state">{EMPTY_REVIEW_MESSAGE} <Link href="/words">[단어]</Link>에서 단어를 저장해 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {savedWords.map((w) => (
-                <li key={w.word} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word" }}>
+                <li key={w.word} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word", border: "1px solid #dbeafe", borderRadius: "16px", boxShadow: "0 8px 20px rgba(15,23,42,.06)" }}>
                   <div className="card-top"><div className="jp-text">{w.word}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{w.category}</span>{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)] && <span className="badge">{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)]}</span>}</div></div>
                   <div style={{ marginTop: "12px" }}><div className="label">뜻</div><div>{w.meaning}</div></div>
                   <div style={{ marginTop: "10px" }}><div className="label">예문</div><div style={{ color: "#555" }}>{w.example}</div></div>
@@ -295,7 +311,7 @@ export default function ReviewPage() {
                       type="button"
                       onClick={() => trackReviewAction(`saved-word:${w.word}`)}
                       className="btn"
-                      style={{ background: isReviewed(`saved-word:${w.word}`) ? "#16a34a" : undefined, color: isReviewed(`saved-word:${w.word}`) ? "#fff" : undefined }}
+                      style={reviewActionButtonStyle(isReviewed(`saved-word:${w.word}`))}
                     >
                       {isReviewed(`saved-word:${w.word}`) ? "복습 완료됨" : "복습 완료"}
                     </button>
@@ -309,7 +325,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>틀린 단어</h2><span className="count">{wrongWords.length}개</span></div>
           {wrongWords.length === 0 ? <div className="empty-state">틀린 단어가 없습니다.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongWords.map((item, idx) => { const itemId = buildWrongItemId("wrong-word", item); return <li key={`ww-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={{ background: isReviewed(itemId) ? "#16a34a" : undefined, color: isReviewed(itemId) ? "#fff" : undefined }}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
+              {wrongWords.map((item, idx) => { const itemId = buildWrongItemId("wrong-word", item); return <li key={`ww-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
             </ul>
           )}
         </>
@@ -318,10 +334,10 @@ export default function ReviewPage() {
       {showSentences && (
         <>
           <div className="section-title"><h2>저장한 문장</h2><span className="count">{savedSentences.length}개</span></div>
-          {savedSentences.length === 0 ? <div className="empty-state">저장한 문장이 없습니다. <Link href="/sentences">[문장]</Link>에서 문장을 저장해 보세요.</div> : (
+          {savedSentences.length === 0 ? <div className="empty-state">{EMPTY_REVIEW_MESSAGE} <Link href="/sentences">[문장]</Link>에서 문장을 저장해 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {savedSentences.map((s) => (
-                <li key={s.japanese} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word" }}>
+                <li key={s.japanese} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word", border: "1px solid #dbeafe", borderRadius: "16px", boxShadow: "0 8px 20px rgba(15,23,42,.06)" }}>
                   <div className="card-top"><div className="jp-text">{s.japanese}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{s.category}</span>{s.pattern && <span className="badge">{sentencePatternLabels[s.pattern] ?? "기타"}</span>}</div></div>
                   <div style={{ marginTop: "12px" }}><div className="label">뜻</div><div>{s.meaning}</div></div>
                   <div style={{ marginTop: "10px" }}><div className="label">설명</div><div style={{ color: "#555" }}>{s.note}</div></div>
@@ -331,7 +347,7 @@ export default function ReviewPage() {
                       type="button"
                       onClick={() => trackReviewAction(`saved-sentence:${s.japanese}`)}
                       className="btn"
-                      style={{ background: isReviewed(`saved-sentence:${s.japanese}`) ? "#16a34a" : undefined, color: isReviewed(`saved-sentence:${s.japanese}`) ? "#fff" : undefined }}
+                      style={reviewActionButtonStyle(isReviewed(`saved-sentence:${s.japanese}`))}
                     >
                       {isReviewed(`saved-sentence:${s.japanese}`) ? "복습 완료됨" : "복습 완료"}
                     </button>
@@ -345,7 +361,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>틀린 문장</h2><span className="count">{wrongSentences.length}개</span></div>
           {wrongSentences.length === 0 ? <div className="empty-state">틀린 문장이 없습니다.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongSentences.map((item, idx) => { const itemId = buildWrongItemId("wrong-sentence", item); return <li key={`ws-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={{ background: isReviewed(itemId) ? "#16a34a" : undefined, color: isReviewed(itemId) ? "#fff" : undefined }}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
+              {wrongSentences.map((item, idx) => { const itemId = buildWrongItemId("wrong-sentence", item); return <li key={`ws-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
             </ul>
           )}
         </>
@@ -354,13 +370,13 @@ export default function ReviewPage() {
       {showGrammar && (
         <>
           <div className="section-title"><h2>문법 복습</h2><span className="count">{grammarReviewItems.length}개</span></div>
-          {grammarReviewItems.length === 0 ? <div className="empty-state">복습할 문법이 없습니다. <Link href="/grammar">[문법]</Link>에서 연습 문제를 풀어 보세요.</div> : (
+          {grammarReviewItems.length === 0 ? <div className="empty-state">{EMPTY_REVIEW_MESSAGE} <Link href="/grammar">[문법]</Link>에서 연습 문제를 풀어 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {grammarReviewItems.map((item) => (
-                <li key={item.lessonId} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere" }}>
+                <li key={item.lessonId} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", border: "1px solid #dbeafe", borderRadius: "16px", boxShadow: "0 8px 20px rgba(15,23,42,.06)" }}>
                   <div className="card-top"><div className="jp-text">{item.title}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{item.category}</span><span className="badge">{item.pattern}</span></div></div>
                   <div style={{ marginTop: "10px", fontSize: "14px" }}>오답 {item.wrongCount}회 · 최근 결과: {item.lastResult === "correct" ? "정답" : "오답"}</div>
-                  <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><button type="button" onClick={() => trackReviewAction(`grammar:${item.lessonId}`)} className="btn" style={{ background: isReviewed(`grammar:${item.lessonId}`) ? "#16a34a" : undefined, color: isReviewed(`grammar:${item.lessonId}`) ? "#fff" : undefined }}>{isReviewed(`grammar:${item.lessonId}`) ? "복습 완료됨" : "복습 완료"}</button><Link href={`/grammar?lesson=${item.lessonId}`} className="btn">문법 다시 학습</Link></div>
+                  <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><button type="button" onClick={() => trackReviewAction(`grammar:${item.lessonId}`)} className="btn" style={reviewActionButtonStyle(isReviewed(`grammar:${item.lessonId}`))}>{isReviewed(`grammar:${item.lessonId}`) ? "복습 완료됨" : "복습 완료"}</button><Link href={`/grammar?lesson=${item.lessonId}`} className="btn">문법 다시 학습</Link></div>
                 </li>
               ))}
             </ul>
@@ -371,15 +387,15 @@ export default function ReviewPage() {
       {showKana && (
         <>
           <div className="section-title"><h2>가나 복습</h2><span className="count">{wrongKana.length}개</span></div>
-          {wrongKana.length === 0 ? <div className="empty-state">가나 오답이 없습니다. <Link href="/kana">[가나]</Link>에서 퀴즈를 풀어 보세요.</div> : (
+          {wrongKana.length === 0 ? <div className="empty-state">{EMPTY_REVIEW_MESSAGE} <Link href="/kana">[가나]</Link>에서 퀴즈를 풀어 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongKana.map((item, idx) => { const itemId = buildWrongItemId("wrong-kana", item); return <li key={`wk-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={{ background: isReviewed(itemId) ? "#16a34a" : undefined, color: isReviewed(itemId) ? "#fff" : undefined }}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
+              {wrongKana.map((item, idx) => { const itemId = buildWrongItemId("wrong-kana", item); return <li key={`wk-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
             </ul>
           )}
 
           <div className="section-title"><h2>헷갈린 글자</h2><span className="count">{wrongKanaChars.length}개</span></div>
           {wrongKanaChars.length === 0 ? <div className="empty-state">헷갈린 글자가 없습니다.</div> : (
-            <div className="card" style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px" }}>{wrongKanaChars.map((char, idx) => { const itemId = `kana-char:${char}`; return <div key={`kc-${char}-${idx}`} style={{ display: "flex", alignItems: "center", gap: "8px" }}><span className="badge" style={{ fontSize: "18px" }}>{char}</span><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={{ background: isReviewed(itemId) ? "#16a34a" : undefined, color: isReviewed(itemId) ? "#fff" : undefined }}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></div>; })}</div>
+            <div className="card" style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px", border: "1px solid #dbeafe" }}>{wrongKanaChars.map((char, idx) => { const itemId = `kana-char:${char}`; return <div key={`kc-${char}-${idx}`} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px", borderRadius: "999px", background: "#f8fbff" }}><span className="badge" style={{ fontSize: "18px" }}>{char}</span><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></div>; })}</div>
           )}
 
           <div className="card-actions" style={{ justifyContent: "flex-end", marginBottom: "18px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
