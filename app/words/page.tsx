@@ -335,25 +335,26 @@ export default function WordsPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      <div className="page-header">
-        <h1>단어 학습</h1>
-        <p className="muted" style={{ margin: 0 }}>
-          단어를 확인하고 저장해 보세요.{" "}
-          <span style={{ color: "#222" }}>저장 {savedWords.length}개</span>
+      <div className="page-header" style={{ marginBottom: "16px" }}>
+        <h1 style={{ color: "#1e3a8a" }}>단어 학습</h1>
+        <p className="muted" style={{ margin: 0, color: "#42526b" }}>
+          자주 쓰는 일본어 단어를 듣고, 저장하고, 퀴즈로 익혀보세요.{" "}
+          <span style={{ color: "#1d4ed8", fontWeight: 700 }}>저장 {savedWords.length}개</span>
         </p>
       </div>
 
       {/* 모드 전환 */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "20px", background: "#eff6ff", border: "1px solid #dbeafe", borderRadius: "14px", padding: "6px" }}>
         <button
           className="btn"
           onClick={() => setMode("study")}
           style={{
             flex: 1,
-            background: mode === "study" ? "#222" : "transparent",
-            color: mode === "study" ? "#fff" : "#222",
-            border: "1.5px solid #222",
+            background: mode === "study" ? "#2563eb" : "#ffffff",
+            color: mode === "study" ? "#fff" : "#334155",
+            border: mode === "study" ? "1px solid #2563eb" : "1px solid #bfdbfe",
             fontWeight: 600,
+            borderRadius: "10px",
           }}
         >
           학습 모드
@@ -366,18 +367,21 @@ export default function WordsPage() {
           }}
           style={{
             flex: 1,
-            background: mode === "quiz" ? "#222" : "transparent",
-            color: mode === "quiz" ? "#fff" : "#222",
-            border: "1.5px solid #222",
+            background: mode === "quiz" ? "#2563eb" : "#ffffff",
+            color: mode === "quiz" ? "#fff" : "#334155",
+            border: mode === "quiz" ? "1px solid #2563eb" : "1px solid #bfdbfe",
             fontWeight: 600,
+            borderRadius: "10px",
           }}
         >
           퀴즈 모드
         </button>
       </div>
 
+      <div className="card" style={{ marginBottom: "20px", padding: "14px", border: "1px solid #dbeafe", background: "#f8fbff" }}>
+        <div className="label" style={{ color: "#1e3a8a", marginBottom: "8px", fontSize: "13px" }}>필터 선택</div>
       {/* 카테고리 필터 */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap" }}>
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
@@ -387,11 +391,12 @@ export default function WordsPage() {
               if (mode === "quiz") setScore({ correct: 0, total: 0 });
             }}
             style={{
-              background: categoryFilter === cat ? "#555" : "transparent",
-              color: categoryFilter === cat ? "#fff" : "#555",
-              border: "1.5px solid #ccc",
+              background: categoryFilter === cat ? "#2563eb" : "#fff",
+              color: categoryFilter === cat ? "#fff" : "#475569",
+              border: categoryFilter === cat ? "1px solid #1d4ed8" : "1px solid #cbd5e1",
               fontSize: "13px",
               padding: "6px 14px",
+              borderRadius: "999px",
             }}
           >
             {cat}
@@ -400,7 +405,7 @@ export default function WordsPage() {
       </div>
 
       {/* 난이도 필터 */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap" }}>
         {LEVELS.map((level) => (
           <button
             key={level.value}
@@ -410,11 +415,12 @@ export default function WordsPage() {
               if (mode === "quiz") setScore({ correct: 0, total: 0 });
             }}
             style={{
-              background: levelFilter === level.value ? "#555" : "transparent",
-              color: levelFilter === level.value ? "#fff" : "#555",
-              border: "1.5px solid #ccc",
+              background: levelFilter === level.value ? "#0ea5e9" : "#fff",
+              color: levelFilter === level.value ? "#fff" : "#475569",
+              border: levelFilter === level.value ? "1px solid #0284c7" : "1px solid #cbd5e1",
               fontSize: "13px",
               padding: "6px 14px",
+              borderRadius: "999px",
             }}
           >
             {level.label}
@@ -423,7 +429,7 @@ export default function WordsPage() {
       </div>
 
       {/* 품사 필터 */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "0", flexWrap: "wrap" }}>
         {PARTS_OF_SPEECH.map((part) => (
           <button
             key={part.value}
@@ -433,27 +439,29 @@ export default function WordsPage() {
               if (mode === "quiz") setScore({ correct: 0, total: 0 });
             }}
             style={{
-              background: partOfSpeechFilter === part.value ? "#555" : "transparent",
-              color: partOfSpeechFilter === part.value ? "#fff" : "#555",
-              border: "1.5px solid #ccc",
+              background: partOfSpeechFilter === part.value ? "#f97316" : "#fff",
+              color: partOfSpeechFilter === part.value ? "#fff" : "#475569",
+              border: partOfSpeechFilter === part.value ? "1px solid #ea580c" : "1px solid #cbd5e1",
               fontSize: "13px",
               padding: "6px 14px",
+              borderRadius: "999px",
             }}
           >
             {part.label}
           </button>
         ))}
       </div>
+      </div>
 
-      <div className="card" style={{ marginBottom: "20px", padding: "14px 16px" }}>
-        <div className="label" style={{ marginBottom: "8px" }}>품사 빠른 설명</div>
-        <div style={{ display: "grid", gap: "6px", fontSize: "13px", color: "#444" }}>
-          <div><strong>명사:</strong> 사람, 장소, 물건, 개념을 나타내는 말이에요. 예: 水, 駅, 会社</div>
-          <div><strong>동사:</strong> 동작이나 상태를 나타내는 말이에요. 예: 食べる, 行く, 見る</div>
-          <div><strong>い형용사:</strong> 끝이 い로 끝나며 상태나 성질을 나타내요. 예: 大きい, 小さい, 高い</div>
-          <div><strong>な형용사:</strong> 명사를 꾸밀 때 な가 붙는 형용사예요. 예: 静か, 便利, きれい</div>
-          <div><strong>조사:</strong> 단어 사이의 관계를 나타내는 짧은 말이에요. 예: は, を, に, で</div>
-          <div><strong>표현:</strong> 인사나 자주 쓰는 고정 표현이에요. 예: こんにちは, ありがとう</div>
+      <div className="card" style={{ marginBottom: "20px", padding: "16px", border: "1px solid #dbeafe", background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)" }}>
+        <div className="label" style={{ marginBottom: "10px", color: "#1e3a8a" }}>품사 빠른 설명</div>
+        <div style={{ display: "grid", gap: "8px", fontSize: "13px", color: "#334155" }}>
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", padding: "8px 10px" }}><strong>명사:</strong> 사람, 장소, 물건, 개념을 나타내는 말이에요. 예: 水, 駅, 会社</div>
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", padding: "8px 10px" }}><strong>동사:</strong> 동작이나 상태를 나타내는 말이에요. 예: 食べる, 行く, 見る</div>
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", padding: "8px 10px" }}><strong>い형용사:</strong> 끝이 い로 끝나며 상태나 성질을 나타내요. 예: 大きい, 小さい, 高い</div>
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", padding: "8px 10px" }}><strong>な형용사:</strong> 명사를 꾸밀 때 な가 붙는 형용사예요. 예: 静か, 便利, きれい</div>
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", padding: "8px 10px" }}><strong>조사:</strong> 단어 사이의 관계를 나타내는 짧은 말이에요. 예: は, を, に, で</div>
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", padding: "8px 10px" }}><strong>표현:</strong> 인사나 자주 쓰는 고정 표현이에요. 예: こんにちは, ありがとう</div>
         </div>
       </div>
 
@@ -478,17 +486,18 @@ export default function WordsPage() {
                   flexDirection: "column",
                   height: "100%",
                   padding: "16px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "14px",
-                  background: "#fff",
-                  boxShadow: "0 1px 2px rgba(15, 23, 42, 0.06)",
+                  border: saved ? "1px solid #93c5fd" : "1px solid #dbeafe",
+                  borderRadius: "18px",
+                  background: saved ? "linear-gradient(180deg,#ffffff 0%,#f0f9ff 100%)" : "#fff",
+                  boxShadow: "0 6px 18px rgba(37, 99, 235, 0.08)",
                 }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
                   <div className="card-top">
                     <div className="jp-text"><FuriganaText text={w.word} rubySegments={w.rubySegments} showReading={settings.showReading} /></div>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                      <span className="badge">{w.category}</span>
+                      <span className="badge" style={{ background: "#eff6ff", color: "#1e3a8a" }}>{w.category}</span>
                       <span className="badge" style={partOfSpeechBadgeStyles[normalizePartOfSpeech(w.partOfSpeech)]}>{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)]}</span>
+                      {saved && <span className="badge" style={{ background: "#fef3c7", color: "#9a3412" }}>저장됨</span>}
                     </div>
                   </div>
                   {w.koreanPronunciation && (
@@ -535,26 +544,30 @@ export default function WordsPage() {
                   <button
                     onClick={() => speakJapaneseText(w.word)}
                     className="btn"
+                    style={{ borderRadius: "10px", border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 600 }}
                   >
                     🔊 단어 듣기
                   </button>
                   <button
                     onClick={() => speakJapaneseText(w.example)}
                     className="btn"
+                    style={{ borderRadius: "10px", border: "1px solid #bae6fd", background: "#f0f9ff", color: "#0369a1", fontWeight: 600 }}
                   >
                     🔊 예문 듣기
                   </button>
                   <button
                     onClick={() => handleSaveToggle(w)}
                     className="btn"
+                    style={{ borderRadius: "10px", border: saved ? "1px solid #fca5a5" : "1px solid #fdba74", background: saved ? "#fff1f2" : "#fff7ed", color: saved ? "#b91c1c" : "#c2410c", fontWeight: 600 }}
                   >
                     {saved ? "저장 취소" : "저장"}
                   </button>
                   <button
                     onClick={() => router.push(`/sentences?word=${encodeURIComponent(getSentenceKeyword(w))}`)}
                     className="btn"
+                    style={{ borderRadius: "10px", border: "1px solid #cbd5e1", background: "#fff", color: "#334155", fontWeight: 600 }}
                   >
-                    관련 문장
+                    관련 문장 보기
                   </button>
                 </div>
               </div>
