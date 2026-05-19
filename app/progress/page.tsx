@@ -791,29 +791,34 @@ export default function ProgressPage() {
   const currentSentenceQuiz = sentenceQuizItems[sentenceQuizIndex] ?? null;
 
   return (
-    <div style={{ maxWidth: 640, margin: "0 auto", padding: "2rem 1rem" }}>
-      <h1 style={{ fontSize: "1.8rem", marginBottom: "0.5rem" }}>학습 진도</h1>
-      <p style={{ color: "#666", marginBottom: "1rem" }}>
-        퀴즈에서 틀렸거나 헷갈린 항목이 여기에 기록됩니다.
-      </p>
+    <div style={{ maxWidth: 700, margin: "0 auto", padding: "1.5rem 1rem 3rem", color: "#0f172a" }}>
+      <section style={{ marginBottom: "1.1rem", border: "1px solid #dbeafe", borderRadius: 20, padding: "1.2rem", background: "linear-gradient(145deg, #f8fbff 0%, #eef4ff 100%)", boxShadow: "0 10px 28px rgba(59, 130, 246, 0.08)" }}>
+        <h1 style={{ fontSize: "1.8rem", margin: "0 0 0.5rem", color: "#1e3a8a" }}>학습 진도</h1>
+        <p style={{ color: "#334155", margin: 0, lineHeight: 1.55 }}>
+          오늘까지 쌓은 학습 기록을 한눈에 확인해 보세요.
+        </p>
+      </section>
 
-      <section style={{ marginBottom: "1rem", border: "1px solid #dbe3f4", borderRadius: 12, padding: "1rem", background: "#fff" }}>
-        <h2 style={{ fontSize: "1.05rem", margin: "0 0 0.7rem" }}>학습 요약</h2>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+      <section style={{ marginBottom: "1rem", border: "1px solid #dbeafe", borderRadius: 20, padding: "1rem", background: "#ffffff", boxShadow: "0 6px 20px rgba(148, 163, 184, 0.16)" }}>
+        <h2 style={{ fontSize: "1.05rem", margin: "0 0 0.8rem", color: "#1e3a8a" }}>학습 요약</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "0.55rem" }}>
           {[
-            `가나 ${learningSummary.kanaCount}개`,
-            `단어 ${learningSummary.wordsCount}개`,
-            `문장 ${learningSummary.sentencesCount}개`,
-            `문법 ${learningSummary.grammarCount}개`,
-            `복습 필요 ${learningSummary.reviewTotal}개`,
-          ].map((text) => (
-            <span key={text} style={{ border: "1px solid #d1d5db", borderRadius: 999, padding: "0.3rem 0.65rem", fontSize: "0.82rem", background: "#f8fafc" }}>{text}</span>
+            { label: "가나", value: learningSummary.kanaCount, tone: "#e0e7ff" },
+            { label: "단어", value: learningSummary.wordsCount, tone: "#dbeafe" },
+            { label: "문장", value: learningSummary.sentencesCount, tone: "#fef3c7" },
+            { label: "문법", value: learningSummary.grammarCount, tone: "#ffe4e6" },
+            { label: "복습 필요", value: learningSummary.reviewTotal, tone: "#dbeafe" },
+          ].map((item) => (
+            <article key={item.label} style={{ border: "1px solid #dbeafe", borderRadius: 14, padding: "0.7rem 0.55rem", background: item.tone }}>
+              <div style={{ fontSize: "0.76rem", color: "#475569" }}>{item.label}</div>
+              <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#1e3a8a", marginTop: "0.1rem" }}>{item.value}</div>
+            </article>
           ))}
         </div>
       </section>
 
       <section style={{ marginBottom: "1.5rem" }}>
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", background: "#eff6ff", padding: "0.35rem", borderRadius: 999, border: "1px solid #dbeafe" }}>
           {progressTabs.map((tab) => {
             const active = activeProgressTab === tab.key;
             return (
@@ -821,10 +826,10 @@ export default function ProgressPage() {
                 key={tab.key}
                 onClick={() => setActiveProgressTab(tab.key)}
                 style={{
-                  border: active ? "1px solid #1d4ed8" : "1px solid #d1d5db",
-                  background: active ? "#2563eb" : "#fff",
-                  color: active ? "#fff" : "#374151",
-                  padding: "0.4rem 0.9rem",
+                  border: active ? "1px solid #2563eb" : "1px solid transparent",
+                  background: active ? "#2563eb" : "transparent",
+                  color: active ? "#fff" : "#334155",
+                  padding: "0.46rem 0.95rem",
                   borderRadius: 999,
                   fontWeight: 600,
                   fontSize: "0.86rem",
@@ -839,14 +844,14 @@ export default function ProgressPage() {
       </section>
 
       {showGrammar && (
-      <section style={{ marginBottom: "2rem" }}>
+      <section style={{ marginBottom: "2rem", border: "1px solid #dbeafe", borderRadius: 18, padding: "1rem", background: "#ffffff", boxShadow: "0 6px 20px rgba(148, 163, 184, 0.12)" }}>
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>문법 진도</h2>
-        <article style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem", marginBottom: "0.75rem" }}>
+        <article style={{ border: "1px solid #dbeafe", borderRadius: 14, padding: "1rem", marginBottom: "0.75rem", background: "#f8fbff" }}>
           <p style={{ margin: "0 0 6px" }}>전체 {grammarSummary.total}개 · 풀이 {grammarSummary.solved}개</p>
           <p style={{ margin: "0 0 6px" }}>정답 {grammarSummary.correctTotal}회 · 오답 {grammarSummary.wrongTotal}회</p>
           <p style={{ margin: 0 }}>복습 필요 {grammarSummary.reviewCount}개</p>
         </article>
-        <article style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem" }}>
+        <article style={{ border: "1px solid #dbeafe", borderRadius: 14, padding: "1rem", background: "#f8fbff" }}>
           <h3 style={{ marginTop: 0 }}>자주 틀린 문법</h3>
           {topWrongGrammar.length === 0 ? (
             <p className="muted" style={{ margin: 0 }}>{activeProgressTab === "grammar" ? "문법 복습 항목이 없습니다. [문법]에서 연습 문제를 풀어 보세요." : "아직 틀린 문법 기록이 없습니다."}</p>
@@ -868,7 +873,7 @@ export default function ProgressPage() {
 
       {showKana && (
       <>
-      <section style={{ marginBottom: "2rem" }}>
+      <section style={{ marginBottom: "2rem", border: "1px solid #dbeafe", borderRadius: 18, padding: "1rem", background: "#ffffff", boxShadow: "0 6px 20px rgba(148, 163, 184, 0.12)" }}>
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>가나 진도 요약</h2>
         {activeProgressTab === "kana" && data.wrongKana.length === 0 && confusingKanaChars.length === 0 && (
           <p style={{ color: "#6b7280", margin: "0 0 0.75rem" }}>가나 오답이 없습니다. [가나]에서 퀴즈를 풀어 보세요.</p>
@@ -891,7 +896,7 @@ export default function ProgressPage() {
         </div>
       </section>
 
-      <section style={{ marginBottom: "2rem", border: "1px solid #ddd", borderRadius: 8, padding: "1rem" }}>
+      <section style={{ marginBottom: "2rem", border: "1px solid #dbeafe", borderRadius: 18, padding: "1rem", background: "#ffffff", boxShadow: "0 6px 20px rgba(148, 163, 184, 0.12)" }}>
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>자주 틀린 가나</h2>
         {kanaTopWrongItems.length === 0 ? (
           <p style={{ color: "#999", margin: 0 }}>기록된 가나 오답이 없습니다.</p>
@@ -921,10 +926,10 @@ export default function ProgressPage() {
       <section
         style={{
           marginBottom: "2rem",
-          border: "1px solid #a5b4fc",
-          borderRadius: 8,
+          border: "1px solid #bfdbfe",
+          borderRadius: 18,
           padding: "1rem",
-          background: "#f5f3ff",
+          background: "#f8fbff",
         }}
       >
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>Kana 오답 다시 풀기</h2>
@@ -1042,16 +1047,16 @@ export default function ProgressPage() {
       <section
         style={{
           marginBottom: "2rem",
-          border: "1px solid #6ee7b7",
-          borderRadius: 8,
+          border: "1px solid #bfdbfe",
+          borderRadius: 18,
           padding: "1rem",
-          background: "#f0fdf4",
+          background: "#f8fbff",
         }}
       >
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>단어 오답 다시 풀기</h2>
 
         {wordQuizItems.length === 0 ? (
-          <p style={{ color: "#999", margin: 0 }}>단어 오답이 없습니다.</p>
+          <p style={{ color: "#64748b", margin: 0 }}>아직 단어 오답 기록이 없어요. [단어] 퀴즈를 풀면 기록이 여기에 쌓여요.</p>
         ) : currentWordQuiz ? (
           <div>
             <p style={{ fontSize: "0.85rem", color: "#6b7280", marginBottom: "0.5rem" }}>
@@ -1169,16 +1174,16 @@ export default function ProgressPage() {
       <section
         style={{
           marginBottom: "2rem",
-          border: "1px solid #fbbf24",
-          borderRadius: 8,
+          border: "1px solid #bfdbfe",
+          borderRadius: 18,
           padding: "1rem",
-          background: "#fffbeb",
+          background: "#f8fbff",
         }}
       >
         <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>문장 오답 다시 풀기</h2>
 
         {sentenceQuizItems.length === 0 ? (
-          <p style={{ color: "#999", margin: 0 }}>문장 오답이 없습니다.</p>
+          <p style={{ color: "#64748b", margin: 0 }}>아직 문장 오답 기록이 없어요. [문장] 퀴즈를 풀면 기록이 여기에 쌓여요.</p>
         ) : currentSentenceQuiz ? (
           <div>
             <p style={{ fontSize: "0.85rem", color: "#6b7280", marginBottom: "0.5rem" }}>
@@ -1358,7 +1363,7 @@ export default function ProgressPage() {
             </div>
 
             {items.length === 0 ? (
-              <p style={{ color: "#999", margin: 0 }}>{activeProgressTab === "words" ? "단어 오답이 없습니다. [단어]에서 단어 퀴즈를 풀어 보세요." : activeProgressTab === "sentences" ? "문장 오답이 없습니다. [문장]에서 문장 퀴즈를 풀어 보세요." : "아직 기록이 없습니다. " + linkLabel.replace("다시 ", "") + "을 시작해 보세요!"}</p>
+              <p style={{ color: "#64748b", margin: 0 }}>{activeProgressTab === "words" ? "아직 단어 오답 기록이 없어요. [단어]에서 퀴즈를 풀어 보세요." : activeProgressTab === "sentences" ? "아직 문장 오답 기록이 없어요. [문장]에서 퀴즈를 풀어 보세요." : "아직 진도 기록이 없어요. 퀴즈를 풀면 학습 기록이 여기에 쌓여요."}</p>
             ) : key === "wrongKana" ? (
               <ul style={{ margin: 0, paddingLeft: 0 }}>
                 {items.map((item, i) => (
