@@ -120,6 +120,84 @@ button {
 
 .page-header { margin-bottom: 20px; }
 .page-header h1 { margin-bottom: 4px; }
+.settings-page-subtitle {
+  max-width: 36rem;
+  color: #5f6f82;
+}
+.daily-goal-card {
+  border-color: #cfe0f9;
+  box-shadow: 0 10px 22px rgba(66, 106, 164, 0.11);
+}
+.daily-goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.daily-goal-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ecf5ff, #e2efff);
+  color: #23548c;
+  border: 1px solid #bfd9fb;
+  font-size: 13px;
+  font-weight: 700;
+}
+.daily-goal-picker {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.daily-goal-option {
+  border: 1px solid #cbdcf2;
+  background: #f8fbff;
+  border-radius: 12px;
+  min-height: 52px;
+  color: #2a4e79;
+  display: grid;
+  place-items: center;
+  line-height: 1.1;
+  transition: all 0.15s ease;
+}
+.daily-goal-option strong {
+  font-size: 18px;
+}
+.daily-goal-option span {
+  font-size: 12px;
+}
+.daily-goal-option.is-selected {
+  background: linear-gradient(180deg, #59aaff, #418fe9);
+  border-color: #367ed3;
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(69, 122, 194, 0.3);
+}
+.settings-save-btn {
+  width: 100%;
+  border-radius: 12px;
+}
+.settings-save-message {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f5f45;
+  background: rgba(222, 249, 239, 0.9);
+  border: 1px solid #aee4cb;
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+.sr-only-select {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
 .label { font-size: 12px; color: #6b7280; margin-bottom: 2px; }
 .jp-text { font-size: 22px; font-weight: bold; line-height: 1.3; word-break: keep-all; }
 .badge {
@@ -208,6 +286,12 @@ button {
 
 @media (min-width: 768px) {
   body { padding: 20px; }
+}
+
+@media (max-width: 420px) {
+  .daily-goal-picker {
+    gap: 6px;
+  }
 }
 
 @media (min-width: 1024px) {

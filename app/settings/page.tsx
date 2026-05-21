@@ -385,44 +385,68 @@ export default function SettingsPage() {
     <section>
       <div className="page-header">
         <h1>학습 설정</h1>
-        <p className="muted" style={{ marginBottom: 0 }}>
+        <p className="muted settings-page-subtitle" style={{ marginBottom: 0 }}>
           나에게 맞는 하루 학습 목표를 정하고, 매일 꾸준히 학습해 보세요.
         </p>
       </div>
 
-      <div className="card" style={{ display: "grid", gap: "12px" }}>
-        <h2 style={{ margin: 0 }}>하루 학습 목표</h2>
-        <div>
-          <label htmlFor="daily-goal-count" style={{ display: "block", fontWeight: 600, marginBottom: "6px" }}>
-            하루에 완료하고 싶은 루틴 개수
-          </label>
-          <select
-            id="daily-goal-count"
-            value={dailyGoalCount}
-            onChange={(event) => {
-              setDailyGoalCount(Number(event.target.value));
-              setSaveMessage("");
-            }}
-            style={{ width: "100%" }}
-          >
-            {DAILY_GOAL_OPTIONS.map((goal) => (
-              <option key={goal} value={goal}>
-                {goal}개
-              </option>
-            ))}
-          </select>
+      <div className="card daily-goal-card" style={{ display: "grid", gap: "14px" }}>
+        <div className="daily-goal-header">
+          <h2 style={{ margin: 0 }}>하루 학습 목표</h2>
+          <span className="daily-goal-badge">현재 {dailyGoalCount}개</span>
         </div>
+        <label htmlFor="daily-goal-count" style={{ display: "block", fontWeight: 600, marginBottom: "4px" }}>
+          하루에 완료하고 싶은 루틴 개수
+        </label>
+        <div className="daily-goal-picker" role="radiogroup" aria-label="하루 목표 개수 선택">
+          {DAILY_GOAL_OPTIONS.map((goal) => {
+            const isSelected = dailyGoalCount === goal;
+
+            return (
+              <button
+                key={goal}
+                type="button"
+                className={`daily-goal-option${isSelected ? " is-selected" : ""}`}
+                onClick={() => {
+                  setDailyGoalCount(goal);
+                  setSaveMessage("");
+                }}
+                aria-pressed={isSelected}
+              >
+                <strong>{goal}</strong>
+                <span>개</span>
+              </button>
+            );
+          })}
+        </div>
+        <select
+          id="daily-goal-count"
+          value={dailyGoalCount}
+          onChange={(event) => {
+            setDailyGoalCount(Number(event.target.value));
+            setSaveMessage("");
+          }}
+          className="sr-only-select"
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          {DAILY_GOAL_OPTIONS.map((goal) => (
+            <option key={goal} value={goal}>
+              {goal}개
+            </option>
+          ))}
+        </select>
         <p className="muted" style={{ margin: 0 }}>
           하루에 완료하고 싶은 루틴 개수를 선택해 주세요.
         </p>
         <p className="muted" style={{ margin: 0 }}>
           목표는 홈의 진행률과 달력의 목표 달성률에 반영돼요.
         </p>
-        <button type="button" className="btn" onClick={handleSaveLearningSettings}>
+        <button type="button" className="btn settings-save-btn" onClick={handleSaveLearningSettings}>
           설정 저장
         </button>
         {saveMessage && (
-          <p className="muted" style={{ margin: 0, fontWeight: 600 }}>
+          <p className="settings-save-message" style={{ margin: 0 }}>
             {saveMessage}
           </p>
         )}
