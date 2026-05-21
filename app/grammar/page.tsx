@@ -9,6 +9,7 @@ import {
   type GrammarProgressItem,
 } from "@/data/grammar";
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
+import { speakJapaneseWithBrowserTts } from "@/utils/japaneseTts";
 
 type GrammarFilter = "전체" | GrammarCategory;
 
@@ -100,19 +101,12 @@ export default function GrammarPage() {
   };
 
   const handleSpeak = (text: string) => {
-    try {
-      if (typeof window === "undefined" || !window.speechSynthesis) {
-        console.error("speechSynthesis를 사용할 수 없습니다.");
-        return;
-      }
-
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "ja-JP";
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utterance);
-    } catch (error) {
+    void speakJapaneseWithBrowserTts(text, {
+      rate: 0.9,
+      pitch: 1,
+    }).catch((error) => {
       console.error("예문 듣기 처리 중 오류가 발생했습니다.", error);
-    }
+    });
   };
 
   return (
