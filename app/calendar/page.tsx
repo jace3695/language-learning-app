@@ -30,8 +30,6 @@ const routineLabelMap: Record<string, string> = {
   review: "복습",
 };
 
-
-
 const routineOrder = ["kana", "words", "sentences", "grammar", "review"] as const;
 const toDateKey = getLocalDateKey;
 
@@ -59,13 +57,13 @@ const getCompletedCount = (entry?: DailyLearningHistoryItem) => {
 
 const getDayVisual = (completedCount: number) => {
   if (completedCount >= 5) {
-    return { background: "#bbf7d0", tone: "#14532d", label: "5/5" };
+    return { background: "#d8ffe7", tone: "#0f6b37", label: "5/5" };
   }
   if (completedCount >= 3) {
-    return { background: "#dcfce7", tone: "#166534", label: `${Math.min(completedCount, 5)}/5` };
+    return { background: "#ecfff4", tone: "#167948", label: `${Math.min(completedCount, 5)}/5` };
   }
   if (completedCount >= 1) {
-    return { background: "#f0fdf4", tone: "#15803d", label: `${Math.min(completedCount, 5)}/5` };
+    return { background: "#f6fffa", tone: "#1c8c56", label: `${Math.min(completedCount, 5)}/5` };
   }
 
   return { background: "#ffffff", tone: "#6b7280", label: "" };
@@ -155,9 +153,10 @@ export default function CalendarPage() {
         }
 
         const parsed: unknown = JSON.parse(raw);
-        const dailyGoal = typeof parsed === "object" && parsed !== null
-          ? (parsed as LearningSettings).dailyGoalCount
-          : undefined;
+        const dailyGoal =
+          typeof parsed === "object" && parsed !== null
+            ? (parsed as LearningSettings).dailyGoalCount
+            : undefined;
         setDailyGoalCount(getSafeDailyGoalCount(dailyGoal));
       } catch {
         setDailyGoalCount(DEFAULT_DAILY_GOAL_COUNT);
@@ -228,42 +227,92 @@ export default function CalendarPage() {
   const selectedDateLabel = selectedDateKey.replaceAll("-", ".");
   const isSelectedToday = selectedDateKey === toDateKey(today);
 
+  const stats = [
+    { label: "연속 학습일", value: `${streakDays}일`, tone: "#3b82f6" },
+    { label: "이번 달 학습일", value: `${monthStats.learnedDays}일`, tone: "#4f46e5" },
+    { label: "이번 달 완료 루틴", value: `${monthStats.totalCompletedRoutines}개`, tone: "#0ea5e9" },
+    { label: "목표 달성률", value: `${todayGoalRate}%`, tone: "#f59e0b" },
+    { label: "전체 완료율", value: `${todayOverallRate}%`, tone: "#fb7185" },
+  ];
+
   return (
-    <section>
-      <div className="page-header">
-        <h1>학습 달력</h1>
-        <p className="muted" style={{ margin: 0 }}>날짜별 루틴 완료 기록을 확인해 보세요.</p>
+    <section style={{ display: "grid", gap: "14px" }}>
+      <div className="page-header card" style={{ marginBottom: 0 }}>
+        <h1 style={{ marginBottom: "6px" }}>학습 달력</h1>
+        <p className="muted" style={{ margin: 0 }}>
+          날짜별 학습 기록과 목표 달성률을 확인해 보세요.
+        </p>
       </div>
 
-      <section className="card" style={{ marginBottom: "12px" }}>
-        <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
-          <div><strong>연속 학습일</strong><div>{streakDays}일</div></div>
-          <div><strong>이번 달 학습일</strong><div>{monthStats.learnedDays}일</div></div>
-          <div><strong>이번 달 총 완료 루틴</strong><div>{monthStats.totalCompletedRoutines}개</div></div>
-          <div><strong>목표 달성률</strong><div>{todayGoalRate}%</div></div>
-          <div><strong>전체 완료율</strong><div>{todayOverallRate}%</div></div>
+      <section className="card" style={{ marginBottom: 0 }}>
+        <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}>
+          {stats.map((item) => (
+            <div
+              key={item.label}
+              style={{
+                border: "1px solid #dbe8fb",
+                background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
+                borderRadius: "12px",
+                padding: "12px",
+                boxShadow: "0 5px 12px rgba(75, 115, 178, 0.08)",
+              }}
+            >
+              <div style={{ color: "#64748b", fontSize: "12px", fontWeight: 600 }}>{item.label}</div>
+              <div style={{ marginTop: "5px", color: item.tone, fontSize: "24px", fontWeight: 800, lineHeight: 1.2 }}>{item.value}</div>
+            </div>
+          ))}
         </div>
       </section>
 
-      <section className="card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", gap: "8px", flexWrap: "wrap" }}>
-          <button type="button" onClick={() => moveMonth(-1)}>이전 달</button>
-          <h2 style={{ margin: 0 }}>{viewDate.getFullYear()}년 {viewDate.getMonth() + 1}월</h2>
-          <div style={{ display: "flex", gap: "6px" }}>
-            <button type="button" onClick={moveToCurrentMonth}>이번 달</button>
-            <button type="button" onClick={() => moveMonth(1)}>다음 달</button>
+      <section className="card" style={{ marginBottom: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "14px",
+            gap: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          <button type="button" onClick={() => moveMonth(-1)} className="btn" style={{ minHeight: "40px", padding: "8px 14px", fontSize: "14px" }}>
+            이전 달
+          </button>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: "18px",
+              fontWeight: 800,
+              color: "#1e3a8a",
+              border: "1px solid #d6e4f8",
+              borderRadius: "999px",
+              padding: "8px 14px",
+              background: "#f4f8ff",
+            }}
+          >
+            {viewDate.getFullYear()}년 {viewDate.getMonth() + 1}월
+          </h2>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button type="button" onClick={moveToCurrentMonth} style={{ minHeight: "40px", padding: "8px 13px", borderRadius: "10px", border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 700 }}>
+              이번 달
+            </button>
+            <button type="button" onClick={() => moveMonth(1)} className="btn" style={{ minHeight: "40px", padding: "8px 14px", fontSize: "14px" }}>
+              다음 달
+            </button>
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "6px", marginBottom: "6px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "7px", marginBottom: "8px" }}>
           {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
-            <div key={day} style={{ textAlign: "center", fontSize: "13px", color: "#6b7280" }}>{day}</div>
+            <div key={day} style={{ textAlign: "center", fontSize: "12px", color: "#64748b", fontWeight: 700 }}>
+              {day}
+            </div>
           ))}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "6px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "7px" }}>
           {calendarDays.map((day, index) => {
-            if (!day) return <div key={`empty-${index}`} style={{ minHeight: "62px" }} />;
+            if (!day) return <div key={`empty-${index}`} style={{ minHeight: "68px" }} />;
 
             const dateKey = toDateKey(day);
             const entry = history[dateKey];
@@ -271,10 +320,10 @@ export default function CalendarPage() {
             const isToday = isSameDay(day, today);
             const isSelected = selectedDateKey === dateKey;
             const visual = getDayVisual(completedCount);
-            const baseBorder = isSelected ? "2px solid #2563eb" : "1px solid #d1d5db";
+            const baseBorder = isSelected ? "2px solid #2563eb" : "1px solid #d4deee";
             const todayShadow = isToday
-              ? "inset 0 0 0 1px rgba(37, 99, 235, 0.35), 0 0 0 1px rgba(37, 99, 235, 0.2)"
-              : "none";
+              ? "inset 0 0 0 1px rgba(37, 99, 235, 0.28), 0 5px 12px rgba(37, 99, 235, 0.2)"
+              : "0 4px 10px rgba(84, 110, 153, 0.07)";
 
             return (
               <button
@@ -282,23 +331,24 @@ export default function CalendarPage() {
                 type="button"
                 onClick={() => setSelectedDateKey(dateKey)}
                 style={{
-                  minHeight: "62px",
-                  borderRadius: "10px",
+                  minHeight: "68px",
+                  borderRadius: "12px",
                   border: baseBorder,
                   background: visual.background,
-                  color: "#111827",
-                  fontWeight: isToday ? 700 : 500,
+                  color: "#1f2937",
+                  fontWeight: isToday ? 800 : 600,
                   boxShadow: todayShadow,
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "center",
                   alignItems: "center",
-                  gap: "2px",
+                  gap: "3px",
+                  padding: "6px 4px",
                 }}
               >
                 <div>{day.getDate()}</div>
                 {visual.label && (
-                  <div style={{ fontSize: "11px", color: visual.tone, fontWeight: 600 }}>
+                  <div style={{ fontSize: "11px", color: visual.tone, fontWeight: 700 }}>
                     {visual.label}
                   </div>
                 )}
@@ -308,25 +358,25 @@ export default function CalendarPage() {
         </div>
       </section>
 
-      <section className="card" style={{ marginTop: "12px" }}>
-        <h2 style={{ marginTop: 0, marginBottom: "12px" }}>{selectedDateLabel} 학습 상세</h2>
+      <section className="card" style={{ marginTop: 0 }}>
+        <h2 style={{ marginTop: 0, marginBottom: "12px", color: "#1e40af" }}>{selectedDateLabel} 학습 상세</h2>
 
         {!hasLearningRecord ? (
           <p className="muted" style={{ marginTop: 0, marginBottom: isSelectedToday ? "12px" : 0 }}>
-            이 날짜에는 완료된 학습 기록이 없습니다.
+            아직 완료된 루틴이 없어요. 오늘 루틴부터 차근차근 시작해 보세요.
           </p>
         ) : (
           <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-            <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: "10px", padding: "10px" }}>
-              <h3 style={{ margin: "0 0 8px", fontSize: "14px", color: "#166534" }}>완료 루틴</h3>
+            <div style={{ border: "1px solid #bde9cb", background: "#f2fff7", borderRadius: "12px", padding: "12px" }}>
+              <h3 style={{ margin: "0 0 8px", fontSize: "14px", color: "#166534" }}>완료한 루틴</h3>
               <ul style={{ margin: 0, paddingLeft: "18px" }}>
                 {completedRoutines.map((id) => (
                   <li key={id}>{routineLabelMap[id] ?? id}</li>
                 ))}
               </ul>
             </div>
-            <div style={{ border: "1px solid #e5e7eb", background: "#f9fafb", borderRadius: "10px", padding: "10px" }}>
-              <h3 style={{ margin: "0 0 8px", fontSize: "14px", color: "#4b5563" }}>미완료 루틴</h3>
+            <div style={{ border: "1px solid #e1e8f4", background: "#f8faff", borderRadius: "12px", padding: "12px" }}>
+              <h3 style={{ margin: "0 0 8px", fontSize: "14px", color: "#475569" }}>미완료 루틴</h3>
               <ul style={{ margin: 0, paddingLeft: "18px" }}>
                 {incompletedRoutines.map((id) => (
                   <li key={id}>{routineLabelMap[id] ?? id}</li>
@@ -345,25 +395,25 @@ export default function CalendarPage() {
               alignItems: "center",
               gap: "10px",
               flexWrap: "wrap",
-              borderTop: "1px solid #e5e7eb",
+              borderTop: "1px solid #e5ebf7",
               paddingTop: "12px",
             }}
           >
             <p className="muted" style={{ margin: 0 }}>
-              오늘 기록을 확인했으면 [홈]으로 돌아가 남은 루틴을 이어서 진행해 보세요.
+              오늘 기록을 확인했다면 홈으로 이동해 남은 루틴을 이어서 진행해 보세요.
             </p>
             <Link
               href="/"
               style={{
                 display: "inline-block",
                 textDecoration: "none",
-                border: "1px solid #86efac",
-                borderRadius: "8px",
-                padding: "8px 12px",
+                border: "1px solid #fecdd3",
+                borderRadius: "10px",
+                padding: "9px 13px",
                 fontSize: "14px",
                 fontWeight: 700,
-                color: "#166534",
-                background: "#f0fdf4",
+                color: "#be123c",
+                background: "#fff1f2",
                 whiteSpace: "nowrap",
               }}
             >
