@@ -7,7 +7,7 @@ import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 import { SENTENCES, type SentenceItem as Sentence } from "@/data/sentences";
 import FuriganaText from "@/components/FuriganaText";
 import type { RubySegment } from "@/data/sentences";
-import { speakJapaneseWithBrowserTts } from "@/utils/japaneseTts";
+import { speakJapaneseWithPreferredTts } from "@/utils/speakJapanese";
 
 const STORAGE_KEY = "savedSentences";
 const WRONG_SENTENCES_KEY = "wrongSentences";
@@ -62,7 +62,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   showKoreanPronunciation: true,
   showReading: true,
 };
-const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const sentencePatternLabels: Record<string, string> = {
   desu: "です 문장",
   masu: "ます 문장",
@@ -80,41 +79,13 @@ const sentencePatternLabels: Record<string, string> = {
   other: "기타",
 };
 
-async function speakJapaneseFallback(text: string, settings: AppSettings) {
-  await speakJapaneseWithBrowserTts(text, {
+async function speakJapanese(text: string, settings: AppSettings) {
+  await speakJapaneseWithPreferredTts(text, {
     rate: settings.ttsRate,
     pitch: 1,
     repeatCount: settings.repeatCount,
     repeatDelayMs: settings.repeatDelayMs,
   });
-}
-
-async function speakJapanese(text: string, settings: AppSettings) {
-  try {
-    const res = await fetch("/api/tts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-    if (!res.ok) throw new Error("TTS API error");
-    const { audioContent } = await res.json();
-    if (!audioContent) throw new Error("No audioContent");
-
-    for (let i = 0; i < settings.repeatCount; i += 1) {
-      const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
-      audio.playbackRate = settings.ttsRate;
-      await new Promise<void>((resolve, reject) => {
-        audio.onended = () => resolve();
-        audio.onerror = () => reject(new Error("Audio playback failed"));
-        audio.play().catch(reject);
-      });
-      if (i < settings.repeatCount - 1 && settings.repeatDelayMs > 0) {
-        await wait(settings.repeatDelayMs);
-      }
-    }
-  } catch {
-    await speakJapaneseFallback(text, settings);
-  }
 }
 
 function shuffle<T>(arr: T[]): T[] {
