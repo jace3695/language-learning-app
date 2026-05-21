@@ -576,7 +576,7 @@ export default function SentencesPage() {
                           className="badge"
                           style={{ background: "#f1f5f9", color: "#334155", borderColor: "#e2e8f0" }}
                         >
-                          {word}
+                          <FuriganaText text={word} showReading={settings.showReading} />
                         </span>
                       ))}
                     </div>

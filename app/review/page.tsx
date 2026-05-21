@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from "@/data/grammar";
+import FuriganaText from "@/components/FuriganaText";
+import type { RubySegment as WordRubySegment } from "@/data/words";
+import type { RubySegment as SentenceRubySegment } from "@/data/sentences";
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 
 type Word = {
@@ -12,6 +15,10 @@ type Word = {
   category: "일상" | "여행" | "업무" | "친구";
   partOfSpeech?: string;
   sentenceKeyword?: string;
+  reading?: string;
+  rubySegments?: WordRubySegment[];
+  exampleReading?: string;
+  exampleRubySegments?: WordRubySegment[];
 };
 
 type Sentence = {
@@ -20,6 +27,8 @@ type Sentence = {
   category: "일상" | "여행" | "업무" | "친구";
   note: string;
   pattern?: string;
+  reading?: string;
+  rubySegments?: SentenceRubySegment[];
 };
 
 type ReviewTab = "all" | "words" | "sentences" | "grammar" | "kana";
@@ -128,13 +137,18 @@ function loadArray<T>(key: string): T[] {
   }
 }
 
-function renderWrongItem(item: WrongItem): string {
-  if (typeof item === "string") return item;
+function WrongItemText({ item }: { item: WrongItem }) {
+  if (typeof item === "string") return <>{item}</>;
   const word = typeof item.word === "string" ? item.word : "";
   const jp = typeof item.japanese === "string" ? item.japanese : "";
   const meaning = typeof item.meaning === "string" ? item.meaning : "";
   const main = word || jp || "복습 항목";
-  return meaning ? `${main} (${meaning})` : main;
+  return (
+    <>
+      <FuriganaText text={main} showReading={true} />
+      {meaning ? ` (${meaning})` : ""}
+    </>
+  );
 }
 
 function buildWrongItemId(prefix: string, item: WrongItem): string {
@@ -302,9 +316,9 @@ export default function ReviewPage() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {savedWords.map((w) => (
                 <li key={w.word} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word", border: "1px solid #dbeafe", borderRadius: "16px", boxShadow: "0 8px 20px rgba(15,23,42,.06)" }}>
-                  <div className="card-top"><div className="jp-text">{w.word}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{w.category}</span>{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)] && <span className="badge">{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)]}</span>}</div></div>
+                  <div className="card-top"><div className="jp-text"><FuriganaText text={w.word} reading={w.reading} rubySegments={w.rubySegments} showReading={true} /></div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{w.category}</span>{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)] && <span className="badge">{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)]}</span>}</div></div>
                   <div style={{ marginTop: "12px" }}><div className="label">뜻</div><div>{w.meaning}</div></div>
-                  <div style={{ marginTop: "10px" }}><div className="label">예문</div><div style={{ color: "#555" }}>{w.example}</div></div>
+                  <div style={{ marginTop: "10px" }}><div className="label">예문</div><div style={{ color: "#555" }}><FuriganaText text={w.example} reading={w.exampleReading} rubySegments={w.exampleRubySegments} showReading={true} /></div></div>
                   <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     <Link href={`/sentences?word=${encodeURIComponent(w.sentenceKeyword || w.word)}`} className="btn">관련 문장 보기</Link>
                     <button
@@ -325,7 +339,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>틀린 단어</h2><span className="count">{wrongWords.length}개</span></div>
           {wrongWords.length === 0 ? <div className="empty-state">틀린 단어가 없습니다.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongWords.map((item, idx) => { const itemId = buildWrongItemId("wrong-word", item); return <li key={`ww-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
+              {wrongWords.map((item, idx) => { const itemId = buildWrongItemId("wrong-word", item); return <li key={`ww-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}><WrongItemText item={item} /></div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
             </ul>
           )}
         </>
@@ -338,7 +352,7 @@ export default function ReviewPage() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {savedSentences.map((s) => (
                 <li key={s.japanese} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word", border: "1px solid #dbeafe", borderRadius: "16px", boxShadow: "0 8px 20px rgba(15,23,42,.06)" }}>
-                  <div className="card-top"><div className="jp-text">{s.japanese}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{s.category}</span>{s.pattern && <span className="badge">{sentencePatternLabels[s.pattern] ?? "기타"}</span>}</div></div>
+                  <div className="card-top"><div className="jp-text"><FuriganaText text={s.japanese} reading={s.reading} rubySegments={s.rubySegments} showReading={true} /></div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{s.category}</span>{s.pattern && <span className="badge">{sentencePatternLabels[s.pattern] ?? "기타"}</span>}</div></div>
                   <div style={{ marginTop: "12px" }}><div className="label">뜻</div><div>{s.meaning}</div></div>
                   <div style={{ marginTop: "10px" }}><div className="label">설명</div><div style={{ color: "#555" }}>{s.note}</div></div>
                   <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -361,7 +375,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>틀린 문장</h2><span className="count">{wrongSentences.length}개</span></div>
           {wrongSentences.length === 0 ? <div className="empty-state">틀린 문장이 없습니다.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongSentences.map((item, idx) => { const itemId = buildWrongItemId("wrong-sentence", item); return <li key={`ws-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
+              {wrongSentences.map((item, idx) => { const itemId = buildWrongItemId("wrong-sentence", item); return <li key={`ws-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}><WrongItemText item={item} /></div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
             </ul>
           )}
         </>
@@ -389,7 +403,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>가나 복습</h2><span className="count">{wrongKana.length}개</span></div>
           {wrongKana.length === 0 ? <div className="empty-state">{EMPTY_REVIEW_MESSAGE} <Link href="/kana">[가나]</Link>에서 퀴즈를 풀어 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongKana.map((item, idx) => { const itemId = buildWrongItemId("wrong-kana", item); return <li key={`wk-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}>{renderWrongItem(item)}</div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
+              {wrongKana.map((item, idx) => { const itemId = buildWrongItemId("wrong-kana", item); return <li key={`wk-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}><WrongItemText item={item} /></div><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></li>; })}
             </ul>
           )}
 
