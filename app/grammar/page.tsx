@@ -9,7 +9,7 @@ import {
   type GrammarProgressItem,
 } from "@/data/grammar";
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
-import { speakJapaneseWithBrowserTts } from "@/utils/japaneseTts";
+import { speakJapaneseWithPreferredTts } from "@/utils/speakJapanese";
 
 type GrammarFilter = "전체" | GrammarCategory;
 
@@ -101,7 +101,7 @@ export default function GrammarPage() {
   };
 
   const handleSpeak = (text: string) => {
-    void speakJapaneseWithBrowserTts(text, {
+    void speakJapaneseWithPreferredTts(text, {
       rate: 0.9,
       pitch: 1,
     }).catch((error) => {

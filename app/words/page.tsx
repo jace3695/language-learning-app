@@ -7,7 +7,7 @@ import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 import { WORDS, type WordItem as Word } from "@/data/words";
 import FuriganaText from "@/components/FuriganaText";
 import type { RubySegment } from "@/data/words";
-import { speakJapaneseWithBrowserTts } from "@/utils/japaneseTts";
+import { speakJapaneseWithPreferredTts } from "@/utils/speakJapanese";
 
 const STORAGE_KEY = "savedWords";
 const WRONG_WORDS_KEY = "wrongWords";
@@ -297,7 +297,7 @@ export default function WordsPage() {
 
   const speakJapaneseText = useCallback(
     (text: string) => {
-      void speakJapaneseWithBrowserTts(text, {
+      void speakJapaneseWithPreferredTts(text, {
         rate: settings.ttsRate,
         pitch: 1,
         repeatCount: settings.repeatCount,
