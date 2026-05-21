@@ -7,6 +7,7 @@ import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 import { WORDS, type WordItem as Word } from "@/data/words";
 import FuriganaText from "@/components/FuriganaText";
 import type { RubySegment } from "@/data/words";
+import { speakJapaneseWithBrowserTts } from "@/utils/japaneseTts";
 
 const STORAGE_KEY = "savedWords";
 const WRONG_WORDS_KEY = "wrongWords";
@@ -70,7 +71,7 @@ function normalizePartOfSpeech(partOfSpeech?: string): Exclude<PartOfSpeechFilte
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-  ttsRate: 1,
+  ttsRate: 0.9,
   repeatCount: 1,
   repeatDelayMs: 500,
   showKoreanPronunciation: true,
@@ -296,16 +297,12 @@ export default function WordsPage() {
 
   const speakJapaneseText = useCallback(
     (text: string) => {
-      if (typeof window === "undefined" || !window.speechSynthesis || !text) return;
-      window.speechSynthesis.cancel();
-      for (let i = 0; i < settings.repeatCount; i += 1) {
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = "ja-JP";
-        utter.rate = settings.ttsRate;
-        setTimeout(() => {
-          window.speechSynthesis.speak(utter);
-        }, i * (settings.repeatDelayMs + 350));
-      }
+      void speakJapaneseWithBrowserTts(text, {
+        rate: settings.ttsRate,
+        pitch: 1,
+        repeatCount: settings.repeatCount,
+        repeatDelayMs: settings.repeatDelayMs,
+      });
     },
     [settings.repeatCount, settings.repeatDelayMs, settings.ttsRate]
   );

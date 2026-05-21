@@ -7,6 +7,7 @@ import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 import { SENTENCES, type SentenceItem as Sentence } from "@/data/sentences";
 import FuriganaText from "@/components/FuriganaText";
 import type { RubySegment } from "@/data/sentences";
+import { speakJapaneseWithBrowserTts } from "@/utils/japaneseTts";
 
 const STORAGE_KEY = "savedSentences";
 const WRONG_SENTENCES_KEY = "wrongSentences";
@@ -55,7 +56,7 @@ type SettingsPayload = Partial<AppSettings> & {
 
 const APP_SETTINGS_KEY = "japaneseAppSettings";
 const DEFAULT_SETTINGS: AppSettings = {
-  ttsRate: 1,
+  ttsRate: 0.9,
   repeatCount: 1,
   repeatDelayMs: 500,
   showKoreanPronunciation: true,
@@ -80,23 +81,12 @@ const sentencePatternLabels: Record<string, string> = {
 };
 
 async function speakJapaneseFallback(text: string, settings: AppSettings) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  for (let i = 0; i < settings.repeatCount; i += 1) {
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = "ja-JP";
-    utter.rate = settings.ttsRate;
-    await new Promise<void>((resolve) => {
-      utter.onend = () => resolve();
-      utter.onerror = () => resolve();
-      setTimeout(() => {
-        window.speechSynthesis.speak(utter);
-      }, 50);
-    });
-    if (i < settings.repeatCount - 1 && settings.repeatDelayMs > 0) {
-      await wait(settings.repeatDelayMs);
-    }
-  }
+  await speakJapaneseWithBrowserTts(text, {
+    rate: settings.ttsRate,
+    pitch: 1,
+    repeatCount: settings.repeatCount,
+    repeatDelayMs: settings.repeatDelayMs,
+  });
 }
 
 async function speakJapanese(text: string, settings: AppSettings) {
