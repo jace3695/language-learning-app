@@ -43,6 +43,23 @@ const normalizeSentencePattern = (sentence: SentenceItem): string => {
   return "other";
 };
 
+const KANJI_REGEX = /[一-龯々]/;
+
+const buildReadingFromRubySegments = (rubySegments?: RubySegment[]): string | undefined => {
+  if (!rubySegments || rubySegments.length === 0) return undefined;
+
+  const merged = rubySegments
+    .map((segment) => {
+      const raw = segment.reading ?? segment.text;
+      if (KANJI_REGEX.test(raw)) return "";
+      return raw;
+    })
+    .join("")
+    .trim();
+
+  return merged.length > 0 ? merged : undefined;
+};
+
 const inferRelatedWords = (sentence: SentenceItem): string[] => {
   if (sentence.relatedWords && sentence.relatedWords.length > 0) return sentence.relatedWords;
   const source = sentence.rubySegments?.map((segment) => segment.text).join("") || sentence.japanese;
@@ -282,7 +299,10 @@ export const SENTENCES: SentenceItem[] = ([
   { japanese: "おやすみなさい、また明日。", rubySegments: [{ text: "おやすみなさい、また" }, { text: "明日", reading: "あした" }, { text: "。" }], reading: "おやすみなさい、またあした。", koreanPronunciation: "오야스미나사이, 마타 아시타", meaning: "안녕히 주무세요, 내일 또 봐요.", category: "일상", note: "저녁 인사", description: "하루를 마무리할 때 쓰는 인사" },
 ] as SentenceItem[]).map((sentence) => ({
   ...sentence,
-  reading: sentence.reading ?? sentence.japanese,
+  reading:
+    sentence.reading
+    ?? buildReadingFromRubySegments(sentence.rubySegments)
+    ?? (KANJI_REGEX.test(sentence.japanese) ? undefined : sentence.japanese),
   koreanPronunciation: sentence.koreanPronunciation ?? "발음 참고 준비 중",
   pattern: normalizeSentencePattern(sentence),
   relatedWords: inferRelatedWords(sentence),
