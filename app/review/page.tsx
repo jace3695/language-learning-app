@@ -141,12 +141,26 @@ function WrongItemText({ item }: { item: WrongItem }) {
   if (typeof item === "string") return <>{item}</>;
   const word = typeof item.word === "string" ? item.word : "";
   const jp = typeof item.japanese === "string" ? item.japanese : "";
+  const reading = typeof item.reading === "string" ? item.reading : undefined;
+  const rubySegments = Array.isArray(item.rubySegments)
+    ? (item.rubySegments as WordRubySegment[])
+    : undefined;
+  const example = typeof item.example === "string" ? item.example : "";
+  const exampleReading = typeof item.exampleReading === "string" ? item.exampleReading : undefined;
+  const exampleRubySegments = Array.isArray(item.exampleRubySegments)
+    ? (item.exampleRubySegments as WordRubySegment[])
+    : undefined;
   const meaning = typeof item.meaning === "string" ? item.meaning : "";
   const main = word || jp || "복습 항목";
   return (
     <>
-      <FuriganaText text={main} showReading={true} />
+      <FuriganaText text={main} reading={reading} rubySegments={rubySegments} showReading={true} />
       {meaning ? ` (${meaning})` : ""}
+      {example && (
+        <div style={{ marginTop: "6px", color: "#555" }}>
+          <FuriganaText text={example} reading={exampleReading} rubySegments={exampleRubySegments} showReading={true} />
+        </div>
+      )}
     </>
   );
 }

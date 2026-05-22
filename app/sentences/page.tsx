@@ -280,6 +280,8 @@ export default function SentencesPage() {
       const raw = localStorage.getItem(WRONG_SENTENCES_KEY);
       const prev: Array<{
         japanese: string;
+        reading?: string;
+        rubySegments?: RubySegment[];
         meaning: string;
         category: string;
         note: string;
@@ -296,6 +298,8 @@ export default function SentencesPage() {
         ...prev,
         {
           japanese: q.question.japanese,
+          reading: q.question.reading,
+          rubySegments: q.question.rubySegments,
           meaning: q.question.meaning,
           category: q.question.category,
           note: q.question.note,

@@ -1,5 +1,10 @@
 export type GrammarCategory = "です/ます" | "조사" | "지시어" | "기타";
 
+export type GrammarRubySegment = {
+  text: string;
+  reading?: string;
+};
+
 export type GrammarLesson = {
   id: string;
   title: string;
@@ -9,8 +14,8 @@ export type GrammarLesson = {
   explanation: string;
   pattern: string;
   sentencePattern?: string;
-  examples: { japanese: string; reading?: string; meaning: string }[];
-  quiz: { question: string; choices: string[]; answer: string; explanation: string };
+  examples: { japanese: string; reading?: string; rubySegments?: GrammarRubySegment[]; meaning: string }[];
+  quiz: { question: string; choices: Array<string | { text: string; reading?: string; rubySegments?: GrammarRubySegment[] }>; answer: string; explanation: string };
 };
 
 export type GrammarProgressItem = {
@@ -37,13 +42,13 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     pattern: "A は B です",
     sentencePattern: "desu",
     examples: [
-      { japanese: "これは水です。", meaning: "이것은 물입니다." },
-      { japanese: "私は学生です。", meaning: "저는 학생입니다." },
-      { japanese: "ここは駅です。", meaning: "여기는 역입니다." },
+      { japanese: "これは水です。", rubySegments: [{ text: "これは" }, { text: "水", reading: "みず" }, { text: "です。" }], meaning: "이것은 물입니다." },
+      { japanese: "私は学生です。", rubySegments: [{ text: "私", reading: "わたし" }, { text: "は" }, { text: "学生", reading: "がくせい" }, { text: "です。" }], meaning: "저는 학생입니다." },
+      { japanese: "ここは駅です。", rubySegments: [{ text: "ここは" }, { text: "駅", reading: "えき" }, { text: "です。" }], meaning: "여기는 역입니다." },
     ],
     quiz: {
       question: "‘저는 학생입니다’를 일본어로 자연스럽게 표현한 것은?",
-      choices: ["私は学生です。", "私を学生です。", "私に学生です。", "私で学生です。"],
+      choices: [{ text: "私は学生です。", rubySegments: [{ text: "私", reading: "わたし" }, { text: "は学生です。" }] }, { text: "私を学生です。", rubySegments: [{ text: "私", reading: "わたし" }, { text: "を学生です。" }] }, { text: "私に学生です。", rubySegments: [{ text: "私", reading: "わたし" }, { text: "に学生です。" }] }, { text: "私で学生です。", rubySegments: [{ text: "私", reading: "わたし" }, { text: "で学生です。" }] }],
       answer: "私は学生です。",
       explanation: "주제는 は를 사용하고, 공손한 명사 문장은 です로 끝내요.",
     },
@@ -64,7 +69,7 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     ],
     quiz: {
       question: "공손한 동사 문장에 맞는 표현은?",
-      choices: ["食べます", "食べるだ", "食べです", "食べに"],
+      choices: [{ text: "食べます", rubySegments: [{ text: "食", reading: "た" }, { text: "べます" }] }, { text: "食べるだ", rubySegments: [{ text: "食", reading: "た" }, { text: "べるだ" }] }, { text: "食べです", rubySegments: [{ text: "食", reading: "た" }, { text: "べです" }] }, { text: "食べに", rubySegments: [{ text: "食", reading: "た" }, { text: "べに" }] }],
       answer: "食べます",
       explanation: "동작을 공손하게 말할 때는 동사 ます형을 사용해요.",
     },
@@ -184,7 +189,7 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     pattern: "ここ / そこ / あそこ",
     sentencePattern: "direction",
     examples: [
-      { japanese: "ここは駅です。", meaning: "여기는 역입니다." },
+      { japanese: "ここは駅です。", rubySegments: [{ text: "ここは" }, { text: "駅", reading: "えき" }, { text: "です。" }], meaning: "여기는 역입니다." },
       { japanese: "そこはトイレです。", meaning: "거기는 화장실입니다." },
       { japanese: "あそこは会社です。", meaning: "저기는 회사입니다." },
     ],

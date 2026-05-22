@@ -19,8 +19,12 @@ type PageMode = "study" | "quiz";
 
 type WrongWord = {
   word: string;
+  reading?: string;
+  rubySegments?: RubySegment[];
   meaning: string;
   example: string;
+  exampleReading?: string;
+  exampleRubySegments?: RubySegment[];
   category: Word["category"];
   quizType: QuizType;
   createdAt: string;
@@ -95,10 +99,12 @@ function normalizeSavedWord(item: Partial<Word>): Word | null {
   return {
     word: item.word,
     reading: item.reading,
+    rubySegments: item.rubySegments,
     koreanPronunciation: item.koreanPronunciation,
     meaning: item.meaning,
     example: item.example,
     exampleReading: item.exampleReading,
+    exampleRubySegments: item.exampleRubySegments,
     exampleKoreanPronunciation: item.exampleKoreanPronunciation,
     exampleMeaning: item.exampleMeaning,
     sentenceKeyword: item.sentenceKeyword,
@@ -121,8 +127,12 @@ function saveWrongWord(w: Word, quizType: QuizType) {
       ...prev,
       {
         word: w.word,
+        reading: w.reading,
+        rubySegments: w.rubySegments,
         meaning: w.meaning,
         example: w.example,
+        exampleReading: w.exampleReading,
+        exampleRubySegments: w.exampleRubySegments,
         category: w.category,
         quizType,
         createdAt: new Date().toISOString(),
