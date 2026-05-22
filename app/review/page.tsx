@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from "@/data/grammar";
-import FuriganaText from "@/components/FuriganaText";
 import type { RubySegment as WordRubySegment } from "@/data/words";
 import type { RubySegment as SentenceRubySegment } from "@/data/sentences";
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
@@ -142,23 +141,23 @@ function WrongItemText({ item }: { item: WrongItem }) {
   const word = typeof item.word === "string" ? item.word : "";
   const jp = typeof item.japanese === "string" ? item.japanese : "";
   const reading = typeof item.reading === "string" ? item.reading : undefined;
-  const rubySegments = Array.isArray(item.rubySegments)
-    ? (item.rubySegments as WordRubySegment[])
-    : undefined;
   const example = typeof item.example === "string" ? item.example : "";
   const exampleReading = typeof item.exampleReading === "string" ? item.exampleReading : undefined;
-  const exampleRubySegments = Array.isArray(item.exampleRubySegments)
-    ? (item.exampleRubySegments as WordRubySegment[])
-    : undefined;
+  const koreanPronunciation = typeof item.koreanPronunciation === "string" ? item.koreanPronunciation : undefined;
+  const exampleKoreanPronunciation = typeof item.exampleKoreanPronunciation === "string" ? item.exampleKoreanPronunciation : undefined;
   const meaning = typeof item.meaning === "string" ? item.meaning : "";
   const main = word || jp || "복습 항목";
   return (
     <>
-      <FuriganaText text={main} reading={reading} rubySegments={rubySegments} showReading={true} />
+      <div>{main}</div>
+      {reading && <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>읽는 법: {reading}</div>}
+      {koreanPronunciation && <div style={{ marginTop: "2px", color: "#7b867b", fontSize: "13px" }}>한글 발음: {koreanPronunciation}</div>}
       {meaning ? ` (${meaning})` : ""}
       {example && (
         <div style={{ marginTop: "6px", color: "#555" }}>
-          <FuriganaText text={example} reading={exampleReading} rubySegments={exampleRubySegments} showReading={true} />
+          <div>{example}</div>
+          {exampleReading && <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>예문 읽는 법: {exampleReading}</div>}
+          {exampleKoreanPronunciation && <div style={{ marginTop: "2px", color: "#7b867b", fontSize: "13px" }}>예문 한글 발음: {exampleKoreanPronunciation}</div>}
         </div>
       )}
     </>
@@ -330,9 +329,10 @@ export default function ReviewPage() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {savedWords.map((w) => (
                 <li key={w.word} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word", border: "1px solid #dbeafe", borderRadius: "16px", boxShadow: "0 8px 20px rgba(15,23,42,.06)" }}>
-                  <div className="card-top"><div className="jp-text"><FuriganaText text={w.word} reading={w.reading} rubySegments={w.rubySegments} showReading={true} /></div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{w.category}</span>{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)] && <span className="badge">{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)]}</span>}</div></div>
+                  <div className="card-top"><div className="jp-text">{w.word}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{w.category}</span>{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)] && <span className="badge">{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)]}</span>}</div></div>
+                  {w.reading && <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>읽는 법: {w.reading}</div>}
                   <div style={{ marginTop: "12px" }}><div className="label">뜻</div><div>{w.meaning}</div></div>
-                  <div style={{ marginTop: "10px" }}><div className="label">예문</div><div style={{ color: "#555" }}><FuriganaText text={w.example} reading={w.exampleReading} rubySegments={w.exampleRubySegments} showReading={true} /></div></div>
+                  <div style={{ marginTop: "10px" }}><div className="label">예문</div><div style={{ color: "#555" }}>{w.example}</div>{w.exampleReading && <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>예문 읽는 법: {w.exampleReading}</div>}</div>
                   <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     <Link href={`/sentences?word=${encodeURIComponent(w.sentenceKeyword || w.word)}`} className="btn">관련 문장 보기</Link>
                     <button
@@ -366,7 +366,8 @@ export default function ReviewPage() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {savedSentences.map((s) => (
                 <li key={s.japanese} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word", border: "1px solid #dbeafe", borderRadius: "16px", boxShadow: "0 8px 20px rgba(15,23,42,.06)" }}>
-                  <div className="card-top"><div className="jp-text"><FuriganaText text={s.japanese} reading={s.reading} rubySegments={s.rubySegments} showReading={true} /></div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{s.category}</span>{s.pattern && <span className="badge">{sentencePatternLabels[s.pattern] ?? "기타"}</span>}</div></div>
+                  <div className="card-top"><div className="jp-text">{s.japanese}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{s.category}</span>{s.pattern && <span className="badge">{sentencePatternLabels[s.pattern] ?? "기타"}</span>}</div></div>
+                  {s.reading && <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>읽는 법: {s.reading}</div>}
                   <div style={{ marginTop: "12px" }}><div className="label">뜻</div><div>{s.meaning}</div></div>
                   <div style={{ marginTop: "10px" }}><div className="label">설명</div><div style={{ color: "#555" }}>{s.note}</div></div>
                   <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}>

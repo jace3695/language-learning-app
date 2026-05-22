@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 import { WORDS, type WordItem as Word } from "@/data/words";
-import FuriganaText from "@/components/FuriganaText";
 import type { RubySegment } from "@/data/words";
 import { speakJapaneseWithPreferredTts } from "@/utils/speakJapanese";
 
@@ -500,13 +499,16 @@ export default function WordsPage() {
                 }}>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
                   <div className="card-top">
-                    <div className="jp-text"><FuriganaText text={w.word} rubySegments={w.rubySegments} showReading={settings.showReading} /></div>
+                    <div className="jp-text">{w.word}</div>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                       <span className="badge" style={{ background: "#eff6ff", color: "#1e3a8a" }}>{w.category}</span>
                       <span className="badge" style={partOfSpeechBadgeStyles[normalizePartOfSpeech(w.partOfSpeech)]}>{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)]}</span>
                       {saved && <span className="badge" style={{ background: "#fef3c7", color: "#9a3412" }}>저장됨</span>}
                     </div>
                   </div>
+                  {settings.showReading && w.reading && (
+                    <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>읽는 법: {w.reading}</div>
+                  )}
                   {w.koreanPronunciation && (
                     settings.showKoreanPronunciation &&
                     <div style={{ marginTop: "4px" }}>
@@ -522,7 +524,10 @@ export default function WordsPage() {
                     <>
                       <div style={{ marginTop: "10px" }}>
                         <div className="label">예문</div>
-                        <div style={{ color: "#555" }}><FuriganaText text={w.example} rubySegments={w.exampleRubySegments} showReading={settings.showReading} /></div>
+                        <div style={{ color: "#555" }}>{w.example}</div>
+                        {settings.showReading && w.exampleReading && (
+                          <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>예문 읽는 법: {w.exampleReading}</div>
+                        )}
                       </div>
                       {w.exampleMeaning && (
                         <div style={{ marginTop: "4px" }}>
@@ -647,7 +652,7 @@ export default function WordsPage() {
                       letterSpacing: "2px",
                     }}
                   >
-                    {quizType === "kr-to-jp" ? currentWord.meaning : <FuriganaText text={currentWord.word} rubySegments={currentWord.rubySegments} showReading={settings.showReading} />}
+                    {quizType === "kr-to-jp" ? currentWord.meaning : currentWord.word}
                   </div>
                   {quizType === "jp-to-kr" && currentWord.koreanPronunciation && (
                     showQuizKoreanPronunciation &&
@@ -722,7 +727,7 @@ export default function WordsPage() {
                         >
                           {quizType === "kr-to-jp" ? (
                             <>
-                              <div><FuriganaText text={choice} rubySegments={quizPool.find((w) => w.word === choice)?.rubySegments} showReading={settings.showReading} /></div>
+                              <div>{choice}</div>
                               {(() => {
                                 const choiceWord = quizPool.find((w) => w.word === choice);
                                 return (
@@ -759,7 +764,7 @@ export default function WordsPage() {
                       <div style={{ marginTop: "6px", fontSize: "13px", color: "#555" }}>품사: [{partOfSpeechLabels[normalizePartOfSpeech(currentWord?.partOfSpeech)]}]</div>
                       {selected !== correctAnswer && currentWord && quizType === "kr-to-jp" && (
                         <div style={{ marginTop: "8px", fontSize: "14px", color: "#444" }}>
-                          <FuriganaText text={currentWord.word} rubySegments={currentWord.rubySegments} showReading={settings.showReading} />
+                          {currentWord.word}
                           {showQuizKoreanPronunciation && currentWord.koreanPronunciation && (
                             <div style={{ fontSize: "12px", color: "#888" }}>{currentWord.koreanPronunciation}</div>
                           )}

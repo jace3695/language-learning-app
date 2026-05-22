@@ -10,7 +10,6 @@ import {
 } from "@/data/grammar";
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 import { speakJapaneseWithPreferredTts } from "@/utils/speakJapanese";
-import FuriganaText from "@/components/FuriganaText";
 
 type GrammarFilter = "전체" | GrammarCategory;
 
@@ -212,10 +211,11 @@ export default function GrammarPage() {
                 {lesson.examples.map((e) => (
                   <div key={`${lesson.id}-${e.japanese}`} style={{ fontSize: "14px" }}>
                     <div style={{ display: "flex", gap: "8px", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
-                      <span><FuriganaText text={e.japanese} reading={e.reading} rubySegments={e.rubySegments} showReading={true} /></span>
+                      <span>{e.japanese}</span>
                       <button type="button" onClick={() => handleSpeak(e.japanese)} style={{ border: "1px solid #bfdbfe", borderRadius: "10px", padding: "6px 11px", background: "#eff6ff", cursor: "pointer", fontSize: "12px", fontWeight: 700, color: "#1d4ed8" }}>예문 듣기</button>
                     </div>
                     <div className="muted">{e.meaning}</div>
+                    {e.reading && <div style={{ marginTop: "2px", color: "#64748b", fontSize: "13px" }}>읽는 법: {e.reading}</div>}
                   </div>
                 ))}
               </div>
@@ -243,7 +243,7 @@ export default function GrammarPage() {
 
               <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "12px", display: "grid", gap: "10px" }}>
                 <div style={{ fontSize: "14px", fontWeight: 700, color: "#1e3a8a" }}>연습 문제</div>
-                <p style={{ margin: 0, fontSize: "14px", lineHeight: 1.55 }}><FuriganaText text={lesson.quiz.question} showReading={true} /></p>
+                <p style={{ margin: 0, fontSize: "14px", lineHeight: 1.55 }}>{lesson.quiz.question}</p>
                 <div style={{ display: "grid", gap: "8px" }}>
                   {lesson.quiz.choices.map((rawChoice) => {
                     const choice = normalizeChoice(rawChoice);
@@ -287,7 +287,7 @@ export default function GrammarPage() {
                           fontWeight: 600,
                         }}
                       >
-                        <FuriganaText text={choice.text} reading={choice.reading} rubySegments={choice.rubySegments} showReading={true} />
+                        {choice.text}
                       </button>
                     );
                   })}
