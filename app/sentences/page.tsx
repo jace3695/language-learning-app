@@ -129,8 +129,19 @@ function getEffectiveLevel(sentence: Sentence): Exclude<LevelFilter, "all"> {
   return sentence.level ?? "beginner";
 }
 
+const KANJI_REGEX = /[一-龯々]/;
+
 function resolveReadingForDisplay(sentence: Sentence): string | undefined {
-  const reading = sentence.reading?.trim();
+  const readingFromRubySegments = sentence.rubySegments
+    ?.map((segment) => {
+      const raw = (segment.reading ?? segment.text).trim();
+      if (KANJI_REGEX.test(raw)) return "";
+      return raw;
+    })
+    .join("")
+    .trim();
+
+  const reading = (sentence.reading?.trim() || readingFromRubySegments || "").trim();
   if (!reading) return undefined;
   if (reading === "준비 중") return undefined;
   if (reading === sentence.japanese.trim()) return undefined;
