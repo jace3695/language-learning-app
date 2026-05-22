@@ -134,8 +134,12 @@ function containsKanji(text: string): boolean {
 }
 
 function resolveReadingForDisplay(sentence: Sentence): string | undefined {
-  if (!sentence.reading) return undefined;
-  return containsKanji(sentence.reading) ? undefined : sentence.reading;
+  const reading = sentence.reading?.trim();
+  if (!reading) return undefined;
+  if (reading === "준비 중") return undefined;
+  if (containsKanji(reading)) return undefined;
+  if (reading === sentence.japanese.trim()) return undefined;
+  return reading;
 }
 
 function JapaneseTextBlock({
@@ -152,7 +156,7 @@ function JapaneseTextBlock({
   return (
     <div style={{ lineHeight: 1.5 }}>
       <div className="jp-text" style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{japanese}</div>
-      {reading && !containsKanji(reading) && <div style={{ marginTop: "2px", color: "#64748b", fontSize: "13px" }}>읽는 법: {reading}</div>}
+      {reading && <div style={{ marginTop: "2px", color: "#64748b", fontSize: "13px" }}>읽는 법: {reading}</div>}
       {showKoreanPronunciation && koreanPronunciation && (
         <div style={{ marginTop: "2px", color: "#7b867b", fontSize: "13px" }}>한글 발음: {koreanPronunciation}</div>
       )}
