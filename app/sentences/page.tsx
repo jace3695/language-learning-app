@@ -129,15 +129,10 @@ function getEffectiveLevel(sentence: Sentence): Exclude<LevelFilter, "all"> {
   return sentence.level ?? "beginner";
 }
 
-function containsKanji(text: string): boolean {
-  return /\p{Script=Han}/u.test(text);
-}
-
 function resolveReadingForDisplay(sentence: Sentence): string | undefined {
   const reading = sentence.reading?.trim();
   if (!reading) return undefined;
   if (reading === "준비 중") return undefined;
-  if (containsKanji(reading)) return undefined;
   if (reading === sentence.japanese.trim()) return undefined;
   return reading;
 }
