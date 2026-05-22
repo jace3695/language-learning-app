@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 import { SENTENCES, type SentenceItem as Sentence } from "@/data/sentences";
-import FuriganaText from "@/components/FuriganaText";
-import type { RubySegment } from "@/data/sentences";
 import { speakJapaneseWithPreferredTts } from "@/utils/speakJapanese";
 
 const STORAGE_KEY = "savedSentences";
@@ -133,25 +131,21 @@ function getEffectiveLevel(sentence: Sentence): Exclude<LevelFilter, "all"> {
 
 function JapaneseTextBlock({
   japanese,
+  reading,
   koreanPronunciation,
-  showReading,
   showKoreanPronunciation,
-  rubySegments,
 }: {
   japanese: string;
+  reading?: string;
   koreanPronunciation?: string;
-  showReading: boolean;
   showKoreanPronunciation: boolean;
-  rubySegments?: RubySegment[];
 }) {
-  const hasKanji = /[\u3400-\u9FFF]/.test(japanese);
   return (
     <div style={{ lineHeight: 1.5 }}>
-      <div className="jp-text" style={{ whiteSpace: "normal", wordBreak: "break-word" }}>
-        <FuriganaText text={japanese} rubySegments={rubySegments} showReading={showReading} />
-      </div>
+      <div className="jp-text" style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{japanese}</div>
+      {reading && <div style={{ marginTop: "2px", color: "#64748b", fontSize: "13px" }}>읽는 법: {reading}</div>}
       {showKoreanPronunciation && koreanPronunciation && (
-        <div style={{ marginTop: "2px", color: "#7b867b", fontSize: "13px" }}>{koreanPronunciation}</div>
+        <div style={{ marginTop: "2px", color: "#7b867b", fontSize: "13px" }}>한글 발음: {koreanPronunciation}</div>
       )}
     </div>
   );
@@ -281,7 +275,6 @@ export default function SentencesPage() {
       const prev: Array<{
         japanese: string;
         reading?: string;
-        rubySegments?: RubySegment[];
         meaning: string;
         category: string;
         note: string;
@@ -550,9 +543,8 @@ export default function SentencesPage() {
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
                   <JapaneseTextBlock
                     japanese={s.japanese}
+                    reading={settings.showReading ? s.reading : undefined}
                     koreanPronunciation={s.koreanPronunciation}
-                    rubySegments={s.rubySegments}
-                    showReading={settings.showReading}
                     showKoreanPronunciation={settings.showKoreanPronunciation}
                   />
                   <div>
@@ -580,7 +572,7 @@ export default function SentencesPage() {
                           className="badge"
                           style={{ background: "#f1f5f9", color: "#334155", borderColor: "#e2e8f0" }}
                         >
-                          <FuriganaText text={word} showReading={settings.showReading} />
+                          {word}
                         </span>
                       ))}
                     </div>
@@ -684,16 +676,14 @@ export default function SentencesPage() {
                 }}
               >
                 {quiz.quizType === "jp-to-kr"
-                  ? (
-                    <FuriganaText
-                      text={quiz.question.japanese}
-                      reading={quiz.question.reading}
-                      rubySegments={quiz.question.rubySegments}
-                      showReading={settings.showReading}
-                    />
-                  )
+                  ? quiz.question.japanese
                   : quiz.question.meaning}
               </div>
+              {quiz.quizType === "jp-to-kr" && settings.showReading && quiz.question.reading && (
+                <div style={{ marginTop: "-8px", marginBottom: "8px", color: "#64748b", fontSize: "13px" }}>
+                  읽는 법: {quiz.question.reading}
+                </div>
+              )}
               {quiz.quizType === "jp-to-kr" && settings.showKoreanPronunciation && quiz.question.koreanPronunciation && (
                 <div style={{ marginTop: "-8px", marginBottom: "12px", color: "#7b867b", fontSize: "13px" }}>
                   {quiz.question.koreanPronunciation}
@@ -770,17 +760,7 @@ export default function SentencesPage() {
                       <span style={{ opacity: 0.5, marginRight: "6px" }}>
                         {idx + 1}.
                       </span>
-                      <span>{quiz.quizType === "kr-to-jp" ? (() => {
-                        const choiceSentence = SENTENCES.find((item) => item.japanese === choice);
-                        return (
-                          <FuriganaText
-                            text={choice}
-                            reading={choiceSentence?.reading}
-                            rubySegments={choiceSentence?.rubySegments}
-                            showReading={settings.showReading}
-                          />
-                        );
-                      })() : choice}</span>
+                      <span>{choice}</span>
                     </button>
                   );
                 })}
