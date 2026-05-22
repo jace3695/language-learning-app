@@ -140,18 +140,42 @@ function resolveReadingForDisplay(sentence: Sentence): string | undefined {
 function JapaneseTextBlock({
   japanese,
   reading,
+  isReadingExpanded,
+  onToggleReading,
   koreanPronunciation,
   showKoreanPronunciation,
 }: {
   japanese: string;
   reading?: string;
+  isReadingExpanded: boolean;
+  onToggleReading: () => void;
   koreanPronunciation?: string;
   showKoreanPronunciation: boolean;
 }) {
   return (
     <div style={{ lineHeight: 1.5 }}>
       <div className="jp-text" style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{japanese}</div>
-      {reading && <div style={{ marginTop: "2px", color: "#64748b", fontSize: "13px" }}>읽는 법: {reading}</div>}
+      {reading && (
+        <div style={{ marginTop: "4px" }}>
+          <button
+            type="button"
+            onClick={onToggleReading}
+            className="btn"
+            style={{
+              padding: "2px 8px",
+              fontSize: "12px",
+              color: "#475569",
+              background: "#f8fafc",
+              borderColor: "#e2e8f0",
+            }}
+          >
+            {isReadingExpanded ? "읽는 법 숨기기" : "읽는 법 보기"}
+          </button>
+          {isReadingExpanded && (
+            <div style={{ marginTop: "4px", color: "#64748b", fontSize: "12px" }}>읽는 법: {reading}</div>
+          )}
+        </div>
+      )}
       {showKoreanPronunciation && koreanPronunciation && (
         <div style={{ marginTop: "2px", color: "#7b867b", fontSize: "13px" }}>한글 발음: {koreanPronunciation}</div>
       )}
@@ -170,6 +194,7 @@ export default function SentencesPage() {
   const [wordFilter, setWordFilter] = useState("");
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
+  const [expandedReadingKeys, setExpandedReadingKeys] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -536,6 +561,9 @@ export default function SentencesPage() {
           )}
           {filteredSentencesByWord.map((s) => {
             const saved = isSaved(s);
+            const reading = settings.showReading ? resolveReadingForDisplay(s) : undefined;
+            const readingKey = `${s.japanese}__${s.meaning}`;
+            const isReadingExpanded = expandedReadingKeys.has(readingKey);
             return (
               <div key={s.japanese} className="card"
                 style={{
@@ -551,7 +579,19 @@ export default function SentencesPage() {
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
                   <JapaneseTextBlock
                     japanese={s.japanese}
-                    reading={settings.showReading ? resolveReadingForDisplay(s) : undefined}
+                    reading={reading}
+                    isReadingExpanded={isReadingExpanded}
+                    onToggleReading={() => {
+                      setExpandedReadingKeys((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(readingKey)) {
+                          next.delete(readingKey);
+                        } else {
+                          next.add(readingKey);
+                        }
+                        return next;
+                      });
+                    }}
                     koreanPronunciation={s.koreanPronunciation}
                     showKoreanPronunciation={settings.showKoreanPronunciation}
                   />
