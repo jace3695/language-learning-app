@@ -129,6 +129,15 @@ function getEffectiveLevel(sentence: Sentence): Exclude<LevelFilter, "all"> {
   return sentence.level ?? "beginner";
 }
 
+function containsKanji(text: string): boolean {
+  return /\p{Script=Han}/u.test(text);
+}
+
+function resolveReadingForDisplay(sentence: Sentence): string | undefined {
+  if (!sentence.reading) return undefined;
+  return containsKanji(sentence.reading) ? undefined : sentence.reading;
+}
+
 function JapaneseTextBlock({
   japanese,
   reading,
@@ -143,7 +152,7 @@ function JapaneseTextBlock({
   return (
     <div style={{ lineHeight: 1.5 }}>
       <div className="jp-text" style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{japanese}</div>
-      {reading && <div style={{ marginTop: "2px", color: "#64748b", fontSize: "13px" }}>읽는 법: {reading}</div>}
+      {reading && !containsKanji(reading) && <div style={{ marginTop: "2px", color: "#64748b", fontSize: "13px" }}>읽는 법: {reading}</div>}
       {showKoreanPronunciation && koreanPronunciation && (
         <div style={{ marginTop: "2px", color: "#7b867b", fontSize: "13px" }}>한글 발음: {koreanPronunciation}</div>
       )}
@@ -543,7 +552,7 @@ export default function SentencesPage() {
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
                   <JapaneseTextBlock
                     japanese={s.japanese}
-                    reading={settings.showReading ? s.reading : undefined}
+                    reading={settings.showReading ? resolveReadingForDisplay(s) : undefined}
                     koreanPronunciation={s.koreanPronunciation}
                     showKoreanPronunciation={settings.showKoreanPronunciation}
                   />
@@ -679,9 +688,9 @@ export default function SentencesPage() {
                   ? quiz.question.japanese
                   : quiz.question.meaning}
               </div>
-              {quiz.quizType === "jp-to-kr" && settings.showReading && quiz.question.reading && (
+              {quiz.quizType === "jp-to-kr" && settings.showReading && resolveReadingForDisplay(quiz.question) && (
                 <div style={{ marginTop: "-8px", marginBottom: "8px", color: "#64748b", fontSize: "13px" }}>
-                  읽는 법: {quiz.question.reading}
+                  읽는 법: {resolveReadingForDisplay(quiz.question)}
                 </div>
               )}
               {quiz.quizType === "jp-to-kr" && settings.showKoreanPronunciation && quiz.question.koreanPronunciation && (

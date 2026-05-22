@@ -42,9 +42,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     pattern: "A は B です",
     sentencePattern: "desu",
     examples: [
-      { japanese: "これは水です。", rubySegments: [{ text: "これは" }, { text: "水", reading: "みず" }, { text: "です。" }], meaning: "이것은 물입니다." },
-      { japanese: "私は学生です。", rubySegments: [{ text: "私", reading: "わたし" }, { text: "は" }, { text: "学生", reading: "がくせい" }, { text: "です。" }], meaning: "저는 학생입니다." },
-      { japanese: "ここは駅です。", rubySegments: [{ text: "ここは" }, { text: "駅", reading: "えき" }, { text: "です。" }], meaning: "여기는 역입니다." },
+      { japanese: "これは水です。", reading: "これはみずです。", rubySegments: [{ text: "これは" }, { text: "水", reading: "みず" }, { text: "です。" }], meaning: "이것은 물입니다." },
+      { japanese: "私は学生です。", reading: "わたしはがくせいです。", rubySegments: [{ text: "私", reading: "わたし" }, { text: "は" }, { text: "学生", reading: "がくせい" }, { text: "です。" }], meaning: "저는 학생입니다." },
+      { japanese: "ここは駅です。", reading: "ここはえきです。", rubySegments: [{ text: "ここは" }, { text: "駅", reading: "えき" }, { text: "です。" }], meaning: "여기는 역입니다." },
     ],
     quiz: {
       question: "‘저는 학생입니다’를 일본어로 자연스럽게 표현한 것은?",
@@ -63,9 +63,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     pattern: "동사ます",
     sentencePattern: "masu",
     examples: [
-      { japanese: "日本語を勉強します。", meaning: "일본어를 공부합니다." },
-      { japanese: "駅に行きます。", meaning: "역에 갑니다." },
-      { japanese: "水を飲みます。", meaning: "물을 마십니다." },
+      { japanese: "日本語を勉強します。", reading: "にほんごをべんきょうします。", meaning: "일본어를 공부합니다." },
+      { japanese: "駅に行きます。", reading: "えきにいきます。", meaning: "역에 갑니다." },
+      { japanese: "水を飲みます。", reading: "みずをのみます。", meaning: "물을 마십니다." },
     ],
     quiz: {
       question: "공손한 동사 문장에 맞는 표현은?",
@@ -84,9 +84,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     pattern: "A は B です",
     sentencePattern: "particle-wa",
     examples: [
-      { japanese: "私は会社員です。", meaning: "저는 회사원입니다." },
-      { japanese: "これは本です。", meaning: "이것은 책입니다." },
-      { japanese: "駅はどこですか。", meaning: "역은 어디입니까?" },
+      { japanese: "私は会社員です。", reading: "わたしはかいしゃいんです。", meaning: "저는 회사원입니다." },
+      { japanese: "これは本です。", reading: "これはほんです。", meaning: "이것은 책입니다." },
+      { japanese: "駅はどこですか。", reading: "えきはどこですか。", meaning: "역은 어디입니까?" },
     ],
     quiz: {
       question: "문장의 주제를 나타내는 조사는 무엇인가요?",
@@ -105,9 +105,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     pattern: "A を 동사",
     sentencePattern: "particle-wo",
     examples: [
-      { japanese: "水を飲みます。", meaning: "물을 마십니다." },
-      { japanese: "ご飯を食べます。", meaning: "밥을 먹습니다." },
-      { japanese: "日本語を勉強します。", meaning: "일본어를 공부합니다." },
+      { japanese: "水を飲みます。", reading: "みずをのみます。", meaning: "물을 마십니다." },
+      { japanese: "ご飯を食べます。", reading: "ごはんをたべます。", meaning: "밥을 먹습니다." },
+      { japanese: "日本語を勉強します。", reading: "にほんごをべんきょうします。", meaning: "일본어를 공부합니다." },
     ],
     quiz: {
       question: "‘일본어를 공부합니다’에서 목적어를 나타내는 조사는?",
@@ -126,9 +126,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     pattern: "장소 に 行きます",
     sentencePattern: "particle-ni",
     examples: [
-      { japanese: "駅に行きます。", meaning: "역에 갑니다." },
-      { japanese: "会社に行きます。", meaning: "회사에 갑니다." },
-      { japanese: "友だちに会います。", meaning: "친구를 만납니다." },
+      { japanese: "駅に行きます。", reading: "えきにいきます。", meaning: "역에 갑니다." },
+      { japanese: "会社に行きます。", reading: "かいしゃにいきます。", meaning: "회사에 갑니다." },
+      { japanese: "友だちに会います。", reading: "ともだちにあいます。", meaning: "친구를 만납니다." },
     ],
     quiz: {
       question: "‘역에 갑니다’에서 ‘에’에 해당하는 조사는?",
@@ -147,9 +147,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     pattern: "장소 で 동사",
     sentencePattern: "particle-de",
     examples: [
-      { japanese: "レストランで食べます。", meaning: "레스토랑에서 먹습니다." },
-      { japanese: "会社で働きます。", meaning: "회사에서 일합니다." },
-      { japanese: "電車で行きます。", meaning: "전철로 갑니다." },
+      { japanese: "レストランで食べます。", reading: "れすとらんでたべます。", meaning: "레스토랑에서 먹습니다." },
+      { japanese: "会社で働きます。", reading: "かいしゃではたらきます。", meaning: "회사에서 일합니다." },
+      { japanese: "電車で行きます。", reading: "でんしゃでいきます。", meaning: "전철로 갑니다." },
     ],
     quiz: {
       question: "‘회사에서 일합니다’에서 장소를 나타내는 조사는?",
@@ -168,9 +168,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     pattern: "これ / それ / あれ",
     sentencePattern: "question",
     examples: [
-      { japanese: "これは何ですか。", meaning: "이것은 무엇입니까?" },
-      { japanese: "それは水です。", meaning: "그것은 물입니다." },
-      { japanese: "あれは駅です。", meaning: "저것은 역입니다." },
+      { japanese: "これは何ですか。", reading: "これはなんですか。", meaning: "이것은 무엇입니까?" },
+      { japanese: "それは水です。", reading: "それはみずです。", meaning: "그것은 물입니다." },
+      { japanese: "あれは駅です。", reading: "あれはえきです。", meaning: "저것은 역입니다." },
     ],
     quiz: {
       question: "화자에게서 멀리 있는 ‘저것’을 가리키는 말은?",
@@ -189,9 +189,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     pattern: "ここ / そこ / あそこ",
     sentencePattern: "direction",
     examples: [
-      { japanese: "ここは駅です。", rubySegments: [{ text: "ここは" }, { text: "駅", reading: "えき" }, { text: "です。" }], meaning: "여기는 역입니다." },
-      { japanese: "そこはトイレです。", meaning: "거기는 화장실입니다." },
-      { japanese: "あそこは会社です。", meaning: "저기는 회사입니다." },
+      { japanese: "ここは駅です。", reading: "ここはえきです。", rubySegments: [{ text: "ここは" }, { text: "駅", reading: "えき" }, { text: "です。" }], meaning: "여기는 역입니다." },
+      { japanese: "そこはトイレです。", reading: "そこはといれです。", meaning: "거기는 화장실입니다." },
+      { japanese: "あそこは会社です。", reading: "あそこはかいしゃです。", meaning: "저기는 회사입니다." },
     ],
     quiz: {
       question: "듣는 사람 가까운 장소 ‘거기’에 해당하는 표현은?",

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from "@/data/grammar";
+import { GRAMMAR_LESSONS, GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from "@/data/grammar";
 import type { RubySegment as WordRubySegment } from "@/data/words";
 import type { RubySegment as SentenceRubySegment } from "@/data/sentences";
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
@@ -136,13 +136,29 @@ function loadArray<T>(key: string): T[] {
   }
 }
 
+function containsKanji(text: string): boolean {
+  return /\p{Script=Han}/u.test(text);
+}
+
+function resolveReading(...candidates: Array<string | undefined>): string | undefined {
+  return candidates.find((candidate) => Boolean(candidate) && !containsKanji(candidate as string));
+}
+
 function WrongItemText({ item }: { item: WrongItem }) {
   if (typeof item === "string") return <>{item}</>;
   const word = typeof item.word === "string" ? item.word : "";
   const jp = typeof item.japanese === "string" ? item.japanese : "";
-  const reading = typeof item.reading === "string" ? item.reading : undefined;
+  const reading = resolveReading(
+    typeof item.reading === "string" ? item.reading : undefined,
+    typeof item.kana === "string" ? item.kana : undefined,
+    typeof item.pronunciation === "string" ? item.pronunciation : undefined,
+  );
   const example = typeof item.example === "string" ? item.example : "";
-  const exampleReading = typeof item.exampleReading === "string" ? item.exampleReading : undefined;
+  const exampleReading = resolveReading(
+    typeof item.exampleReading === "string" ? item.exampleReading : undefined,
+    typeof item.exampleKana === "string" ? item.exampleKana : undefined,
+    typeof item.examplePronunciation === "string" ? item.examplePronunciation : undefined,
+  );
   const koreanPronunciation = typeof item.koreanPronunciation === "string" ? item.koreanPronunciation : undefined;
   const exampleKoreanPronunciation = typeof item.exampleKoreanPronunciation === "string" ? item.exampleKoreanPronunciation : undefined;
   const meaning = typeof item.meaning === "string" ? item.meaning : "";
@@ -330,9 +346,9 @@ export default function ReviewPage() {
               {savedWords.map((w) => (
                 <li key={w.word} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word", border: "1px solid #dbeafe", borderRadius: "16px", boxShadow: "0 8px 20px rgba(15,23,42,.06)" }}>
                   <div className="card-top"><div className="jp-text">{w.word}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{w.category}</span>{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)] && <span className="badge">{partOfSpeechLabels[normalizePartOfSpeech(w.partOfSpeech)]}</span>}</div></div>
-                  {w.reading && <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>읽는 법: {w.reading}</div>}
+                  {resolveReading(w.reading) && <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>읽는 법: {resolveReading(w.reading)}</div>}
                   <div style={{ marginTop: "12px" }}><div className="label">뜻</div><div>{w.meaning}</div></div>
-                  <div style={{ marginTop: "10px" }}><div className="label">예문</div><div style={{ color: "#555" }}>{w.example}</div>{w.exampleReading && <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>예문 읽는 법: {w.exampleReading}</div>}</div>
+                  <div style={{ marginTop: "10px" }}><div className="label">예문</div><div style={{ color: "#555" }}>{w.example}</div>{resolveReading(w.exampleReading) && <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>예문 읽는 법: {resolveReading(w.exampleReading)}</div>}</div>
                   <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     <Link href={`/sentences?word=${encodeURIComponent(w.sentenceKeyword || w.word)}`} className="btn">관련 문장 보기</Link>
                     <button
@@ -367,7 +383,7 @@ export default function ReviewPage() {
               {savedSentences.map((s) => (
                 <li key={s.japanese} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", wordBreak: "break-word", border: "1px solid #dbeafe", borderRadius: "16px", boxShadow: "0 8px 20px rgba(15,23,42,.06)" }}>
                   <div className="card-top"><div className="jp-text">{s.japanese}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{s.category}</span>{s.pattern && <span className="badge">{sentencePatternLabels[s.pattern] ?? "기타"}</span>}</div></div>
-                  {s.reading && <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>읽는 법: {s.reading}</div>}
+                  {resolveReading(s.reading) && <div style={{ marginTop: "4px", color: "#64748b", fontSize: "13px" }}>읽는 법: {resolveReading(s.reading)}</div>}
                   <div style={{ marginTop: "12px" }}><div className="label">뜻</div><div>{s.meaning}</div></div>
                   <div style={{ marginTop: "10px" }}><div className="label">설명</div><div style={{ color: "#555" }}>{s.note}</div></div>
                   <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -403,9 +419,18 @@ export default function ReviewPage() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {grammarReviewItems.map((item) => (
                 <li key={item.lessonId} className="card" style={{ marginBottom: "14px", overflowWrap: "anywhere", border: "1px solid #dbeafe", borderRadius: "16px", boxShadow: "0 8px 20px rgba(15,23,42,.06)" }}>
+                  {(() => {
+                    const lesson = GRAMMAR_LESSONS.find((entry) => entry.id === item.lessonId);
+                    const reading = resolveReading(lesson?.examples[0]?.reading);
+                    return (
+                      <>
                   <div className="card-top"><div className="jp-text">{item.title}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{item.category}</span><span className="badge">{item.pattern}</span></div></div>
+                  {reading && <div style={{ marginTop: "6px", color: "#64748b", fontSize: "13px" }}>읽는 법: {reading}</div>}
                   <div style={{ marginTop: "10px", fontSize: "14px" }}>오답 {item.wrongCount}회 · 최근 결과: {item.lastResult === "correct" ? "정답" : "오답"}</div>
                   <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><button type="button" onClick={() => trackReviewAction(`grammar:${item.lessonId}`)} className="btn" style={reviewActionButtonStyle(isReviewed(`grammar:${item.lessonId}`))}>{isReviewed(`grammar:${item.lessonId}`) ? "복습 완료됨" : "복습 완료"}</button><Link href={`/grammar?lesson=${item.lessonId}`} className="btn">문법 다시 학습</Link></div>
+                      </>
+                    );
+                  })()}
                 </li>
               ))}
             </ul>
