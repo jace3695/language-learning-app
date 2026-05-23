@@ -32,8 +32,7 @@ export default function WritingPracticePad({
       canvas.width = Math.max(1, Math.floor(rect.width * ratio));
       canvas.height = Math.max(1, Math.floor(rect.height * ratio));
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, rect.width, rect.height);
+      ctx.clearRect(0, 0, rect.width, rect.height);
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.lineWidth = 4;
@@ -85,8 +84,7 @@ export default function WritingPracticePad({
     const ratio = window.devicePixelRatio || 1;
     const width = canvas.width / ratio;
     const height = canvas.height / ratio;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
   };
 
   return (
@@ -102,7 +100,7 @@ export default function WritingPracticePad({
       {meaning && <div style={{ marginTop: "2px", fontSize: "14px", color: "#334155" }}>뜻: {meaning}</div>}
       {helperText && <div style={{ marginTop: "6px", fontSize: "12px", color: "#64748b" }}>{helperText}</div>}
 
-      <div style={{ position: "relative", marginTop: "12px", borderRadius: "12px", border: "1px solid #dbeafe", overflow: "hidden", background: "#ffffff" }}>
+      <div style={{ position: "relative", marginTop: "12px", borderRadius: "12px", border: "1px solid #dbeafe", overflow: "hidden", background: "#ffffff", height: "250px" }}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "48px", fontWeight: 700, color: "rgba(96, 165, 250, 0.35)", letterSpacing: "1px", padding: "14px", textAlign: "center", lineHeight: 1.4, whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "anywhere" }}>
           {targetText}
         </div>
@@ -112,7 +110,7 @@ export default function WritingPracticePad({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          style={{ width: "100%", height: "250px", display: "block", touchAction: "none", position: "relative", zIndex: 1 }}
+          style={{ width: "100%", height: "100%", display: "block", touchAction: "none", position: "absolute", inset: 0, zIndex: 1, background: "transparent" }}
           aria-label={`${title} 캔버스`}
         />
       </div>
