@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
@@ -177,7 +177,8 @@ export default function WordsPage() {
   const [choices, setChoices] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
-  const [writingTarget, setWritingTarget] = useState<Word | null>(null);
+  const [writingTargetKey, setWritingTargetKey] = useState<string | null>(null);
+  const practicePadRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     try {
@@ -317,6 +318,20 @@ export default function WordsPage() {
     },
     [settings.repeatCount, settings.repeatDelayMs, settings.ttsRate]
   );
+
+  const handleWritingPracticeToggle = (word: Word) => {
+    const targetKey = getWordKey(word);
+    setWritingTargetKey((prev) => (prev === targetKey ? null : targetKey));
+  };
+
+  useEffect(() => {
+    if (!writingTargetKey || mode !== "study") return;
+    const frame = window.requestAnimationFrame(() => {
+      practicePadRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [mode, writingTargetKey]);
 
   const CATEGORIES: CategoryFilter[] = ["전체", "여행", "업무", "일상", "친구"];
   const LEVELS: Array<{ label: string; value: LevelFilter }> = [
@@ -577,7 +592,7 @@ export default function WordsPage() {
                     {saved ? "저장 취소" : "저장"}
                   </button>
                   <button
-                    onClick={() => setWritingTarget(w)}
+                    onClick={() => handleWritingPracticeToggle(w)}
                     className="btn"
                     style={{ borderRadius: "10px", border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 600 }}
                   >
@@ -591,20 +606,21 @@ export default function WordsPage() {
                     관련 문장 보기
                   </button>
                 </div>
+                {mode === "study" && writingTargetKey === getWordKey(w) && (
+                  <div ref={practicePadRef}>
+                    <WritingPracticePad
+                      title="단어 쓰기 연습"
+                      targetText={w.word}
+                      reading={settings.showReading ? w.reading : undefined}
+                      meaning={w.meaning}
+                      helperText="흐린 단어를 따라 써보세요. 마우스와 터치 모두 사용할 수 있어요."
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
-      )}
-
-      {mode === "study" && writingTarget && (
-        <WritingPracticePad
-          title="단어 쓰기 연습"
-          targetText={writingTarget.word}
-          reading={settings.showReading ? writingTarget.reading : undefined}
-          meaning={writingTarget.meaning}
-          helperText="흐린 단어를 따라 써보세요. 마우스와 터치 모두 사용할 수 있어요."
-        />
       )}
 
       {/* ===== 퀴즈 모드 ===== */}

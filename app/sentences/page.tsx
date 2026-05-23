@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
@@ -207,7 +207,8 @@ export default function SentencesPage() {
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [expandedReadingKeys, setExpandedReadingKeys] = useState<Set<string>>(new Set());
-  const [writingTarget, setWritingTarget] = useState<Sentence | null>(null);
+  const [writingTargetKey, setWritingTargetKey] = useState<string | null>(null);
+  const practicePadRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -302,6 +303,22 @@ export default function SentencesPage() {
     a.japanese === b.japanese &&
     a.meaning === b.meaning &&
     a.category === b.category;
+
+  const getSentenceKey = (sentence: Sentence) => `${sentence.japanese}|${sentence.meaning}|${sentence.category}`;
+
+  const handleWritingPracticeToggle = (sentence: Sentence) => {
+    const targetKey = getSentenceKey(sentence);
+    setWritingTargetKey((prev) => (prev === targetKey ? null : targetKey));
+  };
+
+  useEffect(() => {
+    if (!writingTargetKey || mode !== "학습") return;
+    const frame = window.requestAnimationFrame(() => {
+      practicePadRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [mode, writingTargetKey]);
 
   const isSaved = (s: Sentence) =>
     savedSentences.some((x) => isSameSentence(x, s));
@@ -658,7 +675,7 @@ export default function SentencesPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setWritingTarget(s)}
+                    onClick={() => handleWritingPracticeToggle(s)}
                     className="btn"
                     style={{ background: "#eff6ff", color: "#1d4ed8", borderColor: "#bfdbfe", fontWeight: 600 }}
                   >
@@ -677,6 +694,17 @@ export default function SentencesPage() {
                     {saved ? "저장 취소" : "저장"}
                   </button>
                 </div>
+                {mode === "학습" && writingTargetKey === getSentenceKey(s) && (
+                  <div ref={practicePadRef}>
+                    <WritingPracticePad
+                      title="문장 쓰기 연습"
+                      targetText={s.japanese}
+                      reading={settings.showReading ? resolveReadingForDisplay(s) : undefined}
+                      meaning={s.meaning}
+                      helperText={settings.showKoreanPronunciation && s.koreanPronunciation ? `한글 발음: ${s.koreanPronunciation}` : "흐린 문장을 따라 써보세요. 마우스와 터치 모두 사용할 수 있어요."}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -693,16 +721,6 @@ export default function SentencesPage() {
             </div>
           )}
         </div>
-      )}
-
-      {mode === "학습" && writingTarget && (
-        <WritingPracticePad
-          title="문장 쓰기 연습"
-          targetText={writingTarget.japanese}
-          reading={settings.showReading ? resolveReadingForDisplay(writingTarget) : undefined}
-          meaning={writingTarget.meaning}
-          helperText={settings.showKoreanPronunciation && writingTarget.koreanPronunciation ? `한글 발음: ${writingTarget.koreanPronunciation}` : "흐린 문장을 따라 써보세요. 마우스와 터치 모두 사용할 수 있어요."}
-        />
       )}
 
       {/* 퀴즈 모드 */}
