@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 import { SENTENCES, type SentenceItem as Sentence } from "@/data/sentences";
 import { speakJapaneseWithPreferredTts } from "@/utils/speakJapanese";
+import WritingPracticePad from "@/components/WritingPracticePad";
 
 const STORAGE_KEY = "savedSentences";
 const WRONG_SENTENCES_KEY = "wrongSentences";
@@ -206,6 +207,7 @@ export default function SentencesPage() {
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [expandedReadingKeys, setExpandedReadingKeys] = useState<Set<string>>(new Set());
+  const [writingTarget, setWritingTarget] = useState<Sentence | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -655,6 +657,14 @@ export default function SentencesPage() {
                     🔊 문장 듣기
                   </button>
                   <button
+                    type="button"
+                    onClick={() => setWritingTarget(s)}
+                    className="btn"
+                    style={{ background: "#eff6ff", color: "#1d4ed8", borderColor: "#bfdbfe", fontWeight: 600 }}
+                  >
+                    쓰기 연습
+                  </button>
+                  <button
                     onClick={() => handleSave(s)}
                     className="btn"
                     style={{
@@ -683,6 +693,16 @@ export default function SentencesPage() {
             </div>
           )}
         </div>
+      )}
+
+      {mode === "학습" && writingTarget && (
+        <WritingPracticePad
+          title="문장 쓰기 연습"
+          targetText={writingTarget.japanese}
+          reading={settings.showReading ? resolveReadingForDisplay(writingTarget) : undefined}
+          meaning={writingTarget.meaning}
+          helperText={settings.showKoreanPronunciation && writingTarget.koreanPronunciation ? `한글 발음: ${writingTarget.koreanPronunciation}` : "흐린 문장을 따라 써보세요. 마우스와 터치 모두 사용할 수 있어요."}
+        />
       )}
 
       {/* 퀴즈 모드 */}
