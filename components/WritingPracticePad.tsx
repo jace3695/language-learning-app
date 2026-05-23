@@ -103,7 +103,7 @@ export default function WritingPracticePad({
       {helperText && <div style={{ marginTop: "6px", fontSize: "12px", color: "#64748b" }}>{helperText}</div>}
 
       <div style={{ position: "relative", marginTop: "12px", borderRadius: "12px", border: "1px solid #dbeafe", overflow: "hidden", background: "#ffffff" }}>
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "48px", fontWeight: 700, color: "#cbd5e1", letterSpacing: "2px", padding: "12px", textAlign: "center", lineHeight: 1.35, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "48px", fontWeight: 700, color: "rgba(96, 165, 250, 0.35)", letterSpacing: "1px", padding: "14px", textAlign: "center", lineHeight: 1.4, whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "anywhere" }}>
           {targetText}
         </div>
         <canvas
@@ -112,7 +112,7 @@ export default function WritingPracticePad({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          style={{ width: "100%", height: "250px", display: "block", touchAction: "none", position: "relative" }}
+          style={{ width: "100%", height: "250px", display: "block", touchAction: "none", position: "relative", zIndex: 1 }}
           aria-label={`${title} 캔버스`}
         />
       </div>
