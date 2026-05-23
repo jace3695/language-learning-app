@@ -7,6 +7,7 @@ import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 import { WORDS, type WordItem as Word } from "@/data/words";
 import type { RubySegment } from "@/data/words";
 import { speakJapaneseWithPreferredTts } from "@/utils/speakJapanese";
+import WritingPracticePad from "@/components/WritingPracticePad";
 
 const STORAGE_KEY = "savedWords";
 const WRONG_WORDS_KEY = "wrongWords";
@@ -176,6 +177,7 @@ export default function WordsPage() {
   const [choices, setChoices] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
+  const [writingTarget, setWritingTarget] = useState<Word | null>(null);
 
   useEffect(() => {
     try {
@@ -575,6 +577,13 @@ export default function WordsPage() {
                     {saved ? "저장 취소" : "저장"}
                   </button>
                   <button
+                    onClick={() => setWritingTarget(w)}
+                    className="btn"
+                    style={{ borderRadius: "10px", border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 600 }}
+                  >
+                    쓰기 연습
+                  </button>
+                  <button
                     onClick={() => router.push(`/sentences?word=${encodeURIComponent(getSentenceKeyword(w))}`)}
                     className="btn"
                     style={{ borderRadius: "10px", border: "1px solid #cbd5e1", background: "#fff", color: "#334155", fontWeight: 600 }}
@@ -586,6 +595,16 @@ export default function WordsPage() {
             );
           })}
         </div>
+      )}
+
+      {mode === "study" && writingTarget && (
+        <WritingPracticePad
+          title="단어 쓰기 연습"
+          targetText={writingTarget.word}
+          reading={settings.showReading ? writingTarget.reading : undefined}
+          meaning={writingTarget.meaning}
+          helperText="흐린 단어를 따라 써보세요. 마우스와 터치 모두 사용할 수 있어요."
+        />
       )}
 
       {/* ===== 퀴즈 모드 ===== */}
