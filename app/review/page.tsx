@@ -172,6 +172,50 @@ function buildWrongItemId(prefix: string, item: WrongItem): string {
   return `${prefix}:${word}|${japanese}|${meaning}|${char}|${answer}|${question}|${fallback}`;
 }
 
+function getKanaTypeLabel(type?: string): string {
+  if (!type) return "종류 미확인";
+  if (type === "hiragana") return "히라가나";
+  if (type === "katakana") return "가타카나";
+  return type;
+}
+
+function getKanaModeLabel(mode?: string): string {
+  if (!mode) return "복습 항목";
+  if (mode === "quiz") return "퀴즈 오답";
+  if (mode === "confusing") return "헷갈리는 글자";
+  if (mode === "writing") return "쓰기 연습";
+  return mode;
+}
+
+function parseKanaReviewItem(item: WrongItem): {
+  char: string;
+  romaji: string;
+  typeLabel: string;
+  modeLabel: string;
+} {
+  if (typeof item === "string") {
+    return {
+      char: item,
+      romaji: "",
+      typeLabel: "종류 미확인",
+      modeLabel: "복습 항목",
+    };
+  }
+
+  const charCandidates = [item.char, item.kana, item.text, item.question, item.answer];
+  const char = charCandidates.find((value): value is string => typeof value === "string" && value.trim().length > 0) ?? "";
+  const romaji = typeof item.romaji === "string" ? item.romaji : "";
+  const type = typeof item.type === "string" ? item.type : "";
+  const mode = typeof item.mode === "string" ? item.mode : "";
+
+  return {
+    char,
+    romaji,
+    typeLabel: getKanaTypeLabel(type),
+    modeLabel: getKanaModeLabel(mode),
+  };
+}
+
 export default function ReviewPage() {
   const [activeReviewTab, setActiveReviewTab] = useState<ReviewTab>("all");
   const [savedWords, setSavedWords] = useState<Word[]>([]);
@@ -468,7 +512,26 @@ export default function ReviewPage() {
           <div className="section-title"><h2>가나 복습</h2><span className="count">{wrongKana.length}개</span></div>
           {wrongKana.length === 0 ? <div className="empty-state">{EMPTY_REVIEW_MESSAGE} <Link href="/kana">[가나]</Link>에서 퀴즈를 풀어 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongKana.map((item, idx) => { const itemId = buildWrongItemId("wrong-kana", item); return <li key={`wk-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}><WrongItemText item={item} /></div><div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><Link href="/kana" className="btn">가나 다시 학습</Link><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button><button type="button" onClick={() => handleDeleteWrongKana(idx)} className="btn" style={{ borderColor: "#ef4444", color: "#dc2626", background: "#fff5f5" }}>삭제</button></div></li>; })}
+              {wrongKana.map((item, idx) => {
+                const itemId = buildWrongItemId("wrong-kana", item);
+                const parsed = parseKanaReviewItem(item);
+                return (
+                  <li key={`wk-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}>
+                    <div style={{ marginBottom: "10px" }}>
+                      <div style={{ fontSize: "30px", fontWeight: 700, lineHeight: 1.2, color: "#0f172a" }}>{parsed.char || "가나 정보 없음"}</div>
+                      <div style={{ marginTop: "4px", color: "#475569", fontSize: "14px" }}>
+                        {parsed.typeLabel}{parsed.romaji ? ` · ${parsed.romaji}` : ""}
+                      </div>
+                      <div style={{ marginTop: "6px", color: "#334155", fontSize: "13px" }}>복습 사유: {parsed.modeLabel}</div>
+                    </div>
+                    <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      <Link href="/kana" className="btn">가나 다시 학습</Link>
+                      <button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button>
+                      <button type="button" onClick={() => handleDeleteWrongKana(idx)} className="btn" style={{ borderColor: "#ef4444", color: "#dc2626", background: "#fff5f5" }}>삭제</button>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
 
