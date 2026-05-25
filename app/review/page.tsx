@@ -271,6 +271,7 @@ export default function ReviewPage() {
       <div className="page-header card" style={{ marginBottom: "14px", padding: "18px", border: "1px solid #dbeafe", background: "linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)", boxShadow: "0 10px 22px rgba(37,99,235,0.08)" }}>
         <h1 style={{ color: "#1e3a8a", marginBottom: "4px" }}>복습</h1>
         <p className="muted" style={{ margin: 0, color: "#334155" }}>저장한 단어와 틀린 문제를 다시 확인해 보세요.</p>
+        <p className="muted" style={{ margin: "8px 0 0", color: "#64748b", fontSize: "13px" }}>오늘 완료한 복습 항목은 오늘만 [복습 완료됨]으로 표시돼요. 내일은 다시 복습할 수 있어요.</p>
       </div>
 
       <div className="card" style={{ marginBottom: "14px", padding: "14px", borderColor: "#dbeafe", boxShadow: "0 6px 16px rgba(15,23,42,.06)" }}>
