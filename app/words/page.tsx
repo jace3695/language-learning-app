@@ -571,7 +571,7 @@ export default function WordsPage() {
                   alignItems: "center",
                 }}>
                   <button
-                    onClick={() => speakJapaneseText(w.word)}
+                    onClick={() => speakJapaneseText(w.reading?.trim() || w.word)}
                     className="btn"
                     style={{ borderRadius: "10px", border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 600 }}
                   >
