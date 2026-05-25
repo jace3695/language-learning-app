@@ -1,5 +1,5 @@
-import { WORDS, type RubySegment as WordRubySegment, type WordItem } from "../data/words";
-import { SENTENCES, type RubySegment as SentenceRubySegment, type SentenceItem } from "../data/sentences";
+import { WORDS, type RubySegment as WordRubySegment, type WordItem } from "../data/words.ts";
+import { SENTENCES, type RubySegment as SentenceRubySegment, type SentenceItem } from "../data/sentences.ts";
 
 const KANJI_REGEX = /[一-龯々]/;
 
