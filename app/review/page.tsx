@@ -234,6 +234,18 @@ export default function ReviewPage() {
     localStorage.setItem(SENTENCES_KEY, JSON.stringify(next));
   };
 
+  const handleDeleteWrongWord = (targetIndex: number) => {
+    const next = wrongWords.filter((_, index) => index !== targetIndex);
+    setWrongWords(next);
+    localStorage.setItem(WRONG_WORDS_KEY, JSON.stringify(next));
+  };
+
+  const handleDeleteWrongSentence = (targetIndex: number) => {
+    const next = wrongSentences.filter((_, index) => index !== targetIndex);
+    setWrongSentences(next);
+    localStorage.setItem(WRONG_SENTENCES_KEY, JSON.stringify(next));
+  };
+
   const trackReviewAction = (itemId: string) => {
     const dateKey = getTodayLocalDateKey();
 
@@ -350,7 +362,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>틀린 단어</h2><span className="count">{wrongWords.length}개</span></div>
           {wrongWords.length === 0 ? <div className="empty-state">틀린 단어가 없습니다.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongWords.map((item, idx) => { const itemId = buildWrongItemId("wrong-word", item); return <li key={`ww-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}><WrongItemText item={item} /></div><div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><Link href="/words" className="btn">단어 다시 학습</Link><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></div></li>; })}
+              {wrongWords.map((item, idx) => { const itemId = buildWrongItemId("wrong-word", item); return <li key={`ww-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}><WrongItemText item={item} /></div><div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><Link href="/words" className="btn">단어 다시 학습</Link><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button><button type="button" onClick={() => handleDeleteWrongWord(idx)} className="btn" style={{ borderColor: "#ef4444", color: "#dc2626", background: "#fff5f5" }}>삭제</button></div></li>; })}
             </ul>
           )}
         </>
@@ -386,7 +398,7 @@ export default function ReviewPage() {
           <div className="section-title"><h2>틀린 문장</h2><span className="count">{wrongSentences.length}개</span></div>
           {wrongSentences.length === 0 ? <div className="empty-state">틀린 문장이 없습니다.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongSentences.map((item, idx) => { const itemId = buildWrongItemId("wrong-sentence", item); return <li key={`ws-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}><WrongItemText item={item} /></div><div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><Link href="/sentences" className="btn">문장 다시 학습</Link><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></div></li>; })}
+              {wrongSentences.map((item, idx) => { const itemId = buildWrongItemId("wrong-sentence", item); return <li key={`ws-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}><WrongItemText item={item} /></div><div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><Link href="/sentences" className="btn">문장 다시 학습</Link><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button><button type="button" onClick={() => handleDeleteWrongSentence(idx)} className="btn" style={{ borderColor: "#ef4444", color: "#dc2626", background: "#fff5f5" }}>삭제</button></div></li>; })}
             </ul>
           )}
         </>
