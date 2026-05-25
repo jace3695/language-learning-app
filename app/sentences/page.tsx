@@ -149,6 +149,10 @@ function resolveReadingForDisplay(sentence: Sentence): string | undefined {
   return reading;
 }
 
+
+function resolveSentenceTtsText(sentence: Sentence): string {
+  return resolveReadingForDisplay(sentence) ?? sentence.japanese;
+}
 function JapaneseTextBlock({
   japanese,
   reading,
@@ -666,7 +670,7 @@ export default function SentencesPage() {
                   alignItems: "center",
                 }}>
                   <button
-                    onClick={() => speakJapanese(s.japanese, settings)}
+                    onClick={() => speakJapanese(resolveSentenceTtsText(s), settings)}
                     className="btn"
                     type="button"
                     style={{ background: "#eff6ff", color: "#1d4ed8", borderColor: "#bfdbfe", fontWeight: 600 }}
@@ -792,7 +796,7 @@ export default function SentencesPage() {
                 <div style={{ marginBottom: "16px" }}>
                   <button
                     className="btn"
-                    onClick={() => speakJapanese(quiz.question.japanese, settings)}
+                    onClick={() => speakJapanese(resolveSentenceTtsText(quiz.question), settings)}
                     type="button"
                     style={{ background: "#eff6ff", color: "#1d4ed8", borderColor: "#bfdbfe", fontWeight: 600 }}
                   >
