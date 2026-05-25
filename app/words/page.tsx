@@ -578,7 +578,7 @@ export default function WordsPage() {
                     🔊 단어 듣기
                   </button>
                   <button
-                    onClick={() => speakJapaneseText(w.example)}
+                    onClick={() => speakJapaneseText(w.exampleReading?.trim() || w.example)}
                     className="btn"
                     style={{ borderRadius: "10px", border: "1px solid #bae6fd", background: "#f0f9ff", color: "#0369a1", fontWeight: 600 }}
                   >
