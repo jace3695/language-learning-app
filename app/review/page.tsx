@@ -246,6 +246,41 @@ export default function ReviewPage() {
     localStorage.setItem(WRONG_SENTENCES_KEY, JSON.stringify(next));
   };
 
+  const handleDeleteGrammarReviewItem = (lessonId: string) => {
+    const next = grammarReviewItems.filter((item) => item.lessonId !== lessonId);
+    setGrammarReviewItems(next);
+
+    const grammarProgress = loadArray<GrammarProgressItem>(GRAMMAR_PROGRESS_KEY);
+    const nextProgress = grammarProgress.filter((item) => item.lessonId !== lessonId);
+    localStorage.setItem(GRAMMAR_PROGRESS_KEY, JSON.stringify(nextProgress));
+  };
+
+  const handleDeleteWrongKana = (targetIndex: number) => {
+    const targetItem = wrongKana[targetIndex];
+    const targetChar =
+      typeof targetItem === "string" ? targetItem : typeof targetItem?.char === "string" ? targetItem.char : "";
+    const nextWrongKana = wrongKana.filter((_, index) => index !== targetIndex);
+    setWrongKana(nextWrongKana);
+    localStorage.setItem(WRONG_KANA_KEY, JSON.stringify(nextWrongKana));
+
+    if (targetChar) {
+      const hasSameCharInWrongKana = nextWrongKana.some((item) =>
+        (typeof item === "string" ? item : typeof item.char === "string" ? item.char : "") === targetChar,
+      );
+      if (!hasSameCharInWrongKana) {
+        const nextWrongKanaChars = wrongKanaChars.filter((char) => char !== targetChar);
+        setWrongKanaChars(nextWrongKanaChars);
+        localStorage.setItem(WRONG_KANA_CHARS_KEY, JSON.stringify(nextWrongKanaChars));
+      }
+    }
+  };
+
+  const handleDeleteWrongKanaChar = (targetIndex: number) => {
+    const next = wrongKanaChars.filter((_, index) => index !== targetIndex);
+    setWrongKanaChars(next);
+    localStorage.setItem(WRONG_KANA_CHARS_KEY, JSON.stringify(next));
+  };
+
   const trackReviewAction = (itemId: string) => {
     const dateKey = getTodayLocalDateKey();
 
@@ -417,7 +452,7 @@ export default function ReviewPage() {
                       <>
                   <div className="card-top"><div className="jp-text">{item.title}</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><span className="badge">{item.category}</span><span className="badge">{item.pattern}</span></div></div>
                   <div style={{ marginTop: "10px", fontSize: "14px" }}>오답 {item.wrongCount}회 · 최근 결과: {item.lastResult === "correct" ? "정답" : "오답"}</div>
-                  <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><button type="button" onClick={() => trackReviewAction(`grammar:${item.lessonId}`)} className="btn" style={reviewActionButtonStyle(isReviewed(`grammar:${item.lessonId}`))}>{isReviewed(`grammar:${item.lessonId}`) ? "복습 완료됨" : "복습 완료"}</button><Link href={`/grammar?lesson=${item.lessonId}`} className="btn">문법 다시 학습</Link></div>
+                  <div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><button type="button" onClick={() => trackReviewAction(`grammar:${item.lessonId}`)} className="btn" style={reviewActionButtonStyle(isReviewed(`grammar:${item.lessonId}`))}>{isReviewed(`grammar:${item.lessonId}`) ? "복습 완료됨" : "복습 완료"}</button><Link href={`/grammar?lesson=${item.lessonId}`} className="btn">문법 다시 학습</Link><button type="button" onClick={() => handleDeleteGrammarReviewItem(item.lessonId)} className="btn" style={{ borderColor: "#ef4444", color: "#dc2626", background: "#fff5f5" }}>삭제</button></div>
                       </>
                     );
                   })()}
@@ -433,13 +468,13 @@ export default function ReviewPage() {
           <div className="section-title"><h2>가나 복습</h2><span className="count">{wrongKana.length}개</span></div>
           {wrongKana.length === 0 ? <div className="empty-state">{EMPTY_REVIEW_MESSAGE} <Link href="/kana">[가나]</Link>에서 퀴즈를 풀어 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {wrongKana.map((item, idx) => { const itemId = buildWrongItemId("wrong-kana", item); return <li key={`wk-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}><WrongItemText item={item} /></div><div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><Link href="/kana" className="btn">가나 다시 학습</Link><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></div></li>; })}
+              {wrongKana.map((item, idx) => { const itemId = buildWrongItemId("wrong-kana", item); return <li key={`wk-${idx}`} className="card" style={{ marginBottom: "10px", overflowWrap: "anywhere", border: "1px solid #dbeafe" }}><div style={{ marginBottom: "8px" }}><WrongItemText item={item} /></div><div className="card-actions" style={{ justifyContent: "flex-end", display: "flex", gap: "8px", flexWrap: "wrap" }}><Link href="/kana" className="btn">가나 다시 학습</Link><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button><button type="button" onClick={() => handleDeleteWrongKana(idx)} className="btn" style={{ borderColor: "#ef4444", color: "#dc2626", background: "#fff5f5" }}>삭제</button></div></li>; })}
             </ul>
           )}
 
           <div className="section-title"><h2>헷갈린 글자</h2><span className="count">{wrongKanaChars.length}개</span></div>
           {wrongKanaChars.length === 0 ? <div className="empty-state">헷갈린 글자가 없습니다.</div> : (
-            <div className="card" style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px", border: "1px solid #dbeafe" }}>{wrongKanaChars.map((char, idx) => { const itemId = `kana-char:${char}`; return <div key={`kc-${char}-${idx}`} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px", borderRadius: "999px", background: "#f8fbff" }}><span className="badge" style={{ fontSize: "18px" }}>{char}</span><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button></div>; })}</div>
+            <div className="card" style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px", border: "1px solid #dbeafe" }}>{wrongKanaChars.map((char, idx) => { const itemId = `kana-char:${char}`; return <div key={`kc-${char}-${idx}`} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px", borderRadius: "999px", background: "#f8fbff" }}><span className="badge" style={{ fontSize: "18px" }}>{char}</span><button type="button" onClick={() => trackReviewAction(itemId)} className="btn" style={reviewActionButtonStyle(isReviewed(itemId))}>{isReviewed(itemId) ? "복습 완료됨" : "복습 완료"}</button><button type="button" onClick={() => handleDeleteWrongKanaChar(idx)} className="btn" style={{ borderColor: "#ef4444", color: "#dc2626", background: "#fff5f5" }}>삭제</button></div>; })}</div>
           )}
 
           <div className="card-actions" style={{ justifyContent: "flex-end", marginBottom: "18px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
