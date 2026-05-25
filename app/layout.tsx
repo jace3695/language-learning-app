@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 };
 
 import TopNav from "@/components/TopNav";
+import ScrollTopButton from "@/components/ScrollTopButton";
 
 export default function RootLayout({
   children,
@@ -32,6 +33,7 @@ export default function RootLayout({
           <TopNav />
         </header>
         <main className="app-main">{children}</main>
+        <ScrollTopButton />
       </body>
     </html>
   );
