@@ -4,19 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/", label: "홈" },
-  { href: "/kana", label: "가나" },
-  { href: "/words", label: "단어" },
-  { href: "/sentences", label: "문장" },
-  { href: "/grammar", label: "문법" },
-  { href: "/review", label: "복습" },
-  { href: "/progress", label: "진도" },
-  { href: "/calendar", label: "달력" },
-  { href: "/settings", label: "설정" },
-  { href: "/writing", label: "쓰기" },
-  { href: "/conversation", label: "AI 회화" },
-  { href: "/speaking", label: "말하기" },
+  { href: "/", label: "홈", icon: "⌂" },
+  { href: "/sentences", label: "배우기", icon: "あ" },
+  { href: "/conversation", label: "회화", icon: "話" },
+  { href: "/review", label: "복습", icon: "↻" },
+  { href: "/progress", label: "내 학습", icon: "✓" },
 ];
+
+const learningPaths: Record<string, string[]> = {
+  "/sentences": ["/kana", "/kana-writing", "/words", "/sentences", "/grammar", "/writing"],
+  "/conversation": ["/conversation", "/speaking"],
+  "/review": ["/review"],
+  "/progress": ["/progress", "/calendar", "/settings"],
+};
 
 export default function TopNav() {
   const pathname = usePathname();
@@ -24,7 +24,8 @@ export default function TopNav() {
   return (
     <nav className="top-nav" aria-label="주요 메뉴">
       {navItems.map((item) => {
-        const active = pathname === item.href;
+        const active =
+          pathname === item.href || learningPaths[item.href]?.includes(pathname);
         return (
           <Link
             key={item.href}
@@ -32,7 +33,8 @@ export default function TopNav() {
             className={active ? "top-nav-link is-active" : "top-nav-link"}
             aria-current={active ? "page" : undefined}
           >
-            {item.label}
+            <span className="top-nav-icon" aria-hidden="true">{item.icon}</span>
+            <span>{item.label}</span>
           </Link>
         );
       })}

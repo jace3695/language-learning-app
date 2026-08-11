@@ -60,6 +60,30 @@ const todayRoutine: RoutineItem[] = [
   },
 ];
 
+const learningCourses = [
+  {
+    href: "/kana",
+    eyebrow: "처음부터",
+    title: "기초 다지기",
+    desc: "히라가나부터 단어와 기본 문장까지 차근차근 배워요.",
+    tone: "mint",
+  },
+  {
+    href: "/conversation",
+    eyebrow: "회사에서",
+    title: "직장 일본어",
+    desc: "인사, 요청, 확인, 보고처럼 업무에 필요한 표현을 연습해요.",
+    tone: "blue",
+  },
+  {
+    href: "/sentences",
+    eyebrow: "여행에서",
+    title: "여행 일본어",
+    desc: "공항, 교통, 식당, 쇼핑, 숙소에서 바로 쓰는 문장을 익혀요.",
+    tone: "coral",
+  },
+];
+
 const practicalPractice: RoutineItem[] = [
   {
     id: "conversation",
@@ -189,219 +213,73 @@ export default function HomePage() {
   const completedCount = completedIds.length;
   const progressPercent = Math.round((Math.min(completedCount / dailyGoalCount, 1) || 0) * 100);
   const isAllCompleted = completedCount === todayRoutine.length;
-  const goalStatusText = (() => {
-    if (completedCount === todayRoutine.length && dailyGoalCount === todayRoutine.length) {
-      return `오늘 루틴 모두 완료: ${completedCount} / ${dailyGoalCount}`;
-    }
-    if (completedCount === todayRoutine.length && dailyGoalCount <= todayRoutine.length) {
-      return `목표 초과 달성: ${completedCount} / ${dailyGoalCount}`;
-    }
-    if (completedCount >= dailyGoalCount && completedCount < todayRoutine.length) {
-      return `오늘 목표 달성: ${completedCount} / ${dailyGoalCount}`;
-    }
-    return `오늘 목표: ${completedCount} / ${dailyGoalCount}`;
-  })();
-
   const toggleCompleted = (id: string) => {
     setCompletedIds((prev) =>
       prev.includes(id) ? prev.filter((completedId) => completedId !== id) : [...prev, id],
     );
   };
 
+  const nextRoutineIndex = todayRoutine.findIndex((item) => !completedIds.includes(item.id));
+  const nextRoutine = todayRoutine[nextRoutineIndex === -1 ? 0 : nextRoutineIndex];
+  const nextStepNumber = nextRoutineIndex === -1 ? todayRoutine.length : nextRoutineIndex + 1;
+
   return (
-    <section>
-      <div style={{ maxWidth: "960px", margin: "0 auto" }}>
-        <div
-          style={{
-            padding: "8px 0 18px",
-          }}
-        >
-          <div
-            className="card"
-            style={{
-              padding: "18px 16px",
-              borderRadius: "18px",
-              border: "1px solid #dbeafe",
-              background: "linear-gradient(180deg, #f8fbff 0%, #ffffff 100%)",
-              boxShadow: "0 8px 22px rgba(59,130,246,0.08)",
-            }}
-          >
-            <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "#2563eb" }}>HOME</p>
-            <h1 style={{ fontSize: "30px", margin: "6px 0 10px", color: "#0f172a" }}>오늘 학습 루틴</h1>
-            <p className="muted" style={{ margin: 0 }}>
-              오늘도 일본어 한 걸음씩 쌓아볼까요?
-            </p>
-            <p className="muted" style={{ margin: "8px 0 0" }}>
-              퀴즈나 연습을 완료하면 자동으로 체크돼요. 필요할 때만 직접 완료를 눌러 주세요.
-            </p>
-          </div>
+    <section className="home-page">
+      <div className="home-container">
+        <div className="home-greeting">
+          <p className="home-kicker">こんにちは, Jace!</p>
+          <h1>오늘도 딱 10분만 해볼까요?</h1>
+          <p>회사와 여행에서 진짜 쓰는 일본어를 한 단계씩 배워요.</p>
         </div>
 
-        <section
-          className="card"
-          style={{
-            padding: "16px",
-            marginBottom: "14px",
-            borderRadius: "16px",
-            border: "1px solid #dbeafe",
-            background: "#ffffff",
-            boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-            <h2 style={{ fontSize: "18px", margin: 0, color: "#0f172a" }}>오늘 목표 진행률</h2>
-            <span
-              style={{
-                borderRadius: "999px",
-                background: "#eff6ff",
-                color: "#1d4ed8",
-                padding: "4px 10px",
-                fontSize: "12px",
-                fontWeight: 700,
-              }}
-            >
-              {progressPercent}% 완료
-            </span>
-          </div>
-          <p className="muted" style={{ margin: "8px 0 0", fontWeight: 600 }}>
-            {goalStatusText}
-          </p>
-          <p className="muted" style={{ margin: "6px 0 0" }}>
-            오늘 완료 {completedCount} / {todayRoutine.length}
-          </p>
-          <div style={{ margin: "12px auto 0", maxWidth: "100%", width: "100%" }}>
-            <div
-              aria-hidden="true"
-              style={{
-                width: "100%",
-                height: "10px",
-                borderRadius: "999px",
-                background: "#dbeafe",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  width: `${progressPercent}%`,
-                  height: "100%",
-                  borderRadius: "999px",
-                  background: "linear-gradient(90deg, #60a5fa 0%, #2563eb 100%)",
-                  transition: "width 0.2s ease",
-                }}
-              />
+        <section className="today-lesson-card" aria-labelledby="today-lesson-title">
+          <div className="today-lesson-top">
+            <div>
+              <span className="today-badge">오늘의 10분</span>
+              <p className="today-step">STEP {nextStepNumber} · {nextRoutine.duration}</p>
+              <h2 id="today-lesson-title">{isAllCompleted ? "오늘 학습을 모두 마쳤어요" : nextRoutine.title}</h2>
+              <p>{isAllCompleted ? "짧게라도 매일 이어가는 것이 가장 중요해요." : nextRoutine.desc}</p>
+            </div>
+            <div className="today-progress-ring" style={{ "--progress": `${progressPercent * 3.6}deg` } as React.CSSProperties}>
+              <strong>{progressPercent}%</strong>
+              <span>{completedCount}/{dailyGoalCount}</span>
             </div>
           </div>
-          {isAllCompleted && (
-            <p
-              style={{
-                margin: "12px auto 0",
-                borderRadius: "12px",
-                border: "1px solid #bbf7d0",
-                background: "#f0fdf4",
-                padding: "10px 12px",
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#166534",
-              }}
-            >
-              오늘 루틴을 모두 완료했어요! 잘했어요.
-            </p>
-          )}
+          <Link className="primary-start-button" href={isAllCompleted ? "/review" : nextRoutine.href}>
+            {isAllCompleted ? "가볍게 복습하기" : completedCount === 0 ? "오늘 학습 시작" : "이어서 학습하기"}
+            <span aria-hidden="true">→</span>
+          </Link>
+          <p className="today-helper">완료한 학습은 자동으로 기록돼요.</p>
         </section>
 
-        <section className="card" style={{ padding: "14px", marginBottom: "14px", borderRadius: "14px", border: "1px solid #e2e8f0" }}>
-          <h2 style={{ fontSize: "17px", margin: "0 0 8px", color: "#0f172a" }}>오늘 추천</h2>
-          <p className="muted" style={{ margin: 0 }}>
-            {recommendation.hasGrammarWrong
-              ? "문법에서 오답이 있어요. [문법] 1개를 먼저 복습해 보세요."
-              : recommendation.hasReviewItems
-                ? "복습할 항목이 있어요. 오늘은 [복습]에서 먼저 확인해 보세요."
-                : "오늘은 새 학습을 진행하기 좋은 상태예요."}
-          </p>
-        </section>
-
-        <div
-          style={{
-            display: "grid",
-            gap: "12px",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            marginBottom: "16px",
-          }}
-        >
+        <details className="routine-details">
+          <summary>오늘 학습 순서 보기 <span>{completedCount}/{todayRoutine.length} 완료</span></summary>
+          <section className="routine-list">
           {todayRoutine.map((item) => {
             const isCompleted = completedIds.includes(item.id);
             return (
-              <article
-                key={item.id}
-                className="card"
-                style={{
-                  display: "grid",
-                  gap: "10px",
-                  padding: "14px",
-                  borderRadius: "16px",
-                  background: isCompleted ? "linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%)" : "#ffffff",
-                  border: isCompleted ? "1px solid #22c55e" : "1px solid #dbeafe",
-                  boxShadow: isCompleted ? "0 8px 18px rgba(34,197,94,0.12)" : "0 8px 18px rgba(15,23,42,0.05)",
-                }}
-              >
+              <article key={item.id} className={isCompleted ? "routine-row is-completed" : "routine-row"}>
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "6px" }}>
-                    <h2 style={{ fontSize: "17px", margin: 0 }}>{item.title}</h2>
+                  <div className="routine-row-title">
+                    <h3>{item.title}</h3>
                     {isCompleted && (
                       <span
                         style={{
-                          borderRadius: "999px",
-                          border: "1px solid #22c55e",
-                          background: "#dcfce7",
-                          color: "#166534",
-                          padding: "3px 8px",
-                          fontSize: "12px",
-                          fontWeight: 700,
-                          lineHeight: 1.2,
+                          color: "#16734a", fontSize: "12px", fontWeight: 800,
                         }}
                       >
                         ✓ 완료됨
                       </span>
                     )}
                   </div>
-                  <p className="muted" style={{ margin: "0 0 8px" }}>
-                    {item.desc}
-                  </p>
-                  <p className="muted" style={{ margin: 0, fontSize: "13px" }}>
-                    예상 소요 시간: {item.duration}
-                  </p>
+                  <p>{item.desc} · {item.duration}</p>
                 </div>
 
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <Link
-                    href={item.href}
-                    style={{
-                      display: "inline-block",
-                      textDecoration: "none",
-                      border: "1px solid #bfdbfe",
-                      borderRadius: "10px",
-                      padding: "9px 13px",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      color: "#1d4ed8",
-                      background: "#eff6ff",
-                    }}
-                  >
-                    {item.cta}
-                  </Link>
+                <div className="routine-row-actions">
+                  <Link href={item.href}>{item.cta}</Link>
                   <button
                     type="button"
                     onClick={() => toggleCompleted(item.id)}
-                    style={{
-                      border: isCompleted ? "1px solid #16a34a" : "1px solid #cbd5e1",
-                      borderRadius: "10px",
-                      padding: "9px 13px",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      color: isCompleted ? "#166534" : "#1f2937",
-                      background: isCompleted ? "#dcfce7" : "#ffffff",
-                      cursor: "pointer",
-                    }}
                   >
                     {isCompleted ? "완료 취소" : "직접 완료"}
                   </button>
@@ -409,69 +287,49 @@ export default function HomePage() {
               </article>
             );
           })}
-        </div>
+          </section>
+        </details>
 
-        <section className="card" style={{ padding: "14px", marginBottom: "20px", borderRadius: "16px", border: "1px solid #dbeafe" }}>
-          <p className="muted" style={{ margin: "0 0 10px" }}>
-            오늘 학습 상태는 [진도]와 [달력]에서 자세히 확인할 수 있어요.
-          </p>
-          <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
-            <Link
-              href="/progress"
-              style={{
-                display: "inline-flex",
-                justifyContent: "center",
-                alignItems: "center",
-                textDecoration: "none",
-                border: "1px solid #bfdbfe",
-                borderRadius: "12px",
-                padding: "11px 14px",
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#1d4ed8",
-                background: "#eff6ff",
-                boxShadow: "0 4px 10px rgba(59,130,246,0.1)",
-              }}
-            >
-              진도 보기
-            </Link>
-            <Link
-              href="/calendar"
-              style={{
-                display: "inline-flex",
-                justifyContent: "center",
-                alignItems: "center",
-                textDecoration: "none",
-                border: "1px solid #fde68a",
-                borderRadius: "12px",
-                padding: "11px 14px",
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#92400e",
-                background: "#fffbeb",
-                boxShadow: "0 4px 10px rgba(250,204,21,0.12)",
-              }}
-            >
-              달력 보기
-            </Link>
+        {recommendation.hasReviewItems && (
+          <Link href={recommendation.hasGrammarWrong ? "/grammar" : "/review"} className="review-nudge">
+            <span aria-hidden="true">↻</span>
+            <span><strong>잠깐 복습할까요?</strong><small>틀렸거나 저장한 항목이 있어요.</small></span>
+            <b aria-hidden="true">→</b>
+          </Link>
+        )}
+
+        <section className="course-section">
+          <div className="home-section-heading">
+            <div><span>나에게 맞게</span><h2>어떤 일본어를 배우고 싶나요?</h2></div>
+          </div>
+          <div className="course-grid">
+            {learningCourses.map((course) => (
+              <Link key={course.title} href={course.href} className={`course-card course-${course.tone}`}>
+                <small>{course.eyebrow}</small>
+                <h3>{course.title}</h3>
+                <p>{course.desc}</p>
+                <b>학습하기 →</b>
+              </Link>
+            ))}
           </div>
         </section>
 
-        <section style={{ marginTop: "8px" }}>
-          <h2 style={{ fontSize: "20px", margin: "0 0 10px" }}>실전 연습</h2>
+        <section className="secondary-links">
+          <p>학습 기록과 전체 기능</p>
+          <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+            <Link href="/progress">진도 보기</Link>
+            <Link href="/calendar">달력 보기</Link>
+            <Link href="/settings">설정</Link>
+          </div>
+        </section>
+
+        <section className="practice-section">
+          <h2>더 연습하고 싶다면</h2>
           <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
             {practicalPractice.map((item) => (
-              <article
-                key={item.id}
-                className="card"
-                style={{
-                  display: "grid",
-                  gap: "10px",
-                  padding: "14px",
-                }}
-              >
+              <article key={item.id} className="practice-card">
                 <div>
-                  <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "6px" }}>{item.title}</div>
+                  <div className="practice-title">{item.title}</div>
                   <p className="muted" style={{ margin: "0 0 8px" }}>
                     {item.desc}
                   </p>
@@ -480,20 +338,7 @@ export default function HomePage() {
                   </p>
                 </div>
                 <div>
-                  <Link
-                    href={item.href}
-                    style={{
-                      display: "inline-block",
-                      textDecoration: "none",
-                      border: "1px solid var(--line)",
-                      borderRadius: "8px",
-                      padding: "8px 12px",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      color: "inherit",
-                      background: "var(--card)",
-                    }}
-                  >
+                  <Link href={item.href} className="practice-link">
                     {item.cta}
                   </Link>
                 </div>
