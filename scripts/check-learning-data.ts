@@ -1,5 +1,6 @@
 import { WORDS, type RubySegment as WordRubySegment, type WordItem } from "../data/words.ts";
 import { SENTENCES, type RubySegment as SentenceRubySegment, type SentenceItem } from "../data/sentences.ts";
+import { CURRICULUM } from "../data/curriculum.ts";
 
 const KANJI_REGEX = /[一-龯々]/;
 
@@ -89,6 +90,21 @@ SENTENCES.forEach((sentence, index) => {
   if (isBlank(sentenceTts)) {
     warnings.push(`[문장] 문장 듣기용 텍스트가 비어질 수 있음: ${label}`);
   }
+});
+
+const curriculumIds = new Set<string>();
+CURRICULUM.forEach((lesson, index) => {
+  const label = `curriculum[${index}](${lesson.id})`;
+  if (curriculumIds.has(lesson.id)) warnings.push(`[과정] 중복 id: ${label}`);
+  curriculumIds.add(lesson.id);
+  if (lesson.words.length < 3) warnings.push(`[과정] 핵심 표현 3개 미만: ${label}`);
+  if (lesson.dialogue.length < 2) warnings.push(`[과정] 대화 2줄 미만: ${label}`);
+  if (lesson.quiz.length < 2) warnings.push(`[과정] 확인 문제 2개 미만: ${label}`);
+  lesson.quiz.forEach((quiz, quizIndex) => {
+    if (quiz.answer < 0 || quiz.answer >= quiz.choices.length) {
+      warnings.push(`[과정] 정답 인덱스 오류: ${label} quiz[${quizIndex}]`);
+    }
+  });
 });
 
 if (warnings.length === 0) {

@@ -5,14 +5,14 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { href: "/", label: "홈", icon: "⌂" },
-  { href: "/sentences", label: "배우기", icon: "あ" },
+  { href: "/learn", label: "배우기", icon: "あ" },
   { href: "/conversation", label: "회화", icon: "話" },
   { href: "/review", label: "복습", icon: "↻" },
   { href: "/progress", label: "내 학습", icon: "✓" },
 ];
 
 const learningPaths: Record<string, string[]> = {
-  "/sentences": ["/kana", "/kana-writing", "/words", "/sentences", "/grammar", "/writing"],
+  "/learn": ["/learn", "/kana", "/kana-writing", "/words", "/sentences", "/grammar", "/writing"],
   "/conversation": ["/conversation", "/speaking"],
   "/review": ["/review"],
   "/progress": ["/progress", "/calendar", "/settings"],

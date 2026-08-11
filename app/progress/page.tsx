@@ -6,6 +6,8 @@ import Link from "next/link";
 import { WORDS } from "@/data/words";
 import { SENTENCES } from "@/data/sentences";
 import { GRAMMAR_LESSONS, GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from "@/data/grammar";
+import { CURRICULUM, TRACKS, type CourseTrack } from "@/data/curriculum";
+import { loadCurriculumProgress, type CurriculumProgress } from "@/utils/curriculumProgress";
 
 type SectionKey = "wrongKana" | "wrongWords" | "wrongSentences";
 type ProgressTab = "all" | "kana" | "words" | "sentences" | "grammar";
@@ -427,6 +429,7 @@ export default function ProgressPage() {
   const [confusingKanaChars, setConfusingKanaChars] = useState<string[]>([]);
   const [grammarProgress, setGrammarProgress] = useState<GrammarProgressItem[]>([]);
   const [activeProgressTab, setActiveProgressTab] = useState<ProgressTab>("all");
+  const [curriculumProgress, setCurriculumProgress] = useState<CurriculumProgress | null>(null);
 
   const buildKanaQuiz = useCallback((items: AnyItem[]) => {
     const qi = getKanaQuizItems(items);
@@ -492,6 +495,7 @@ export default function ProgressPage() {
     }
     setData({ wrongKana, wrongWords, wrongSentences });
     setGrammarProgress(grammarItems);
+    setCurriculumProgress(loadCurriculumProgress());
     const rawConfusingKana = loadFromStorage("wrongKanaChars");
     const rawConfusingKanaLegacy = loadFromStorage("confusingKana");
     const confusingChars = [...rawConfusingKana, ...rawConfusingKanaLegacy]
@@ -797,6 +801,18 @@ export default function ProgressPage() {
         <p style={{ color: "#334155", margin: 0, lineHeight: 1.55 }}>
           오늘까지 쌓은 학습 기록을 한눈에 확인해 보세요.
         </p>
+      </section>
+
+      <section style={{ marginBottom: "1rem", border: "1px solid #dbeafe", borderRadius: 20, padding: "1rem", background: "#ffffff", boxShadow: "0 6px 20px rgba(148, 163, 184, 0.16)" }}>
+        <h2 style={{ fontSize: "1.05rem", margin: "0 0 0.8rem", color: "#1f684c" }}>새 학습 과정</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "0.55rem" }}>
+          {(["foundation", "work", "travel"] as CourseTrack[]).map((track) => {
+            const trackLessons = CURRICULUM.filter((lesson) => lesson.track === track);
+            const completed = trackLessons.filter((lesson) => curriculumProgress?.completedLessonIds.includes(lesson.id)).length;
+            return <Link key={track} href={`/learn?track=${track}`} style={{ padding: "0.8rem 0.5rem", borderRadius: 14, textAlign: "center", textDecoration: "none", color: "#254d3c", background: track === "work" ? "#eaf2fa" : track === "travel" ? "#fff0e9" : "#e8f6ee", border: "1px solid #dce7e1" }}><small style={{ display: "block", marginBottom: 4 }}>{TRACKS[track].title}</small><strong style={{ fontSize: "1.2rem" }}>{completed}/{trackLessons.length}</strong></Link>;
+          })}
+        </div>
+        <Link href={curriculumProgress?.lastLessonId ? `/learn?lesson=${curriculumProgress.lastLessonId}` : "/learn"} style={{ display: "block", marginTop: "0.7rem", padding: "0.65rem", borderRadius: 10, textAlign: "center", textDecoration: "none", color: "#fff", background: "#287a59", fontWeight: 750, fontSize: "0.85rem" }}>{curriculumProgress?.completedLessonIds.length ? "최근 수업 다시 보기" : "첫 10분 학습 시작"}</Link>
       </section>
 
       <section style={{ marginBottom: "1rem", border: "1px solid #dbeafe", borderRadius: 20, padding: "1rem", background: "#ffffff", boxShadow: "0 6px 20px rgba(148, 163, 184, 0.16)" }}>

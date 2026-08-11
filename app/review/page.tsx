@@ -6,6 +6,7 @@ import { GRAMMAR_LESSONS, GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from 
 import type { RubySegment as WordRubySegment } from "@/data/words";
 import type { RubySegment as SentenceRubySegment } from "@/data/sentences";
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
+import { CURRICULUM_REVIEW_KEY, type CurriculumReviewItem } from "@/utils/curriculumProgress";
 
 type Word = {
   word: string;
@@ -30,7 +31,7 @@ type Sentence = {
   rubySegments?: SentenceRubySegment[];
 };
 
-type ReviewTab = "all" | "words" | "sentences" | "grammar" | "kana";
+type ReviewTab = "all" | "course" | "words" | "sentences" | "grammar" | "kana";
 type WrongItem = string | Record<string, unknown>;
 
 const partOfSpeechLabels: Record<string, string> = {
@@ -226,6 +227,7 @@ export default function ReviewPage() {
   const [wrongWords, setWrongWords] = useState<WrongItem[]>([]);
   const [wrongSentences, setWrongSentences] = useState<WrongItem[]>([]);
   const [reviewedItemIds, setReviewedItemIds] = useState<string[]>([]);
+  const [curriculumReviewItems, setCurriculumReviewItems] = useState<CurriculumReviewItem[]>([]);
   const hasMarkedReviewCompletedRef = useRef(false);
 
   useEffect(() => {
@@ -247,6 +249,7 @@ export default function ReviewPage() {
     setWrongKanaChars(chars);
     setWrongWords(wWords);
     setWrongSentences(wSentences);
+    setCurriculumReviewItems(loadArray<CurriculumReviewItem>(CURRICULUM_REVIEW_KEY));
 
     const dateKey = getTodayLocalDateKey();
     const todayItems = getReviewedItemsForDate(dateKey);
@@ -325,6 +328,12 @@ export default function ReviewPage() {
     localStorage.setItem(WRONG_KANA_CHARS_KEY, JSON.stringify(next));
   };
 
+  const handleDeleteCurriculumReview = (id: string) => {
+    const next = curriculumReviewItems.filter((item) => item.id !== id);
+    setCurriculumReviewItems(next);
+    localStorage.setItem(CURRICULUM_REVIEW_KEY, JSON.stringify(next));
+  };
+
   const trackReviewAction = (itemId: string) => {
     const dateKey = getTodayLocalDateKey();
 
@@ -352,6 +361,7 @@ export default function ReviewPage() {
   });
 
   const showWords = activeReviewTab === "all" || activeReviewTab === "words";
+  const showCourse = activeReviewTab === "all" || activeReviewTab === "course";
   const showSentences = activeReviewTab === "all" || activeReviewTab === "sentences";
   const showGrammar = activeReviewTab === "all" || activeReviewTab === "grammar";
   const showKana = activeReviewTab === "all" || activeReviewTab === "kana";
@@ -373,6 +383,7 @@ export default function ReviewPage() {
             { label: "저장 문장", count: savedSentences.length },
             { label: "문법 복습", count: grammarReviewItems.length },
             { label: "가나 복습", count: kanaReviewCount },
+            { label: "과정 오답", count: curriculumReviewItems.length },
           ].map((summary) => (
             <div key={summary.label} style={{ borderRadius: "14px", border: "1px solid #dbeafe", background: "#f8fbff", padding: "10px 12px" }}>
               <div style={{ fontSize: "12px", color: "#475569" }}>{summary.label}</div>
@@ -385,6 +396,7 @@ export default function ReviewPage() {
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px", padding: "4px", borderRadius: "14px", background: "#f1f5ff", border: "1px solid #dbeafe" }}>
         {[
           { key: "all", label: "전체" },
+          { key: "course", label: "새 과정" },
           { key: "words", label: "단어" },
           { key: "sentences", label: "문장" },
           { key: "grammar", label: "문법" },
@@ -409,6 +421,17 @@ export default function ReviewPage() {
           );
         })}
       </div>
+
+      {showCourse && (
+        <>
+          <div className="section-title"><h2>새 과정에서 틀린 문제</h2><span className="count">{curriculumReviewItems.length}개</span></div>
+          {curriculumReviewItems.length === 0 ? <div className="empty-state">새 과정의 확인 문제에서 틀린 항목이 없어요. <Link href="/learn">[배우기]</Link>에서 다음 수업을 시작해 보세요.</div> : (
+            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px" }}>
+              {curriculumReviewItems.map((item) => <li key={item.id} className="card" style={{ marginBottom: 10, border: "1px solid #cfe6d9", borderRadius: 16 }}><div className="label" style={{ color: "#287a59" }}>{item.lessonTitle}</div><h3 style={{ margin: "5px 0", fontSize: 16 }}>{item.prompt}</h3><p className="muted" style={{ margin: "0 0 10px" }}>{item.explanation}</p><div className="card-actions" style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}><Link href={`/learn?lesson=${item.lessonId}`} className="btn">수업 다시 보기</Link><button type="button" onClick={() => trackReviewAction(`course:${item.id}`)} className="btn" style={reviewActionButtonStyle(isReviewed(`course:${item.id}`))}>{isReviewed(`course:${item.id}`) ? "복습 완료됨" : "복습 완료"}</button><button type="button" onClick={() => handleDeleteCurriculumReview(item.id)} className="btn" style={{ borderColor: "#ef4444", color: "#dc2626", background: "#fff5f5" }}>삭제</button></div></li>)}
+            </ul>
+          )}
+        </>
+      )}
 
       {showWords && (
         <>

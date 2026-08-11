@@ -7,6 +7,8 @@ import {
   getTodayRoutineCompletedIds,
   saveTodayRoutineCompletedIds,
 } from "@/utils/dailyRoutineProgress";
+import { CURRICULUM, TRACKS, getTrackLessons, type CourseTrack } from "@/data/curriculum";
+import { loadCurriculumProgress } from "@/utils/curriculumProgress";
 
 type RoutineItem = {
   id: string;
@@ -62,21 +64,21 @@ const todayRoutine: RoutineItem[] = [
 
 const learningCourses = [
   {
-    href: "/kana",
+    href: "/learn?track=foundation",
     eyebrow: "처음부터",
     title: "기초 다지기",
     desc: "히라가나부터 단어와 기본 문장까지 차근차근 배워요.",
     tone: "mint",
   },
   {
-    href: "/conversation",
+    href: "/learn?track=work",
     eyebrow: "회사에서",
     title: "직장 일본어",
     desc: "인사, 요청, 확인, 보고처럼 업무에 필요한 표현을 연습해요.",
     tone: "blue",
   },
   {
-    href: "/sentences",
+    href: "/learn?track=travel",
     eyebrow: "여행에서",
     title: "여행 일본어",
     desc: "공항, 교통, 식당, 쇼핑, 숙소에서 바로 쓰는 문장을 익혀요.",
@@ -108,21 +110,7 @@ type RecommendationState = {
   hasReviewItems: boolean;
 };
 
-const LEARNING_SETTINGS_STORAGE_KEY = "learningSettings";
-const DEFAULT_DAILY_GOAL_COUNT = 5;
-const MIN_DAILY_GOAL_COUNT = 1;
-const MAX_DAILY_GOAL_COUNT = 5;
-
 const getArrayLength = (value: unknown) => (Array.isArray(value) ? value.length : 0);
-const getSafeDailyGoalCount = (value: unknown) => {
-  if (typeof value !== "number" || !Number.isInteger(value)) {
-    return DEFAULT_DAILY_GOAL_COUNT;
-  }
-  if (value < MIN_DAILY_GOAL_COUNT || value > MAX_DAILY_GOAL_COUNT) {
-    return DEFAULT_DAILY_GOAL_COUNT;
-  }
-  return value;
-};
 const getSafeCompletedIds = (value: unknown) => {
   if (!Array.isArray(value)) return [];
   return todayRoutine
@@ -132,13 +120,20 @@ const getSafeCompletedIds = (value: unknown) => {
 
 export default function HomePage() {
   const [completedIds, setCompletedIds] = useState<string[]>([]);
-  const [dailyGoalCount, setDailyGoalCount] = useState(DEFAULT_DAILY_GOAL_COUNT);
   const [recommendation, setRecommendation] = useState<RecommendationState>({
     hasGrammarWrong: false,
     hasReviewItems: false,
   });
   const todayKey = useMemo(() => getLocalDateKey(), []);
   const [hasLoadedRoutine, setHasLoadedRoutine] = useState(false);
+  const [curriculumState, setCurriculumState] = useState({
+    nextLessonId: CURRICULUM[0].id,
+    nextLessonTitle: CURRICULUM[0].title,
+    track: "foundation" as CourseTrack,
+    completed: 0,
+    trackCompleted: 0,
+    trackTotal: 8,
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -184,19 +179,22 @@ export default function HomePage() {
         hasReviewItems: hasGrammarWrong || reviewCount > 0,
       });
 
-      const learningSettingsRaw = window.localStorage.getItem(LEARNING_SETTINGS_STORAGE_KEY);
-      const parsedLearningSettings = learningSettingsRaw ? (JSON.parse(learningSettingsRaw) as unknown) : null;
-      const nextGoalCount =
-        typeof parsedLearningSettings === "object" &&
-        parsedLearningSettings !== null &&
-        "dailyGoalCount" in parsedLearningSettings
-          ? getSafeDailyGoalCount((parsedLearningSettings as { dailyGoalCount?: unknown }).dailyGoalCount)
-          : DEFAULT_DAILY_GOAL_COUNT;
-      setDailyGoalCount(nextGoalCount);
+      const curriculumProgress = loadCurriculumProgress();
+      const selectedLessons = getTrackLessons(curriculumProgress.selectedTrack);
+      const nextLesson =
+        selectedLessons.find((lesson) => !curriculumProgress.completedLessonIds.includes(lesson.id)) ??
+        selectedLessons[0];
+      setCurriculumState({
+        nextLessonId: nextLesson.id,
+        nextLessonTitle: nextLesson.title,
+        track: curriculumProgress.selectedTrack,
+        completed: curriculumProgress.completedLessonIds.length,
+        trackCompleted: selectedLessons.filter((lesson) => curriculumProgress.completedLessonIds.includes(lesson.id)).length,
+        trackTotal: selectedLessons.length,
+      });
     } catch {
       setCompletedIds([]);
       setRecommendation({ hasGrammarWrong: false, hasReviewItems: false });
-      setDailyGoalCount(DEFAULT_DAILY_GOAL_COUNT);
     } finally {
       setHasLoadedRoutine(true);
     }
@@ -211,17 +209,12 @@ export default function HomePage() {
   }, [completedIds, hasLoadedRoutine, todayKey]);
 
   const completedCount = completedIds.length;
-  const progressPercent = Math.round((Math.min(completedCount / dailyGoalCount, 1) || 0) * 100);
-  const isAllCompleted = completedCount === todayRoutine.length;
+  const progressPercent = Math.round((curriculumState.trackCompleted / curriculumState.trackTotal) * 100);
   const toggleCompleted = (id: string) => {
     setCompletedIds((prev) =>
       prev.includes(id) ? prev.filter((completedId) => completedId !== id) : [...prev, id],
     );
   };
-
-  const nextRoutineIndex = todayRoutine.findIndex((item) => !completedIds.includes(item.id));
-  const nextRoutine = todayRoutine[nextRoutineIndex === -1 ? 0 : nextRoutineIndex];
-  const nextStepNumber = nextRoutineIndex === -1 ? todayRoutine.length : nextRoutineIndex + 1;
 
   return (
     <section className="home-page">
@@ -235,25 +228,25 @@ export default function HomePage() {
         <section className="today-lesson-card" aria-labelledby="today-lesson-title">
           <div className="today-lesson-top">
             <div>
-              <span className="today-badge">오늘의 10분</span>
-              <p className="today-step">STEP {nextStepNumber} · {nextRoutine.duration}</p>
-              <h2 id="today-lesson-title">{isAllCompleted ? "오늘 학습을 모두 마쳤어요" : nextRoutine.title}</h2>
-              <p>{isAllCompleted ? "짧게라도 매일 이어가는 것이 가장 중요해요." : nextRoutine.desc}</p>
+              <span className="today-badge">오늘의 통합 10분</span>
+              <p className="today-step">{TRACKS[curriculumState.track].title} · 다음 수업</p>
+              <h2 id="today-lesson-title">{curriculumState.nextLessonTitle}</h2>
+              <p>핵심 표현부터 문법·대화·말하기·확인 문제까지 한 번에 이어서 배워요.</p>
             </div>
             <div className="today-progress-ring" style={{ "--progress": `${progressPercent * 3.6}deg` } as React.CSSProperties}>
               <strong>{progressPercent}%</strong>
-              <span>{completedCount}/{dailyGoalCount}</span>
+              <span>{curriculumState.trackCompleted}/{curriculumState.trackTotal}</span>
             </div>
           </div>
-          <Link className="primary-start-button" href={isAllCompleted ? "/review" : nextRoutine.href}>
-            {isAllCompleted ? "가볍게 복습하기" : completedCount === 0 ? "오늘 학습 시작" : "이어서 학습하기"}
+          <Link className="primary-start-button" href={`/learn?lesson=${curriculumState.nextLessonId}`}>
+            {curriculumState.completed === 0 ? "첫 10분 학습 시작" : "다음 수업 이어서 학습"}
             <span aria-hidden="true">→</span>
           </Link>
-          <p className="today-helper">완료한 학습은 자동으로 기록돼요.</p>
+          <p className="today-helper">새 과정 {curriculumState.completed}/{CURRICULUM.length}개 완료 · 기존 오늘 학습 기록도 그대로 유지돼요.</p>
         </section>
 
         <details className="routine-details">
-          <summary>오늘 학습 순서 보기 <span>{completedCount}/{todayRoutine.length} 완료</span></summary>
+          <summary>기존 자유 학습 바로가기 <span>{completedCount}/{todayRoutine.length} 완료</span></summary>
           <section className="routine-list">
           {todayRoutine.map((item) => {
             const isCompleted = completedIds.includes(item.id);
