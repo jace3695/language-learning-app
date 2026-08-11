@@ -17,6 +17,7 @@ import {
   saveCurriculumProgress,
   type CurriculumProgress,
 } from "@/utils/curriculumProgress";
+import { speakJapaneseWithPreferredTts } from "@/utils/speakJapanese";
 
 const trackOrder: CourseTrack[] = ["foundation", "work", "travel"];
 
@@ -29,6 +30,7 @@ function CurriculumContent() {
   const [stage, setStage] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [showReading, setShowReading] = useState(true);
+  const [playingAudio, setPlayingAudio] = useState<"dialogue" | "slow" | "normal" | null>(null);
 
   const selectedTrack: CourseTrack =
     requestedTrack === "work" || requestedTrack === "travel" || requestedTrack === "foundation"
@@ -59,6 +61,25 @@ function CurriculumContent() {
 
   const chooseTrack = (track: CourseTrack) => {
     updateProgress({ ...progress, selectedTrack: track });
+  };
+
+  const playJapanese = async (
+    text: string,
+    audioKey: "dialogue" | "slow" | "normal",
+    rate: number,
+    repeatCount = 1,
+  ) => {
+    if (playingAudio) return;
+    setPlayingAudio(audioKey);
+    try {
+      await speakJapaneseWithPreferredTts(text, {
+        rate,
+        repeatCount,
+        repeatDelayMs: repeatCount > 1 ? 650 : 0,
+      });
+    } finally {
+      setPlayingAudio(null);
+    }
   };
 
   const finishLesson = () => {
@@ -219,7 +240,15 @@ function CurriculumContent() {
         )}
         {stage === 2 && (
           <div className="dialogue-stage">
-            <p className="stage-kicker">상황 속에서 들어보기</p><h2>짧은 대화를 읽어 보세요</h2>
+            <p className="stage-kicker">상황 속에서 들어보기</p><h2>짧은 대화를 듣고 읽어 보세요</h2>
+            <button
+              className="lesson-audio-button"
+              type="button"
+              disabled={playingAudio !== null}
+              onClick={() => void playJapanese(activeLesson.dialogue.map((line) => line.japanese).join(" "), "dialogue", 0.9)}
+            >
+              {playingAudio === "dialogue" ? "재생 중…" : "▶ 대화 전체 듣기"}
+            </button>
             <div className="dialogue-list">
               {activeLesson.dialogue.map((line, index) => (
                 <article key={`${line.speaker}-${index}`} className={`speaker-${line.speaker.toLowerCase()}`}><b>{line.speaker}</b><div><strong>{line.japanese}</strong>{showReading && <small>{line.reading}</small>}<p>{line.meaning}</p></div></article>
@@ -231,6 +260,14 @@ function CurriculumContent() {
           <div className="speaking-stage">
             <p className="stage-kicker">소리 내어 3번</p><h2>천천히 끊어 읽고, 자연스럽게 이어 보세요</h2>
             <div className="speak-prompt">{activeLesson.speak}</div>
+            <div className="speaking-audio-actions" aria-label="말하기 예시 음성">
+              <button type="button" disabled={playingAudio !== null} onClick={() => void playJapanese(activeLesson.speak, "slow", 0.85)}>
+                {playingAudio === "slow" ? "재생 중…" : "▶ 느리게 듣기"}
+              </button>
+              <button type="button" disabled={playingAudio !== null} onClick={() => void playJapanese(activeLesson.speak, "normal", 0.95, 3)}>
+                {playingAudio === "normal" ? "3회 재생 중…" : "↻ 보통 속도 3번"}
+              </button>
+            </div>
             <p>완벽한 발음보다 입으로 직접 말하는 것이 먼저예요.</p>
           </div>
         )}
@@ -255,8 +292,8 @@ function CurriculumContent() {
           <div className="lesson-complete">
             <span>✓</span><p className="stage-kicker">오늘 학습 완료</p><h2>{activeLesson.goal}</h2>
             <strong>{progress.quizScores[activeLesson.id] ?? 0}점</strong>
-            <p>틀린 문제는 이 수업을 다시 열면 언제든 복습할 수 있어요.</p>
-            <div>{nextLesson ? <Link className="primary-start-button" href={`/learn?lesson=${nextLesson.id}`}>다음 수업: {nextLesson.title} →</Link> : <Link className="primary-start-button" href={`/learn?track=${activeLesson.track}`}>과정 완료 확인하기 →</Link>}<Link href="/review">기존 복습 항목 보기</Link></div>
+            <p>마지막에 틀린 문제는 복습 화면에 모이고, 다시 맞히면 자동으로 정리돼요.</p>
+            <div>{nextLesson ? <Link className="primary-start-button" href={`/learn?lesson=${nextLesson.id}`}>다음 수업: {nextLesson.title} →</Link> : <Link className="primary-start-button" href={`/learn?track=${activeLesson.track}`}>과정 완료 확인하기 →</Link>}<Link href="/review">복습 항목 보기</Link></div>
             {activeLesson.practice && <Link className="lesson-extra-practice" href={activeLesson.practice.href}>추가 연습: {activeLesson.practice.label} →</Link>}
           </div>
         )}

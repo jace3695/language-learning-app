@@ -13,7 +13,7 @@ type SectionKey = "wrongKana" | "wrongWords" | "wrongSentences";
 type ProgressTab = "all" | "kana" | "words" | "sentences" | "grammar";
 
 const SECTIONS: { key: SectionKey; label: string; href: string; linkLabel: string }[] = [
-  { key: "wrongKana", label: "헷갈린 글자", href: "/kana", linkLabel: "Kana 다시 학습" },
+  { key: "wrongKana", label: "헷갈린 글자", href: "/kana", linkLabel: "가나 다시 학습" },
   { key: "wrongWords", label: "틀린 단어", href: "/words", linkLabel: "단어 다시 학습" },
   { key: "wrongSentences", label: "틀린 문장", href: "/sentences", linkLabel: "문장 다시 학습" },
 ];
@@ -35,7 +35,7 @@ interface KanaSummaryCard {
   total: number;
   wrongCount: number;
   confusingCount: number;
-  statusText: "안정적" | "복습 권장" | "집중 복습 필요";
+  statusText: "오답 없음" | "복습 권장" | "집중 복습 필요";
   statusColor: string;
   bgColor: string;
 }
@@ -522,7 +522,7 @@ export default function ProgressPage() {
     return groupConfig.map((group) => {
       const wrongCount = wrongKanaItems.filter((item) => group.set.has(item.char)).length;
       const confusingCount = confusingKanaChars.filter((char) => group.set.has(char)).length;
-      const statusText = wrongCount === 0 ? "안정적" : wrongCount <= 3 ? "복습 권장" : "집중 복습 필요";
+      const statusText = wrongCount === 0 ? "오답 없음" : wrongCount <= 3 ? "복습 권장" : "집중 복습 필요";
       const statusColor = wrongCount === 0 ? "#166534" : wrongCount <= 3 ? "#9a3412" : "#991b1b";
       const bgColor = wrongCount === 0 ? "#dcfce7" : wrongCount <= 3 ? "#ffedd5" : "#fee2e2";
       return { key: group.key, label: group.label, total: group.total, wrongCount, confusingCount, statusText, statusColor, bgColor };
@@ -938,7 +938,7 @@ export default function ProgressPage() {
         )}
       </section>
 
-      {/* Kana 오답 퀴즈 섹션 */}
+      {/* 가나 오답 퀴즈 섹션 */}
       <section
         style={{
           marginBottom: "2rem",
@@ -948,10 +948,10 @@ export default function ProgressPage() {
           background: "#f8fbff",
         }}
       >
-        <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>Kana 오답 다시 풀기</h2>
+        <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>가나 오답 다시 풀기</h2>
 
         {quizItems.length === 0 ? (
-          <p style={{ color: "#999", margin: 0 }}>Kana 오답이 없습니다.</p>
+          <p style={{ color: "#999", margin: 0 }}>가나 오답이 없습니다.</p>
         ) : currentQuiz ? (
           <div>
             <p style={{ fontSize: "0.85rem", color: "#6b7280", marginBottom: "0.5rem" }}>
@@ -1023,7 +1023,7 @@ export default function ProgressPage() {
               <div style={{ marginBottom: "0.75rem", textAlign: "center" }}>
                 {isCorrect ? (
                   <span style={{ color: "#065f46", fontWeight: "bold", fontSize: "0.95rem" }}>
-                    ✅ 정답입니다! wrongKana에서 제거했습니다.
+                    ✅ 정답입니다! 오답 목록에서 정리했습니다.
                   </span>
                 ) : (
                   <span style={{ color: "#991b1b", fontWeight: "bold", fontSize: "0.95rem" }}>
