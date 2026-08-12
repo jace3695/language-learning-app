@@ -1,6 +1,13 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- persisted browser settings are restored after mount. */
 
 import { useEffect, useState } from "react";
+import {
+  DEFAULT_INTEGRATED_LEARNING_SETTINGS,
+  loadIntegratedLearningSettings,
+  saveIntegratedLearningSettings,
+  type IntegratedLearningSettings,
+} from "@/utils/integratedLearningSettings";
 
 type LearningSection = "kana" | "words" | "sentences" | "speaking" | "conversation";
 
@@ -179,6 +186,7 @@ export default function SettingsPage() {
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
   const [dailyGoalCount, setDailyGoalCount] = useState<number>(5);
   const [saveMessage, setSaveMessage] = useState("");
+  const [integratedSettings, setIntegratedSettings] = useState<IntegratedLearningSettings>(DEFAULT_INTEGRATED_LEARNING_SETTINGS);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -186,6 +194,7 @@ export default function SettingsPage() {
     const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
     const nextSettings = parseSettings(raw);
     setSettings(nextSettings);
+    setIntegratedSettings(loadIntegratedLearningSettings());
 
     const learningSettingsRaw = window.localStorage.getItem(LEARNING_SETTINGS_STORAGE_KEY);
     if (learningSettingsRaw) {
@@ -254,7 +263,9 @@ export default function SettingsPage() {
     if (!shouldReset) return;
 
     setSettings(DEFAULT_SETTINGS);
+    setIntegratedSettings(DEFAULT_INTEGRATED_LEARNING_SETTINGS);
     window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(DEFAULT_SETTINGS));
+    saveIntegratedLearningSettings(DEFAULT_INTEGRATED_LEARNING_SETTINGS);
   };
 
   const renderSectionCard = (section: LearningSection) => {
@@ -378,7 +389,8 @@ export default function SettingsPage() {
         dailyGoalCount,
       }),
     );
-    setSaveMessage("학습 목표가 저장됐어요. 오늘부터 홈과 달력에 반영돼요.");
+    saveIntegratedLearningSettings(integratedSettings);
+    setSaveMessage("학습 목표와 통합 과정 설정이 저장됐어요.");
   };
 
   return (
@@ -450,6 +462,22 @@ export default function SettingsPage() {
             {saveMessage}
           </p>
         )}
+      </div>
+
+      <div className="card integrated-settings-card">
+        <h2 style={{ marginTop: 0 }}>통합 과정 학습 설정</h2>
+        <p className="muted">오늘의 수업과 왕초보·회사·여행 과정에 적용됩니다.</p>
+        <div className="integrated-settings-grid">
+          <label>하루 학습 시간<select value={integratedSettings.dailyMinutes} onChange={(event) => setIntegratedSettings((prev) => ({ ...prev, dailyMinutes: Number(event.target.value) as 5 | 10 | 20 }))}><option value={5}>5분</option><option value={10}>10분</option><option value={20}>20분</option></select></label>
+          <label>우선 학습 과정<select value={integratedSettings.preferredTrack} onChange={(event) => setIntegratedSettings((prev) => ({ ...prev, preferredTrack: event.target.value as IntegratedLearningSettings["preferredTrack"] }))}><option value="foundation">왕초보 기초</option><option value="work">회사 일본어</option><option value="travel">여행 일본어</option></select></label>
+          <label>기본 음성 속도<select value={integratedSettings.audioRate} onChange={(event) => setIntegratedSettings((prev) => ({ ...prev, audioRate: Number(event.target.value) as 0.8 | 0.9 | 1 }))}><option value={0.8}>느리게</option><option value={0.9}>조금 느리게</option><option value={1}>보통</option></select></label>
+        </div>
+        <div className="integrated-settings-toggles">
+          <label><input type="checkbox" checked={integratedSettings.showReading} onChange={(event) => setIntegratedSettings((prev) => ({ ...prev, showReading: event.target.checked }))} /> 읽는 법 표시</label>
+          <label><input type="checkbox" checked={integratedSettings.showMeaning} onChange={(event) => setIntegratedSettings((prev) => ({ ...prev, showMeaning: event.target.checked }))} /> 한국어 뜻 표시</label>
+          <label><input type="checkbox" checked={integratedSettings.autoPlayDialogue} onChange={(event) => setIntegratedSettings((prev) => ({ ...prev, autoPlayDialogue: event.target.checked }))} /> 대화 자동 재생</label>
+          <label><input type="checkbox" checked={integratedSettings.includeSpeaking} onChange={(event) => setIntegratedSettings((prev) => ({ ...prev, includeSpeaking: event.target.checked }))} /> 말하기 연습 포함</label>
+        </div>
       </div>
 
       <div style={{ display: "grid", gap: "12px" }}>

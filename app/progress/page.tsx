@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- existing localStorage progress is restored after mount. */
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
@@ -7,7 +8,21 @@ import { WORDS } from "@/data/words";
 import { SENTENCES } from "@/data/sentences";
 import { GRAMMAR_LESSONS, GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from "@/data/grammar";
 import { CURRICULUM, TRACKS, type CourseTrack } from "@/data/curriculum";
-import { loadCurriculumProgress, type CurriculumProgress } from "@/utils/curriculumProgress";
+import { CURRICULUM_REVIEW_KEY, loadCurriculumProgress, type CurriculumProgress } from "@/utils/curriculumProgress";
+import { getLocalDateKey } from "@/utils/dateKey";
+
+function getCurrentStreak(activityDates: string[]): number {
+  const dates = new Set(activityDates);
+  const cursor = new Date();
+  const today = getLocalDateKey(cursor);
+  if (!dates.has(today)) cursor.setDate(cursor.getDate() - 1);
+  let streak = 0;
+  while (dates.has(getLocalDateKey(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
 
 type SectionKey = "wrongKana" | "wrongWords" | "wrongSentences";
 type ProgressTab = "all" | "kana" | "words" | "sentences" | "grammar";
@@ -430,6 +445,7 @@ export default function ProgressPage() {
   const [grammarProgress, setGrammarProgress] = useState<GrammarProgressItem[]>([]);
   const [activeProgressTab, setActiveProgressTab] = useState<ProgressTab>("all");
   const [curriculumProgress, setCurriculumProgress] = useState<CurriculumProgress | null>(null);
+  const [curriculumReviewCount, setCurriculumReviewCount] = useState(0);
 
   const buildKanaQuiz = useCallback((items: AnyItem[]) => {
     const qi = getKanaQuizItems(items);
@@ -496,6 +512,7 @@ export default function ProgressPage() {
     setData({ wrongKana, wrongWords, wrongSentences });
     setGrammarProgress(grammarItems);
     setCurriculumProgress(loadCurriculumProgress());
+    setCurriculumReviewCount(loadFromStorage(CURRICULUM_REVIEW_KEY).length);
     const rawConfusingKana = loadFromStorage("wrongKanaChars");
     const rawConfusingKanaLegacy = loadFromStorage("confusingKana");
     const confusingChars = [...rawConfusingKana, ...rawConfusingKanaLegacy]
@@ -772,9 +789,9 @@ export default function ProgressPage() {
     const wordsCount = data.wrongWords.length;
     const sentencesCount = data.wrongSentences.length;
     const grammarCount = grammarSummary.reviewCount;
-    const reviewTotal = kanaCount + wordsCount + sentencesCount + grammarCount;
-    return { kanaCount, wordsCount, sentencesCount, grammarCount, reviewTotal };
-  }, [confusingKanaChars.length, data.wrongKana.length, data.wrongWords.length, data.wrongSentences.length, grammarSummary.reviewCount]);
+    const reviewTotal = kanaCount + wordsCount + sentencesCount + grammarCount + curriculumReviewCount;
+    return { kanaCount, wordsCount, sentencesCount, grammarCount, curriculumReviewCount, reviewTotal };
+  }, [confusingKanaChars.length, curriculumReviewCount, data.wrongKana.length, data.wrongWords.length, data.wrongSentences.length, grammarSummary.reviewCount]);
 
   const progressTabs: { key: ProgressTab; label: string }[] = [
     { key: "all", label: "전체" },
@@ -805,6 +822,11 @@ export default function ProgressPage() {
 
       <section style={{ marginBottom: "1rem", border: "1px solid #dbeafe", borderRadius: 20, padding: "1rem", background: "#ffffff", boxShadow: "0 6px 20px rgba(148, 163, 184, 0.16)" }}>
         <h2 style={{ fontSize: "1.05rem", margin: "0 0 0.8rem", color: "#1f684c" }}>새 학습 과정</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: "0.55rem", marginBottom: "0.7rem" }}>
+          <div style={{ padding: "0.7rem", borderRadius: 12, background: "#f3faf6", textAlign: "center" }}><small>연속 학습</small><strong style={{ display: "block", color: "#287a59" }}>{getCurrentStreak(curriculumProgress?.activityDates ?? [])}일</strong></div>
+          <div style={{ padding: "0.7rem", borderRadius: 12, background: "#f3faf6", textAlign: "center" }}><small>총 학습일</small><strong style={{ display: "block", color: "#287a59" }}>{curriculumProgress?.activityDates.length ?? 0}일</strong></div>
+          <div style={{ padding: "0.7rem", borderRadius: 12, background: "#f3faf6", textAlign: "center" }}><small>수업 시도</small><strong style={{ display: "block", color: "#287a59" }}>{Object.values(curriculumProgress?.lessonAttempts ?? {}).reduce((sum, attempts) => sum + attempts.length, 0)}회</strong></div>
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "0.55rem" }}>
           {(["foundation", "work", "travel"] as CourseTrack[]).map((track) => {
             const trackLessons = CURRICULUM.filter((lesson) => lesson.track === track);

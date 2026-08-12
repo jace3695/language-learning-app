@@ -10,7 +10,13 @@ export type CurriculumReviewItem = {
   prompt: string;
   explanation: string;
   createdAt: string;
+  wrongCount?: number;
+  lastWrongAt?: string;
+  nextReviewAt?: string;
+  intervalDays?: number;
 };
+
+export type LessonAttempt = { score: number; completedAt: string };
 
 export type CurriculumProgress = {
   completedLessonIds: string[];
@@ -18,13 +24,21 @@ export type CurriculumProgress = {
   lastLessonId?: string;
   selectedTrack: CourseTrack;
   updatedAt?: string;
+  lessonAttempts: Record<string, LessonAttempt[]>;
+  activityDates: string[];
 };
 
 export const DEFAULT_CURRICULUM_PROGRESS: CurriculumProgress = {
   completedLessonIds: [],
   quizScores: {},
   selectedTrack: "foundation",
+  lessonAttempts: {},
+  activityDates: [],
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 export function loadCurriculumProgress(): CurriculumProgress {
   if (typeof window === "undefined") return DEFAULT_CURRICULUM_PROGRESS;
@@ -44,6 +58,12 @@ export function loadCurriculumProgress(): CurriculumProgress {
           ? parsed.selectedTrack
           : "foundation",
       updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : undefined,
+      lessonAttempts: isRecord(parsed.lessonAttempts)
+        ? Object.fromEntries(Object.entries(parsed.lessonAttempts).map(([id, attempts]) => [id, Array.isArray(attempts) ? attempts.filter((attempt): attempt is LessonAttempt => isRecord(attempt) && typeof attempt.score === "number" && typeof attempt.completedAt === "string") : []]))
+        : {},
+      activityDates: Array.isArray(parsed.activityDates)
+        ? parsed.activityDates.filter((date): date is string => typeof date === "string")
+        : [],
     };
   } catch {
     return DEFAULT_CURRICULUM_PROGRESS;

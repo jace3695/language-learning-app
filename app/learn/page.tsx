@@ -1,7 +1,8 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- localStorage is restored only after client mount. */
 
 import Link from "next/link";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   CURRICULUM,
@@ -16,8 +17,15 @@ import {
   loadCurriculumProgress,
   saveCurriculumProgress,
   type CurriculumProgress,
+  type CurriculumReviewItem,
 } from "@/utils/curriculumProgress";
 import { speakJapaneseWithPreferredTts } from "@/utils/speakJapanese";
+import { getLocalDateKey } from "@/utils/dateKey";
+import {
+  DEFAULT_INTEGRATED_LEARNING_SETTINGS,
+  loadIntegratedLearningSettings,
+  type IntegratedLearningSettings,
+} from "@/utils/integratedLearningSettings";
 
 const trackOrder: CourseTrack[] = ["foundation", "work", "travel"];
 
@@ -30,7 +38,13 @@ function CurriculumContent() {
   const [stage, setStage] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [showReading, setShowReading] = useState(true);
+  const [settings, setSettings] = useState<IntegratedLearningSettings>(DEFAULT_INTEGRATED_LEARNING_SETTINGS);
   const [playingAudio, setPlayingAudio] = useState<"dialogue" | "slow" | "normal" | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
+  const [recordingError, setRecordingError] = useState("");
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recordingChunksRef = useRef<Blob[]>([]);
 
   const selectedTrack: CourseTrack =
     requestedTrack === "work" || requestedTrack === "travel" || requestedTrack === "foundation"
@@ -42,17 +56,23 @@ function CurriculumContent() {
 
   useEffect(() => {
     // 브라우저 전용 localStorage 기록은 마운트 후 복원합니다.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    const storedSettings = loadIntegratedLearningSettings();
     setProgress(loadCurriculumProgress());
+    setSettings(storedSettings);
+    setShowReading(storedSettings.showReading);
     setLoaded(true);
   }, []);
 
   useEffect(() => {
     // URL로 다른 수업을 열 때 플레이어 단계도 처음으로 되돌립니다.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStage(0);
     setAnswers({});
   }, [lessonId]);
+
+  useEffect(() => () => {
+    if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+    recorderRef.current?.stream.getTracks().forEach((track) => track.stop());
+  }, [recordingUrl]);
 
   const updateProgress = (next: CurriculumProgress) => {
     setProgress(next);
@@ -82,32 +102,83 @@ function CurriculumContent() {
     }
   };
 
+  const toggleRecording = async () => {
+    if (isRecording) {
+      recorderRef.current?.stop();
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setRecordingError("이 브라우저에서는 녹음을 지원하지 않아요. 음성을 듣고 직접 따라 말해 주세요.");
+      return;
+    }
+    try {
+      setRecordingError("");
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      recordingChunksRef.current = [];
+      recorder.ondataavailable = (event) => { if (event.data.size > 0) recordingChunksRef.current.push(event.data); };
+      recorder.onstop = () => {
+        const url = URL.createObjectURL(new Blob(recordingChunksRef.current, { type: recorder.mimeType || "audio/webm" }));
+        setRecordingUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return url; });
+        setIsRecording(false);
+        stream.getTracks().forEach((track) => track.stop());
+      };
+      recorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+    } catch {
+      setRecordingError("마이크 권한을 허용하면 내 발음을 녹음해 다시 들을 수 있어요.");
+    }
+  };
+
+  useEffect(() => {
+    if (stage !== 2 || !settings.autoPlayDialogue) return;
+    let cancelled = false;
+    setPlayingAudio("dialogue");
+    void speakJapaneseWithPreferredTts(activeLesson.dialogue.map((line) => line.japanese).join(" "), { rate: settings.audioRate })
+      .finally(() => { if (!cancelled) setPlayingAudio(null); });
+    return () => { cancelled = true; };
+  }, [activeLesson, settings.audioRate, settings.autoPlayDialogue, stage]);
+
   const finishLesson = () => {
     const correct = activeLesson.quiz.filter((quiz, index) => answers[index] === quiz.answer).length;
     const score = Math.round((correct / activeLesson.quiz.length) * 100);
+    const completedAt = new Date().toISOString();
     updateProgress({
       ...progress,
       selectedTrack: activeLesson.track,
       completedLessonIds: Array.from(new Set([...progress.completedLessonIds, activeLesson.id])),
       quizScores: { ...progress.quizScores, [activeLesson.id]: score },
       lastLessonId: activeLesson.id,
+      lessonAttempts: {
+        ...progress.lessonAttempts,
+        [activeLesson.id]: [...(progress.lessonAttempts[activeLesson.id] ?? []), { score, completedAt }].slice(-20),
+      },
+      activityDates: Array.from(new Set([...progress.activityDates, getLocalDateKey()])).sort(),
     });
     try {
       const raw = window.localStorage.getItem(CURRICULUM_REVIEW_KEY);
       const stored = raw ? (JSON.parse(raw) as unknown) : [];
-      const existing = Array.isArray(stored) ? stored : [];
-      const wrongItems = activeLesson.quiz.flatMap((quiz, index) =>
-        answers[index] === quiz.answer
-          ? []
-          : [{
-              id: `${activeLesson.id}:${index}`,
+      const existing = (Array.isArray(stored) ? stored : []).filter((item): item is CurriculumReviewItem => Boolean(item && typeof item === "object" && "id" in item));
+      const wrongItems = activeLesson.quiz.flatMap((quiz, index) => {
+        if (answers[index] === quiz.answer) return [];
+        const id = `${activeLesson.id}:${index}`;
+        const previous = existing.find((item) => item.id === id);
+        const wrongCount = (previous?.wrongCount ?? 0) + 1;
+        const intervalDays = wrongCount >= 3 ? 1 : 2;
+        return [{
+              id,
               lessonId: activeLesson.id,
               lessonTitle: activeLesson.title,
               prompt: quiz.prompt,
               explanation: quiz.explanation,
-              createdAt: new Date().toISOString(),
-            }],
-      );
+              createdAt: previous?.createdAt ?? completedAt,
+              wrongCount,
+              lastWrongAt: completedAt,
+              intervalDays,
+              nextReviewAt: new Date(Date.now() + intervalDays * 86_400_000).toISOString(),
+            }];
+      });
       const nextReview = [...existing.filter((item) => {
         if (!item || typeof item !== "object" || !("id" in item)) return false;
         return !String(item.id).startsWith(`${activeLesson.id}:`);
@@ -225,7 +296,7 @@ function CurriculumContent() {
             <p className="stage-kicker">오늘의 핵심 표현</p><h2>{activeLesson.goal}</h2>
             <div className="word-focus-grid">
               {activeLesson.words.map((word) => (
-                <article key={word.japanese}><strong>{word.japanese}</strong>{showReading && <span>{word.reading}</span>}<p>{word.meaning}</p></article>
+                <article key={word.japanese}><strong>{word.japanese}</strong>{showReading && <span>{word.reading}</span>}{settings.showMeaning && <p>{word.meaning}</p>}</article>
               ))}
             </div>
             <button className="text-toggle" type="button" onClick={() => setShowReading((value) => !value)}>{showReading ? "읽는 법 숨기기" : "읽는 법 보기"}</button>
@@ -234,8 +305,8 @@ function CurriculumContent() {
         {stage === 1 && (
           <div className="pattern-stage">
             <p className="stage-kicker">오늘은 원리 하나만</p><h2>{activeLesson.pattern.label}</h2>
-            <p className="pattern-explanation">{activeLesson.pattern.explanation}</p>
-            <div className="pattern-example"><strong>{activeLesson.pattern.example}</strong><span>{activeLesson.pattern.meaning}</span></div>
+            {settings.showMeaning && <p className="pattern-explanation">{activeLesson.pattern.explanation}</p>}
+            <div className="pattern-example"><strong>{activeLesson.pattern.example}</strong>{settings.showMeaning && <span>{activeLesson.pattern.meaning}</span>}</div>
           </div>
         )}
         {stage === 2 && (
@@ -245,13 +316,13 @@ function CurriculumContent() {
               className="lesson-audio-button"
               type="button"
               disabled={playingAudio !== null}
-              onClick={() => void playJapanese(activeLesson.dialogue.map((line) => line.japanese).join(" "), "dialogue", 0.9)}
+              onClick={() => void playJapanese(activeLesson.dialogue.map((line) => line.japanese).join(" "), "dialogue", settings.audioRate)}
             >
               {playingAudio === "dialogue" ? "재생 중…" : "▶ 대화 전체 듣기"}
             </button>
             <div className="dialogue-list">
               {activeLesson.dialogue.map((line, index) => (
-                <article key={`${line.speaker}-${index}`} className={`speaker-${line.speaker.toLowerCase()}`}><b>{line.speaker}</b><div><strong>{line.japanese}</strong>{showReading && <small>{line.reading}</small>}<p>{line.meaning}</p></div></article>
+                <article key={`${line.speaker}-${index}`} className={`speaker-${line.speaker.toLowerCase()}`}><b>{line.speaker}</b><div><strong>{line.japanese}</strong>{showReading && <small>{line.reading}</small>}{settings.showMeaning && <p>{line.meaning}</p>}</div></article>
               ))}
             </div>
           </div>
@@ -268,6 +339,11 @@ function CurriculumContent() {
                 {playingAudio === "normal" ? "3회 재생 중…" : "↻ 보통 속도 3번"}
               </button>
             </div>
+            <div className="speaking-record-actions">
+              <button type="button" className={isRecording ? "is-recording" : ""} onClick={() => void toggleRecording()}>{isRecording ? "■ 녹음 끝내기" : "● 내 발음 녹음"}</button>
+              {recordingUrl && <audio controls src={recordingUrl}>녹음 재생을 지원하지 않는 브라우저입니다.</audio>}
+            </div>
+            {recordingError && <p className="recording-error">{recordingError}</p>}
             <p>완벽한 발음보다 입으로 직접 말하는 것이 먼저예요.</p>
           </div>
         )}
@@ -302,7 +378,7 @@ function CurriculumContent() {
       {stage < 5 && (
         <footer className="lesson-player-actions">
           <button type="button" disabled={stage === 0} onClick={() => setStage((value) => Math.max(0, value - 1))}>이전</button>
-          {stage < 4 ? <button type="button" className="primary" onClick={() => setStage((value) => value + 1)}>다음</button> : <button type="button" className="primary" disabled={!answeredAll} onClick={finishLesson}>학습 완료</button>}
+          {stage < 4 ? <button type="button" className="primary" onClick={() => setStage((value) => value === 2 && !settings.includeSpeaking ? 4 : value + 1)}>다음</button> : <button type="button" className="primary" disabled={!answeredAll} onClick={finishLesson}>학습 완료</button>}
         </footer>
       )}
     </section>
