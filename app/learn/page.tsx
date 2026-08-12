@@ -229,6 +229,19 @@ function CurriculumContent() {
           ))}
         </div>
 
+        {selectedTrack === "foundation" && (
+          <section className="kana-onboarding" aria-labelledby="kana-onboarding-title">
+            <div className="kana-onboarding-step" aria-hidden="true">0</div>
+            <div>
+              <small>왕초보라면 먼저 · 입문 0단계</small>
+              <h2 id="kana-onboarding-title">히라가나·가타카나 먼저 익히기</h2>
+              <p>일본어 글자를 아직 읽기 어렵다면 가나 페이지에서 기본 글자, 퀴즈, 따라 쓰기를 먼저 연습해 보세요.</p>
+              <span>이미 가나를 읽을 수 있다면 아래 1단계부터 바로 시작해도 괜찮아요.</span>
+            </div>
+            <Link href="/kana">가나 학습 시작 →</Link>
+          </section>
+        )}
+
         <section className={`track-intro track-${TRACKS[selectedTrack].accent}`}>
           <div>
             <small>{selectedTrack === "foundation" ? "필수 1단계" : "목적별 실전 과정"}</small>
@@ -267,7 +280,7 @@ function CurriculumContent() {
             <p>새 과정에서 배운 뒤 단어·문장·문법 자료실에서 부족한 부분을 반복할 수 있어요.</p>
           </div>
           <div>
-            <Link href="/kana">가나</Link><Link href="/words">단어</Link><Link href="/sentences">문장</Link><Link href="/grammar">문법</Link>
+            <Link href="/words">단어</Link><Link href="/sentences">문장</Link><Link href="/grammar">문법</Link>
           </div>
         </section>
       </section>
