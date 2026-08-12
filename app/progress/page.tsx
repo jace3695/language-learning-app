@@ -822,10 +822,11 @@ export default function ProgressPage() {
 
       <section style={{ marginBottom: "1rem", border: "1px solid #dbeafe", borderRadius: 20, padding: "1rem", background: "#ffffff", boxShadow: "0 6px 20px rgba(148, 163, 184, 0.16)" }}>
         <h2 style={{ fontSize: "1.05rem", margin: "0 0 0.8rem", color: "#1f684c" }}>새 학습 과정</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: "0.55rem", marginBottom: "0.7rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(105px,1fr))", gap: "0.55rem", marginBottom: "0.7rem" }}>
           <div style={{ padding: "0.7rem", borderRadius: 12, background: "#f3faf6", textAlign: "center" }}><small>연속 학습</small><strong style={{ display: "block", color: "#287a59" }}>{getCurrentStreak(curriculumProgress?.activityDates ?? [])}일</strong></div>
           <div style={{ padding: "0.7rem", borderRadius: 12, background: "#f3faf6", textAlign: "center" }}><small>총 학습일</small><strong style={{ display: "block", color: "#287a59" }}>{curriculumProgress?.activityDates.length ?? 0}일</strong></div>
           <div style={{ padding: "0.7rem", borderRadius: 12, background: "#f3faf6", textAlign: "center" }}><small>수업 시도</small><strong style={{ display: "block", color: "#287a59" }}>{Object.values(curriculumProgress?.lessonAttempts ?? {}).reduce((sum, attempts) => sum + attempts.length, 0)}회</strong></div>
+          <div style={{ padding: "0.7rem", borderRadius: 12, background: "#f3faf6", textAlign: "center" }}><small>평균 점수</small><strong style={{ display: "block", color: "#287a59" }}>{(() => { const scores = Object.values(curriculumProgress?.lessonAttempts ?? {}).flat().map((attempt) => attempt.score); return scores.length ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : 0; })()}점</strong></div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "0.55rem" }}>
           {(["foundation", "work", "travel"] as CourseTrack[]).map((track) => {
