@@ -8,7 +8,7 @@ import { WORDS } from "@/data/words";
 import { SENTENCES } from "@/data/sentences";
 import { GRAMMAR_LESSONS, GRAMMAR_PROGRESS_KEY, type GrammarProgressItem } from "@/data/grammar";
 import { CURRICULUM, TRACKS, type CourseTrack } from "@/data/curriculum";
-import { loadCurriculumProgress, type CurriculumProgress } from "@/utils/curriculumProgress";
+import { CURRICULUM_REVIEW_KEY, loadCurriculumProgress, type CurriculumProgress } from "@/utils/curriculumProgress";
 import { getLocalDateKey } from "@/utils/dateKey";
 
 function getCurrentStreak(activityDates: string[]): number {
@@ -445,6 +445,7 @@ export default function ProgressPage() {
   const [grammarProgress, setGrammarProgress] = useState<GrammarProgressItem[]>([]);
   const [activeProgressTab, setActiveProgressTab] = useState<ProgressTab>("all");
   const [curriculumProgress, setCurriculumProgress] = useState<CurriculumProgress | null>(null);
+  const [curriculumReviewCount, setCurriculumReviewCount] = useState(0);
 
   const buildKanaQuiz = useCallback((items: AnyItem[]) => {
     const qi = getKanaQuizItems(items);
@@ -511,6 +512,7 @@ export default function ProgressPage() {
     setData({ wrongKana, wrongWords, wrongSentences });
     setGrammarProgress(grammarItems);
     setCurriculumProgress(loadCurriculumProgress());
+    setCurriculumReviewCount(loadFromStorage(CURRICULUM_REVIEW_KEY).length);
     const rawConfusingKana = loadFromStorage("wrongKanaChars");
     const rawConfusingKanaLegacy = loadFromStorage("confusingKana");
     const confusingChars = [...rawConfusingKana, ...rawConfusingKanaLegacy]
@@ -787,9 +789,9 @@ export default function ProgressPage() {
     const wordsCount = data.wrongWords.length;
     const sentencesCount = data.wrongSentences.length;
     const grammarCount = grammarSummary.reviewCount;
-    const reviewTotal = kanaCount + wordsCount + sentencesCount + grammarCount;
-    return { kanaCount, wordsCount, sentencesCount, grammarCount, reviewTotal };
-  }, [confusingKanaChars.length, data.wrongKana.length, data.wrongWords.length, data.wrongSentences.length, grammarSummary.reviewCount]);
+    const reviewTotal = kanaCount + wordsCount + sentencesCount + grammarCount + curriculumReviewCount;
+    return { kanaCount, wordsCount, sentencesCount, grammarCount, curriculumReviewCount, reviewTotal };
+  }, [confusingKanaChars.length, curriculumReviewCount, data.wrongKana.length, data.wrongWords.length, data.wrongSentences.length, grammarSummary.reviewCount]);
 
   const progressTabs: { key: ProgressTab; label: string }[] = [
     { key: "all", label: "전체" },
