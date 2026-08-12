@@ -228,6 +228,7 @@ export default function ReviewPage() {
   const [wrongSentences, setWrongSentences] = useState<WrongItem[]>([]);
   const [reviewedItemIds, setReviewedItemIds] = useState<string[]>([]);
   const [curriculumReviewItems, setCurriculumReviewItems] = useState<CurriculumReviewItem[]>([]);
+  const [reviewOpenedAt] = useState(() => Date.now());
   const hasMarkedReviewCompletedRef = useRef(false);
 
   useEffect(() => {
@@ -334,6 +335,25 @@ export default function ReviewPage() {
     localStorage.setItem(CURRICULUM_REVIEW_KEY, JSON.stringify(next));
   };
 
+  const scheduleCurriculumReview = (id: string, correct: boolean) => {
+    const now = new Date();
+    const next = curriculumReviewItems.map((item) => {
+      if (item.id !== id) return item;
+      const currentInterval = item.intervalDays ?? 1;
+      const intervalDays = correct ? ([1, 3, 7, 14, 30].find((days) => days > currentInterval) ?? 30) : 1;
+      return {
+        ...item,
+        wrongCount: correct ? item.wrongCount : (item.wrongCount ?? 0) + 1,
+        lastWrongAt: correct ? item.lastWrongAt : now.toISOString(),
+        intervalDays,
+        nextReviewAt: new Date(now.getTime() + intervalDays * 86_400_000).toISOString(),
+      };
+    });
+    setCurriculumReviewItems(next);
+    localStorage.setItem(CURRICULUM_REVIEW_KEY, JSON.stringify(next));
+    trackReviewAction(`course:${id}`);
+  };
+
   const trackReviewAction = (itemId: string) => {
     const dateKey = getTodayLocalDateKey();
 
@@ -365,6 +385,7 @@ export default function ReviewPage() {
   const showSentences = activeReviewTab === "all" || activeReviewTab === "sentences";
   const showGrammar = activeReviewTab === "all" || activeReviewTab === "grammar";
   const showKana = activeReviewTab === "all" || activeReviewTab === "kana";
+  const dueCurriculumReviewItems = curriculumReviewItems.filter((item) => !item.nextReviewAt || new Date(item.nextReviewAt).getTime() <= reviewOpenedAt);
 
 
   return (
@@ -383,7 +404,7 @@ export default function ReviewPage() {
             { label: "저장 문장", count: savedSentences.length },
             { label: "문법 복습", count: grammarReviewItems.length },
             { label: "가나 복습", count: kanaReviewCount },
-            { label: "과정 오답", count: curriculumReviewItems.length },
+            { label: "오늘 과정 복습", count: dueCurriculumReviewItems.length },
           ].map((summary) => (
             <div key={summary.label} style={{ borderRadius: "14px", border: "1px solid #dbeafe", background: "#f8fbff", padding: "10px 12px" }}>
               <div style={{ fontSize: "12px", color: "#475569" }}>{summary.label}</div>
@@ -424,10 +445,10 @@ export default function ReviewPage() {
 
       {showCourse && (
         <>
-          <div className="section-title"><h2>새 과정에서 틀린 문제</h2><span className="count">{curriculumReviewItems.length}개</span></div>
-          {curriculumReviewItems.length === 0 ? <div className="empty-state">새 과정의 확인 문제에서 틀린 항목이 없어요. <Link href="/learn">[배우기]</Link>에서 다음 수업을 시작해 보세요.</div> : (
+          <div className="section-title"><h2>오늘 복습할 과정 문제</h2><span className="count">{dueCurriculumReviewItems.length}개</span></div>
+          {dueCurriculumReviewItems.length === 0 ? <div className="empty-state">오늘 예정된 과정 복습을 모두 마쳤어요. 전체 보관 항목은 {curriculumReviewItems.length}개예요. <Link href="/learn">[배우기]</Link>에서 다음 수업을 시작해 보세요.</div> : (
             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px" }}>
-              {curriculumReviewItems.map((item) => <li key={item.id} className="card" style={{ marginBottom: 10, border: "1px solid #cfe6d9", borderRadius: 16 }}><div className="label" style={{ color: "#287a59" }}>{item.lessonTitle}</div><h3 style={{ margin: "5px 0", fontSize: 16 }}>{item.prompt}</h3><p className="muted" style={{ margin: "0 0 10px" }}>{item.explanation}</p><div className="card-actions" style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}><Link href={`/learn?lesson=${item.lessonId}`} className="btn">수업 다시 보기</Link><button type="button" onClick={() => trackReviewAction(`course:${item.id}`)} className="btn" style={reviewActionButtonStyle(isReviewed(`course:${item.id}`))}>{isReviewed(`course:${item.id}`) ? "복습 완료됨" : "복습 완료"}</button><button type="button" onClick={() => handleDeleteCurriculumReview(item.id)} className="btn" style={{ borderColor: "#ef4444", color: "#dc2626", background: "#fff5f5" }}>삭제</button></div></li>)}
+              {dueCurriculumReviewItems.map((item) => <li key={item.id} className="card" style={{ marginBottom: 10, border: "1px solid #cfe6d9", borderRadius: 16 }}><div className="label" style={{ color: "#287a59" }}>{item.lessonTitle} · 누적 오답 {item.wrongCount ?? 1}회</div><h3 style={{ margin: "5px 0", fontSize: 16 }}>{item.prompt}</h3><p className="muted" style={{ margin: "0 0 10px" }}>{item.explanation}</p><div className="card-actions" style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}><Link href={`/learn?lesson=${item.lessonId}`} className="btn">수업 다시 보기</Link><button type="button" onClick={() => scheduleCurriculumReview(item.id, false)} className="btn">아직 어려워요</button><button type="button" onClick={() => scheduleCurriculumReview(item.id, true)} className="btn" style={reviewActionButtonStyle(false)}>기억했어요</button><button type="button" onClick={() => handleDeleteCurriculumReview(item.id)} className="btn" style={{ borderColor: "#ef4444", color: "#dc2626", background: "#fff5f5" }}>삭제</button></div></li>)}
             </ul>
           )}
         </>

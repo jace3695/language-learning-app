@@ -37,7 +37,10 @@ function CurriculumContent() {
   const [loaded, setLoaded] = useState(false);
   const [stage, setStage] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [inputAnswers, setInputAnswers] = useState<Record<number, string>>({});
   const [showReading, setShowReading] = useState(true);
+  const [showDialogueText, setShowDialogueText] = useState(true);
+  const [speakingChecks, setSpeakingChecks] = useState<boolean[]>([false, false, false]);
   const [settings, setSettings] = useState<IntegratedLearningSettings>(DEFAULT_INTEGRATED_LEARNING_SETTINGS);
   const [playingAudio, setPlayingAudio] = useState<"dialogue" | "slow" | "normal" | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -67,6 +70,8 @@ function CurriculumContent() {
     // URL로 다른 수업을 열 때 플레이어 단계도 처음으로 되돌립니다.
     setStage(0);
     setAnswers({});
+    setInputAnswers({});
+    setSpeakingChecks([false, false, false]);
   }, [lessonId]);
 
   useEffect(() => () => {
@@ -188,6 +193,11 @@ function CurriculumContent() {
       // 복습 저장 실패가 수업 완료 기록을 막지 않도록 합니다.
     }
     setStage(5);
+  };
+
+  const submitInputAnswer = (quizIndex: number, expected: string) => {
+    const normalize = (value: string) => value.normalize("NFKC").replace(/[\s。、,.!?！？]/g, "").toLowerCase();
+    setAnswers((previous) => ({ ...previous, [quizIndex]: normalize(inputAnswers[quizIndex] ?? "") === normalize(expected) ? 0 : -1 }));
   };
 
   if (!loaded) return <div className="learn-loading">학습 기록을 불러오는 중이에요.</div>;
@@ -320,9 +330,10 @@ function CurriculumContent() {
             >
               {playingAudio === "dialogue" ? "재생 중…" : "▶ 대화 전체 듣기"}
             </button>
+            <button className="text-toggle" type="button" onClick={() => setShowDialogueText((value) => !value)}>{showDialogueText ? "자막 없이 듣기" : "대화 자막 보기"}</button>
             <div className="dialogue-list">
               {activeLesson.dialogue.map((line, index) => (
-                <article key={`${line.speaker}-${index}`} className={`speaker-${line.speaker.toLowerCase()}`}><b>{line.speaker}</b><div><strong>{line.japanese}</strong>{showReading && <small>{line.reading}</small>}{settings.showMeaning && <p>{line.meaning}</p>}</div></article>
+                <article key={`${line.speaker}-${index}`} className={`speaker-${line.speaker.toLowerCase()}`}><b>{line.speaker}</b><div>{showDialogueText && <><strong>{line.japanese}</strong>{showReading && <small>{line.reading}</small>}{settings.showMeaning && <p>{line.meaning}</p>}</>}<button type="button" className="text-toggle" disabled={playingAudio !== null} onClick={() => void playJapanese(line.japanese, "dialogue", settings.audioRate)}>한 문장 듣기</button></div></article>
               ))}
             </div>
           </div>
@@ -344,7 +355,10 @@ function CurriculumContent() {
               {recordingUrl && <audio controls src={recordingUrl}>녹음 재생을 지원하지 않는 브라우저입니다.</audio>}
             </div>
             {recordingError && <p className="recording-error">{recordingError}</p>}
-            <p>완벽한 발음보다 입으로 직접 말하는 것이 먼저예요.</p>
+            <div className="speaking-audio-actions" aria-label="말하기 자기 점검">
+              {["천천히 1회", "자연스럽게 1회", "녹음 듣고 1회"].map((label, index) => <button key={label} type="button" className={speakingChecks[index] ? "is-recording" : ""} onClick={() => setSpeakingChecks((previous) => previous.map((checked, checkIndex) => checkIndex === index ? !checked : checked))}>{speakingChecks[index] ? "✓ " : ""}{label}</button>)}
+            </div>
+            <p>{speakingChecks.every(Boolean) ? "3회 말하기를 완료했어요. 훌륭해요!" : "완벽한 발음보다 입으로 직접 말하는 것이 먼저예요."}</p>
           </div>
         )}
         {stage === 4 && (
@@ -353,12 +367,13 @@ function CurriculumContent() {
             {activeLesson.quiz.map((quiz, quizIndex) => (
               <article key={quiz.prompt} className="lesson-quiz">
                 <h3>{quizIndex + 1}. {quiz.prompt}</h3>
-                <div>{quiz.choices.map((choice, choiceIndex) => {
+                {quiz.kind === "listening" && <button type="button" className="lesson-audio-button" disabled={playingAudio !== null} onClick={() => void playJapanese(quiz.choices[quiz.answer], "normal", settings.audioRate, 2)}>▶ 문제 음성 2번 듣기</button>}
+                {quiz.kind === "input" ? <div><input aria-label={`${quizIndex + 1}번 답`} value={inputAnswers[quizIndex] ?? ""} onChange={(event) => { setInputAnswers((previous) => ({ ...previous, [quizIndex]: event.target.value })); setAnswers((previous) => { const next = { ...previous }; delete next[quizIndex]; return next; }); }} placeholder="일본어로 입력" /><button type="button" disabled={!inputAnswers[quizIndex]?.trim()} onClick={() => submitInputAnswer(quizIndex, quiz.choices[quiz.answer])}>정답 확인</button></div> : <div>{quiz.choices.map((choice, choiceIndex) => {
                   const selected = answers[quizIndex] === choiceIndex;
                   const answered = answers[quizIndex] !== undefined;
                   const correct = choiceIndex === quiz.answer;
                   return <button key={choice} type="button" className={answered && correct ? "is-correct" : selected ? "is-wrong" : ""} onClick={() => setAnswers((prev) => ({ ...prev, [quizIndex]: choiceIndex }))}>{choice}</button>;
-                })}</div>
+                })}</div>}
                 {answers[quizIndex] !== undefined && <p className={answers[quizIndex] === quiz.answer ? "quiz-feedback correct" : "quiz-feedback"}>{answers[quizIndex] === quiz.answer ? "정답이에요. " : "다시 기억해 볼까요? "}{quiz.explanation}</p>}
               </article>
             ))}
