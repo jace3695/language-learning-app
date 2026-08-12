@@ -3,15 +3,17 @@ strokesvg notice
 Source repository:
 - https://github.com/zhengkyl/strokesvg
 
-Referenced file in this project:
-- dist/hiragana/あ.svg
-- Local path: public/vendor/strokesvg/hiragana/あ.svg
+Referenced files in this project:
+- Optimized hiragana/katakana SVG assets from upstream `dist/`
+- Local paths: `public/kana-stroke/hiragana/`, `public/kana-stroke/katakana/`
+- Proof-of-concept asset: `public/vendor/strokesvg/hiragana/あ.svg`
 
 License notes (per upstream repository and LICENSE):
 - Hiragana/Katakana glyph SVG data: based on Klee One
 - Glyph/font related license: SIL Open Font License 1.1
 - Other code/assets in repository: MIT License
 - Upstream LICENSE: https://raw.githubusercontent.com/zhengkyl/strokesvg/main/LICENSE
+- Bundled license copy: `public/vendor/strokesvg/LICENSE`
 
 Modification status:
 - This project currently includes an SVG asset for PoC use.

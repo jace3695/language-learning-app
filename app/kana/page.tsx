@@ -3,6 +3,71 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { markTodayRoutineCompleted } from "@/utils/dailyRoutineProgress";
 
+function getStrokeSvgPaths(char: string, tab: "hiragana" | "katakana") {
+  return Array.from(char).map((part) => {
+    const folder = part === "ー" ? "katakana" : tab;
+    const assetChar = part === "っ" ? "つ" : part === "ッ" ? "ツ" : part;
+    return `/kana-stroke/${folder}/${encodeURIComponent(assetChar)}.svg`;
+  });
+}
+
+let strokeSvgBundlePromise: Promise<Record<string, string>> | undefined;
+function loadStrokeSvg(src: string) {
+  strokeSvgBundlePromise ??= fetch("/kana-strokes.json").then((response) => {
+    if (!response.ok) throw new Error("획순 묶음을 불러오지 못했습니다.");
+    return response.json() as Promise<Record<string, string>>;
+  });
+  return strokeSvgBundlePromise.then((bundle) => bundle[src] ?? "");
+}
+
+function StrokeGlyph({ src, label }: { src: string; label: string }) {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let replayTimer: ReturnType<typeof setTimeout> | undefined;
+    const animations: Animation[] = [];
+    const loadAndPlay = async () => {
+      const markup = await loadStrokeSvg(src);
+      if (!markup || cancelled) return;
+      const documentSvg = new DOMParser().parseFromString(markup, "image/svg+xml").documentElement;
+      const target = svgRef.current;
+      if (!target || cancelled) return;
+      target.replaceChildren(...Array.from(documentSvg.childNodes).map((node) => document.importNode(node, true)));
+      target.setAttribute("viewBox", documentSvg.getAttribute("viewBox") ?? "0 0 1024 1024");
+      const strokes = Array.from(target.querySelectorAll<SVGGeometryElement>('g[data-strokesvg="strokes"] > *'));
+      const play = () => {
+        if (cancelled) return;
+        animations.splice(0).forEach((animation) => animation.cancel());
+        strokes.forEach((stroke, index) => {
+          const length = Math.max(stroke.getTotalLength(), 1);
+          stroke.style.strokeDasharray = `${length}`;
+          stroke.style.strokeDashoffset = `${length}`;
+          animations.push(stroke.animate(
+            [{ strokeDashoffset: `${length}` }, { strokeDashoffset: "0" }],
+            { duration: 700, delay: 350 + index * 900, fill: "forwards", easing: "ease-out" },
+          ));
+        });
+        replayTimer = setTimeout(play, Math.max(3600, 1300 + strokes.length * 900));
+      };
+      play();
+    };
+    void loadAndPlay();
+    return () => {
+      cancelled = true;
+      if (replayTimer) clearTimeout(replayTimer);
+      animations.forEach((animation) => animation.cancel());
+    };
+  }, [src]);
+
+  return <svg ref={svgRef} role="img" aria-label={`${label} 획순 애니메이션`} style={{ width: "100%", height: "100%", maxHeight: 300, display: "block", margin: "0 auto", "--shadow": "#d1d5db", "--stroke": "#111827" } as React.CSSProperties} />;
+}
+
+function KanaStrokeAnimation({ char, tab }: { char: string; tab: "hiragana" | "katakana" }) {
+  const paths = getStrokeSvgPaths(char, tab);
+  return <div style={{ width: "100%", height: "100%", display: "grid", gridTemplateColumns: `repeat(${paths.length}, minmax(0, 1fr))`, alignItems: "center", gap: 4 }}>{paths.map((path, index) => <StrokeGlyph key={path} src={path} label={Array.from(char)[index]} />)}</div>;
+}
+
 const hiragana = [
   { char: "あ", roman: "a" }, { char: "い", roman: "i" }, { char: "う", roman: "u" }, { char: "え", roman: "e" }, { char: "お", roman: "o" },
   { char: "か", roman: "ka" }, { char: "き", roman: "ki" }, { char: "く", roman: "ku" }, { char: "け", roman: "ke" }, { char: "こ", roman: "ko" },
@@ -1668,11 +1733,12 @@ export default function KanaPage() {
   const currentGuideSrc = currentGuideMap[currentChar] ?? "";
   const hasPngGuide = Boolean(currentGuideSrc);
   const currentGifMap = tab === "hiragana" ? hiraganaGifMap : katakanaGifMap;
-  const baseGifCount = baseKanaItems.filter((item) => Boolean(currentGifMap[item.char])).length;
+  const hasWritingAnimation = (item: KanaItem) => Boolean(currentGifMap[item.char]) || getStrokeSvgPaths(item.char, tab).length > 0;
+  const baseGifCount = baseKanaItems.filter(hasWritingAnimation).length;
   const basePngCount = baseKanaItems.filter((item) => Boolean(currentGuideMap[item.char])).length;
-  const dakuonGifCount = dakuonKanaItems.filter((item) => Boolean(currentGifMap[item.char])).length;
+  const dakuonGifCount = dakuonKanaItems.filter(hasWritingAnimation).length;
   const dakuonPngCount = dakuonKanaItems.filter((item) => Boolean(currentGuideMap[item.char])).length;
-  const auditGifCount = auditItems.filter((item) => Boolean(currentGifMap[item.char])).length;
+  const auditGifCount = auditItems.filter(hasWritingAnimation).length;
   const auditPngCount = auditItems.filter((item) => Boolean(currentGuideMap[item.char])).length;
   const canDrawOnCanvas = writingSubMode === "quiz" || writingGuideMode === "faint" || writingGuideMode === "blank" || writingGuideMode === "view";
   const kanaGuideTextStyle = {
@@ -2207,21 +2273,21 @@ export default function KanaPage() {
               <button onClick={() => setAuditScope("special")} style={{ padding: "0.35rem 0.7rem", borderRadius: "999px", border: auditScope === "special" ? "2px solid #6366f1" : "1px solid #d1d5db", background: auditScope === "special" ? "#eef2ff" : "#fff", color: auditScope === "special" ? "#4338ca" : "#374151", fontWeight: 700, cursor: "pointer" }}>특수 발음</button>
               <button onClick={() => setAuditScope("all")} style={{ padding: "0.35rem 0.7rem", borderRadius: "999px", border: auditScope === "all" ? "2px solid #6366f1" : "1px solid #d1d5db", background: auditScope === "all" ? "#eef2ff" : "#fff", color: auditScope === "all" ? "#4338ca" : "#374151", fontWeight: 700, cursor: "pointer" }}>전체</button>
             </div>
-            <div style={{ fontSize: "0.86rem", color: "#374151" }}>기본 46자 GIF/PNG: {baseGifCount}/{baseKanaItems.length} · {basePngCount}/{baseKanaItems.length}</div>
-            <div style={{ fontSize: "0.86rem", color: "#374151" }}>탁음/반탁음 GIF/PNG: {dakuonGifCount}/{dakuonKanaItems.length} · {dakuonPngCount}/{dakuonKanaItems.length}</div>
-            <div style={{ fontSize: "0.86rem", color: "#374151" }}>현재 범위 GIF/PNG: {auditGifCount}/{auditItems.length} · {auditPngCount}/{auditItems.length}</div>
+            <div style={{ fontSize: "0.86rem", color: "#374151" }}>기본 46자 획순 애니메이션/PNG: {baseGifCount}/{baseKanaItems.length} · {basePngCount}/{baseKanaItems.length}</div>
+            <div style={{ fontSize: "0.86rem", color: "#374151" }}>탁음/반탁음 획순 애니메이션/PNG: {dakuonGifCount}/{dakuonKanaItems.length} · {dakuonPngCount}/{dakuonKanaItems.length}</div>
+            <div style={{ fontSize: "0.86rem", color: "#374151" }}>현재 범위 획순 애니메이션/PNG: {auditGifCount}/{auditItems.length} · {auditPngCount}/{auditItems.length}</div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem" }}>
             {auditItems.map((item) => {
               const group = allKanaGroupByChar[item.char];
-              const hasGif = Boolean(currentGifMap[item.char]);
+              const hasGif = hasWritingAnimation(item);
               const hasGuide = Boolean(currentGuideMap[item.char]);
               return (
                 <div key={`${item.kind ?? "kana"}-${item.char}-${item.roman}`} style={{ border: "1px solid #e5e7eb", borderRadius: "10px", background: "#fff", padding: "0.75rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                   <div style={{ fontSize: "2.1rem", fontWeight: 700, lineHeight: 1, color: "#111827" }}>{item.char}</div>
                   <div style={{ fontSize: "0.85rem", color: "#374151" }}>발음: <strong>{item.roman}</strong></div>
                   <div style={{ fontSize: "0.8rem", color: "#6b7280" }}>그룹: {group?.label ?? "준비 중"}</div>
-                  <div style={{ fontSize: "0.8rem", color: hasGif ? "#166534" : "#b91c1c" }}>GIF: {hasGif ? "있음" : "없음"}</div>
+                  <div style={{ fontSize: "0.8rem", color: hasGif ? "#166534" : "#b91c1c" }}>획순 영상: {hasGif ? "있음" : "없음"}</div>
                   <div style={{ fontSize: "0.8rem", color: hasGuide ? "#166534" : "#b91c1c" }}>PNG: {hasGuide ? "있음" : "없음"}</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", marginTop: "0.35rem" }}>
                     <button onClick={() => handleSpeak(item.char)} style={{ padding: "0.4rem 0.5rem", borderRadius: "7px", border: "1px solid #d1d5db", background: "#fff", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}>
@@ -2423,10 +2489,7 @@ export default function KanaPage() {
                   {currentGifSrc ? (
                     <img src={currentGifSrc} alt={`${currentChar} 쓰기 GIF`} style={{ width: "100%", height: "100%", maxHeight: "320px", objectFit: "contain", display: "block", margin: "0 auto" }} />
                   ) : (
-                    <div style={{ textAlign: "center", color: "#111827" }}>
-                      <div style={{ fontSize: "140px", fontWeight: 700, lineHeight: 1 }}>{currentChar}</div>
-                      <div style={{ fontSize: "0.82rem", color: "#6b7280", marginTop: "0.4rem" }}>이 글자는 쓰기 보기 GIF를 준비 중입니다. 글자 모양을 보고 따라쓰기 칸에서 연습해 보세요.</div>
-                    </div>
+                    <KanaStrokeAnimation key={`${tab}-${currentChar}`} char={currentChar} tab={tab} />
                   )}
                 </div>
               </section>
