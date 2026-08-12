@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- browser learning records are restored after mount. */
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -132,7 +133,7 @@ export default function HomePage() {
     track: "foundation" as CourseTrack,
     completed: 0,
     trackCompleted: 0,
-    trackTotal: 8,
+    trackTotal: getTrackLessons("foundation").length,
   });
 
   useEffect(() => {
