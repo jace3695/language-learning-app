@@ -22,6 +22,8 @@ export type CurriculumLesson = {
   quiz: LessonQuiz[];
 };
 
+import { EXPANDED_CURRICULUM } from "./curriculumExpansion.ts";
+
 export const TRACKS: Record<CourseTrack, { title: string; description: string; accent: string }> = {
   foundation: {
     title: "왕초보 기초",
@@ -42,7 +44,7 @@ export const TRACKS: Record<CourseTrack, { title: string; description: string; a
 
 const lesson = (value: CurriculumLesson) => value;
 
-export const CURRICULUM: CurriculumLesson[] = [
+const CORE_CURRICULUM: CurriculumLesson[] = [
   lesson({
     id: "f01", track: "foundation", order: 1, title: "히라가나와 첫 인사", goal: "히라가나의 기본 소리를 익히고 만났을 때 인사해요.", minutes: 10,
     words: [
@@ -480,6 +482,8 @@ export const CURRICULUM: CurriculumLesson[] = [
     ],
   }),
 ];
+
+export const CURRICULUM: CurriculumLesson[] = [...CORE_CURRICULUM, ...EXPANDED_CURRICULUM];
 
 export const getTrackLessons = (track: CourseTrack) =>
   CURRICULUM.filter((item) => item.track === track).sort((a, b) => a.order - b.order);
