@@ -35,18 +35,34 @@ function StrokeGlyph({ src, label }: { src: string; label: string }) {
       if (!target || cancelled) return;
       target.replaceChildren(...Array.from(documentSvg.childNodes).map((node) => document.importNode(node, true)));
       target.setAttribute("viewBox", documentSvg.getAttribute("viewBox") ?? "0 0 1024 1024");
-      const strokes = Array.from(target.querySelectorAll<SVGGeometryElement>('g[data-strokesvg="strokes"] > *'));
+      const strokeItems = Array.from(target.querySelectorAll<SVGElement>('g[data-strokesvg="strokes"] > *'));
+      const strokes = strokeItems.map((item) =>
+        item.matches("path, line, polyline, polygon, circle, ellipse, rect")
+          ? [item as SVGGeometryElement]
+          : Array.from(item.querySelectorAll<SVGGeometryElement>("path, line, polyline, polygon, circle, ellipse, rect")),
+      );
       const play = () => {
         if (cancelled) return;
         animations.splice(0).forEach((animation) => animation.cancel());
-        strokes.forEach((stroke, index) => {
-          const length = Math.max(stroke.getTotalLength(), 1);
-          stroke.style.strokeDasharray = `${length}`;
-          stroke.style.strokeDashoffset = `${length}`;
-          animations.push(stroke.animate(
-            [{ strokeDashoffset: `${length}` }, { strokeDashoffset: "0" }],
-            { duration: 700, delay: 350 + index * 900, fill: "forwards", easing: "ease-out" },
-          ));
+        const strokeLengths = strokes.map((parts) => parts.map((part) => Math.max(part.getTotalLength(), 1)));
+
+        // 브라우저가 첫 프레임을 그리기 전에 모든 획을 숨겨, 완성된 글자나 중간 획이 먼저 보이지 않게 한다.
+        strokes.forEach((parts, strokeIndex) => {
+          parts.forEach((part, partIndex) => {
+            const length = strokeLengths[strokeIndex][partIndex];
+            part.style.strokeDasharray = `${length}`;
+            part.style.strokeDashoffset = `${length}`;
+          });
+        });
+
+        strokes.forEach((parts, strokeIndex) => {
+          parts.forEach((part, partIndex) => {
+            const length = strokeLengths[strokeIndex][partIndex];
+            animations.push(part.animate(
+              [{ strokeDashoffset: `${length}` }, { strokeDashoffset: "0" }],
+              { duration: 700, delay: 350 + strokeIndex * 900, fill: "forwards", easing: "ease-out" },
+            ));
+          });
         });
         replayTimer = setTimeout(play, Math.max(3600, 1300 + strokes.length * 900));
       };
@@ -1728,7 +1744,6 @@ export default function KanaPage() {
     : undefined;
   const currentWritingTip = currentStrokeOrderInfo?.tip?.trim() || "글자 모양을 보고 천천히 따라 써 보세요.";
   const currentChar = currentWritingItem?.char ?? "";
-  const currentGifSrc = tab === "hiragana" ? hiraganaGifMap[currentChar] : katakanaGifMap[currentChar];
   const currentGuideMap = tab === "hiragana" ? hiraganaGuideMap : katakanaGuideMap;
   const currentGuideSrc = currentGuideMap[currentChar] ?? "";
   const hasPngGuide = Boolean(currentGuideSrc);
@@ -2486,16 +2501,12 @@ export default function KanaPage() {
               <section style={{ borderRadius: "12px", border: "1px solid #d1d5db", background: "#fff", padding: "0.75rem" }}>
                 <h3 style={{ marginBottom: "0.5rem", fontSize: "0.9rem", color: "#374151", fontWeight: 700 }}>쓰기 순서 보기</h3>
                 <div style={{ height: "340px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: "#f8fafc", padding: "0.5rem" }}>
-                  {currentGifSrc ? (
-                    <img src={currentGifSrc} alt={`${currentChar} 쓰기 GIF`} style={{ width: "100%", height: "100%", maxHeight: "320px", objectFit: "contain", display: "block", margin: "0 auto" }} />
-                  ) : (
-                    <KanaStrokeAnimation key={`${tab}-${currentChar}`} char={currentChar} tab={tab} />
-                  )}
+                  <KanaStrokeAnimation key={`${tab}-${currentChar}`} char={currentChar} tab={tab} />
                 </div>
               </section>
               <section style={{ borderRadius: "12px", border: "1px solid #d1d5db", background: "#fff", padding: "0.75rem" }}>
                 <h3 style={{ marginBottom: "0.35rem", fontSize: "0.9rem", color: "#374151", fontWeight: 700 }}>따라 써보기</h3>
-                <div style={{ marginBottom: "0.5rem", fontSize: "0.82rem", color: "#4b5563" }}>GIF 기준 글자 모양을 보며 직접 써보세요.</div>
+                <div style={{ marginBottom: "0.5rem", fontSize: "0.82rem", color: "#4b5563" }}>획순 애니메이션의 글자 모양을 보며 직접 써보세요.</div>
                 <div ref={writingAreaRef} style={{ width: "100%", height: "340px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "#fff", position: "relative", overflow: "hidden" }}>
                   {hasPngGuide ? (
                     <img src={currentGuideSrc} alt={`${currentChar} 따라쓰기 PNG 가이드`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", opacity: 0.2, pointerEvents: "none", zIndex: 1 }} />
