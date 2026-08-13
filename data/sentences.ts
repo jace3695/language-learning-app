@@ -67,7 +67,7 @@ const inferRelatedWords = (sentence: SentenceItem): string[] => {
   return Array.from(new Set(matches)).slice(0, 4);
 };
 
-export const SENTENCES: SentenceItem[] = ([
+const BASE_SENTENCES: SentenceItem[] = ([
   // ===== 여행 =====
   { level: "beginner", japanese: "これをください", koreanPronunciation: "코레오 쿠다사이", meaning: "이거 주세요", category: "여행", note: "가게나 식당에서 주문할 때" },
   { level: "beginner", japanese: "おすすめは何ですか？", reading: "おすすめはなんですか？", rubySegments: [{ text: "おすすめは" }, { text: "何", reading: "なん" }, { text: "ですか？" }], koreanPronunciation: "오스스메와 난데스카?", meaning: "추천은 뭐예요?", category: "여행", note: "식당이나 가게에서 추천을 물을 때" },
@@ -297,7 +297,11 @@ export const SENTENCES: SentenceItem[] = ([
   { japanese: "窓を開けてもいいですか？", rubySegments: [{ text: "窓", reading: "まど" }, { text: "を" }, { text: "開", reading: "あ" }, { text: "けてもいいですか？" }], reading: "まどをあけてもいいですか？", koreanPronunciation: "마도오 아케테모 이이데스카", meaning: "창문 열어도 될까요?", category: "일상", note: "허락 요청", description: "실내 환기를 위해 허락을 구할 때" },
   { japanese: "電気を消してください。", rubySegments: [{ text: "電気", reading: "でんき" }, { text: "を" }, { text: "消", reading: "け" }, { text: "してください。" }], reading: "でんきをけしてください。", koreanPronunciation: "덴키오 케시테쿠다사이", meaning: "불을 꺼 주세요.", category: "일상", note: "간단한 부탁", description: "집에서 자주 쓰는 부탁 표현" },
   { japanese: "おやすみなさい、また明日。", reading: "おやすみなさい、またあした。", rubySegments: [{ text: "おやすみなさい、また" }, { text: "明日", reading: "あした" }, { text: "。" }], koreanPronunciation: "오야스미나사이, 마타 아시타", meaning: "안녕히 주무세요, 내일 또 봐요.", category: "일상", note: "저녁 인사", description: "하루를 마무리할 때 쓰는 인사" },
-] as SentenceItem[]).map((sentence) => ({
+] as SentenceItem[]);
+
+export const SENTENCES: SentenceItem[] = [...BASE_SENTENCES, ...EXPANDED_SENTENCES]
+  .filter((sentence, index, items) => items.findIndex((candidate) => candidate.japanese === sentence.japanese) === index)
+  .map((sentence) => ({
   ...sentence,
   reading:
     sentence.reading
@@ -307,3 +311,4 @@ export const SENTENCES: SentenceItem[] = ([
   pattern: normalizeSentencePattern(sentence),
   relatedWords: inferRelatedWords(sentence),
 }));
+import { EXPANDED_SENTENCES } from "./learningDataExpansion.ts";

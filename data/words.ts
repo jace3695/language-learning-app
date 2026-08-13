@@ -35,7 +35,7 @@ const inferSentenceKeyword = (word: WordItem): string => {
   return word.word;
 };
 
-export const WORDS: WordItem[] = ([
+const BASE_WORDS: WordItem[] = ([
   // ===== 여행 =====
   { level: "beginner", word: "入口", reading: "いりぐち", rubySegments: [{ text: "入", reading: "い" }, { text: "り" }, { text: "口", reading: "ぐち" }], koreanPronunciation: "이리구치", partOfSpeech: "noun", meaning: "입구", example: "入口はどこですか？", exampleReading: "いりぐちはどこですか？", exampleRubySegments: [{ text: "入", reading: "い" }, { text: "り" }, { text: "口", reading: "ぐち" }, { text: "はどこですか？" }], exampleKoreanPronunciation: "이리구치와 도코데스카?", exampleMeaning: "입구가 어디인가요?", category: "여행" },
   { level: "beginner", word: "出口", reading: "でぐち", rubySegments: [{ text: "出", reading: "で" }, { text: "口", reading: "ぐち" }], koreanPronunciation: "데구치", partOfSpeech: "noun", meaning: "출구", example: "出口はこちらです", exampleMeaning: "출구는 이쪽입니다", exampleReading: "でぐちはこちらです", exampleRubySegments: [{ text: "出", reading: "で" }, { text: "口", reading: "ぐち" }, { text: "はこちらです" }], exampleKoreanPronunciation: "데구치와 고치라데스", category: "여행" },
@@ -249,7 +249,12 @@ export const WORDS: WordItem[] = ([
   { word: "既読", reading: "きどく", koreanPronunciation: "키도쿠", partOfSpeech: "noun", meaning: "읽음", example: "既読だけついてる。", exampleMeaning: "읽음만 뜨네.", exampleReading: "きどくだけついてる。", exampleKoreanPronunciation: "키도쿠다케 츠이테루", category: "친구" },
   { word: "未読", reading: "みどく", koreanPronunciation: "미도쿠", partOfSpeech: "noun", meaning: "안 읽음", example: "まだ未読みたい。", exampleMeaning: "아직 안 읽은 것 같아.", exampleReading: "まだみどくみたい。", exampleKoreanPronunciation: "마다 미도쿠미타이", category: "친구" },
 
-] as WordItem[]).map((word) => ({
+] as WordItem[]);
+
+export const WORDS: WordItem[] = [...BASE_WORDS, ...EXPANDED_WORDS]
+  .filter((word, index, items) => items.findIndex((candidate) => candidate.word === word.word) === index)
+  .map((word) => ({
   ...word,
   sentenceKeyword: inferSentenceKeyword(word),
 }));
+import { EXPANDED_WORDS } from "./learningDataExpansion.ts";

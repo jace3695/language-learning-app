@@ -1,6 +1,7 @@
 import { WORDS, type RubySegment as WordRubySegment, type WordItem } from "../data/words.ts";
 import { SENTENCES, type RubySegment as SentenceRubySegment, type SentenceItem } from "../data/sentences.ts";
 import { CURRICULUM } from "../data/curriculum.ts";
+import { GRAMMAR_LESSONS } from "../data/grammar.ts";
 
 const KANJI_REGEX = /[一-龯々]/;
 
@@ -42,6 +43,12 @@ const buildSentenceTtsText = (sentence: SentenceItem): string => {
 };
 
 const warnings: string[] = [];
+
+if (WORDS.length < 600) warnings.push(`[규모] 단어 600개 미만: ${WORDS.length}개`);
+if (SENTENCES.length < 600) warnings.push(`[규모] 문장 600개 미만: ${SENTENCES.length}개`);
+if (GRAMMAR_LESSONS.length < 30) warnings.push(`[규모] 문법 수업 30개 미만: ${GRAMMAR_LESSONS.length}개`);
+if (new Set(WORDS.map((word) => word.word)).size !== WORDS.length) warnings.push("[중복] 단어 표제어가 중복됨");
+if (new Set(SENTENCES.map((sentence) => sentence.japanese)).size !== SENTENCES.length) warnings.push("[중복] 일본어 문장이 중복됨");
 
 WORDS.forEach((word, index) => {
   const label = `words[${index}](${word.word})`;
@@ -99,7 +106,7 @@ CURRICULUM.forEach((lesson, index) => {
   curriculumIds.add(lesson.id);
   if (lesson.words.length < 3) warnings.push(`[과정] 핵심 표현 3개 미만: ${label}`);
   if (lesson.dialogue.length < 2) warnings.push(`[과정] 대화 2줄 미만: ${label}`);
-  if (lesson.quiz.length < 2) warnings.push(`[과정] 확인 문제 2개 미만: ${label}`);
+  if (lesson.quiz.length < 8) warnings.push(`[과정] 확인 문제 8개 미만: ${label}`);
   lesson.quiz.forEach((quiz, quizIndex) => {
     if (quiz.answer < 0 || quiz.answer >= quiz.choices.length) {
       warnings.push(`[과정] 정답 인덱스 오류: ${label} quiz[${quizIndex}]`);
