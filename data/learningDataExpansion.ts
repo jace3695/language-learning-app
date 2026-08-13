@@ -11,7 +11,13 @@ const kanaPairs: [string, string][] = [
 export const toKoreanPronunciation = (reading: string) => {
   let value = reading.normalize("NFKC").replace(/[ァ-ヶ]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0x60));
   for (const [kana, korean] of kanaPairs) value = value.replaceAll(kana, korean);
-  return value.replaceAll("っ", "ㅅ").replace(/ㄴ(?=[가-힣])/g, "ㄴ ").replace(/\s+/g, " ").trim();
+  value = value.replaceAll("っ", "ㅅ");
+  value = value.replace(/[가-힣][ㄴㅅ]/g, (pair) => {
+    const syllable = pair.charCodeAt(0);
+    const jongseong = pair[1] === "ㄴ" ? 4 : 19;
+    return (syllable - 0xac00) % 28 === 0 ? String.fromCharCode(syllable + jongseong) : pair;
+  });
+  return value.replace(/\s+/g, " ").trim();
 };
 
 const daily: Seed[] = [
