@@ -485,7 +485,19 @@ const CORE_CURRICULUM: CurriculumLesson[] = [
   }),
 ];
 
-export const CURRICULUM: CurriculumLesson[] = [...CORE_CURRICULUM, ...EXPANDED_CURRICULUM, ...ADVANCED_CURRICULUM];
+const expandLessonQuiz = (item: CurriculumLesson): CurriculumLesson => {
+  const wordQuestions = item.words.flatMap((word, index, words) => {
+    const distractor1 = words[(index + 1) % words.length];
+    const distractor2 = words[(index + 2) % words.length];
+    return [
+      { prompt: `‘${word.japanese}(${word.reading})’의 뜻은?`, choices: [word.meaning, distractor1.meaning, distractor2.meaning], answer: 0, explanation: `${word.japanese}(${word.reading})는 ‘${word.meaning}’라는 뜻이에요.` },
+      { kind: "input" as const, prompt: `‘${word.meaning}’를 일본어로 입력하세요.`, choices: [word.japanese], answer: 0, explanation: `정답은 ${word.japanese}(${word.reading})예요.` },
+    ];
+  });
+  return { ...item, quiz: [...item.quiz, ...wordQuestions].slice(0, 8) };
+};
+
+export const CURRICULUM: CurriculumLesson[] = [...CORE_CURRICULUM, ...EXPANDED_CURRICULUM, ...ADVANCED_CURRICULUM].map(expandLessonQuiz);
 
 export const getTrackLessons = (track: CourseTrack) =>
   CURRICULUM.filter((item) => item.track === track).sort((a, b) => a.order - b.order);
