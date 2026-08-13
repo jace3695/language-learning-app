@@ -251,10 +251,11 @@ const BASE_WORDS: WordItem[] = ([
 
 ] as WordItem[]);
 
-export const WORDS: WordItem[] = [...BASE_WORDS, ...EXPANDED_WORDS]
+export const WORDS: WordItem[] = [...BASE_WORDS, ...EXPANDED_WORDS, ...RECOMMENDED_WORDS]
   .filter((word, index, items) => items.findIndex((candidate) => candidate.word === word.word) === index)
   .map((word) => ({
   ...word,
   sentenceKeyword: inferSentenceKeyword(word),
 }));
 import { EXPANDED_WORDS } from "./learningDataExpansion.ts";
+import { RECOMMENDED_WORDS } from "./recommendedDataExpansion.ts";

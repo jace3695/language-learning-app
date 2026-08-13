@@ -299,7 +299,7 @@ const BASE_SENTENCES: SentenceItem[] = ([
   { japanese: "おやすみなさい、また明日。", reading: "おやすみなさい、またあした。", rubySegments: [{ text: "おやすみなさい、また" }, { text: "明日", reading: "あした" }, { text: "。" }], koreanPronunciation: "오야스미나사이, 마타 아시타", meaning: "안녕히 주무세요, 내일 또 봐요.", category: "일상", note: "저녁 인사", description: "하루를 마무리할 때 쓰는 인사" },
 ] as SentenceItem[]);
 
-export const SENTENCES: SentenceItem[] = [...BASE_SENTENCES, ...EXPANDED_SENTENCES]
+export const SENTENCES: SentenceItem[] = [...BASE_SENTENCES, ...EXPANDED_SENTENCES, ...RECOMMENDED_SENTENCES]
   .filter((sentence, index, items) => items.findIndex((candidate) => candidate.japanese === sentence.japanese) === index)
   .map((sentence) => ({
   ...sentence,
@@ -312,3 +312,4 @@ export const SENTENCES: SentenceItem[] = [...BASE_SENTENCES, ...EXPANDED_SENTENC
   relatedWords: inferRelatedWords(sentence),
 }));
 import { EXPANDED_SENTENCES } from "./learningDataExpansion.ts";
+import { RECOMMENDED_SENTENCES } from "./recommendedDataExpansion.ts";

@@ -43,10 +43,12 @@ const buildSentenceTtsText = (sentence: SentenceItem): string => {
 };
 
 const warnings: string[] = [];
+const JAPANESE_SCRIPT_REGEX = /[ぁ-んァ-ヶ一-龯々]/;
+const DIGIT_REGEX = /[0-9]/;
 
-if (WORDS.length < 600) warnings.push(`[규모] 단어 600개 미만: ${WORDS.length}개`);
-if (SENTENCES.length < 600) warnings.push(`[규모] 문장 600개 미만: ${SENTENCES.length}개`);
-if (GRAMMAR_LESSONS.length < 30) warnings.push(`[규모] 문법 수업 30개 미만: ${GRAMMAR_LESSONS.length}개`);
+if (WORDS.length < 1000) warnings.push(`[규모] 단어 1,000개 미만: ${WORDS.length}개`);
+if (SENTENCES.length < 1200) warnings.push(`[규모] 문장 1,200개 미만: ${SENTENCES.length}개`);
+if (GRAMMAR_LESSONS.length < 40) warnings.push(`[규모] 문법 수업 40개 미만: ${GRAMMAR_LESSONS.length}개`);
 if (new Set(WORDS.map((word) => word.word)).size !== WORDS.length) warnings.push("[중복] 단어 표제어가 중복됨");
 if (new Set(SENTENCES.map((sentence) => sentence.japanese)).size !== SENTENCES.length) warnings.push("[중복] 일본어 문장이 중복됨");
 
@@ -71,6 +73,9 @@ WORDS.forEach((word, index) => {
       warnings.push(`[단어] reading 있음에도 듣기용 텍스트가 비정상(빈값/한자 포함): ${label} -> "${ttsText}"`);
     }
   }
+  if (DIGIT_REGEX.test(word.reading ?? "")) warnings.push(`[단어] reading에 숫자 포함: ${label}`);
+  if (JAPANESE_SCRIPT_REGEX.test(word.koreanPronunciation ?? "")) warnings.push(`[단어] 한글 발음에 일본어 문자 포함: ${label}`);
+  if (JAPANESE_SCRIPT_REGEX.test(word.exampleKoreanPronunciation ?? "")) warnings.push(`[단어] 예문 한글 발음에 일본어 문자 포함: ${label}`);
 });
 
 SENTENCES.forEach((sentence, index) => {
@@ -83,6 +88,9 @@ SENTENCES.forEach((sentence, index) => {
   if (isBlank(sentence.koreanPronunciation)) {
     warnings.push(`[문장] koreanPronunciation 비어 있음: ${label}`);
   }
+  if (DIGIT_REGEX.test(sentence.reading ?? "")) warnings.push(`[문장] reading에 숫자 포함: ${label}`);
+  if (JAPANESE_SCRIPT_REGEX.test(sentence.koreanPronunciation ?? "")) warnings.push(`[문장] 한글 발음에 일본어 문자 포함: ${label}`);
+  if (sentence.koreanPronunciation === "발음 참고 준비 중") warnings.push(`[문장] 임시 발음 문구가 남아 있음: ${label}`);
 
   if (sentence.rubySegments && sentence.rubySegments.length > 0 && isBlank(sentence.reading)) {
     const inferred = buildReadingFromRubySegments(sentence.rubySegments);
@@ -114,6 +122,17 @@ CURRICULUM.forEach((lesson, index) => {
   });
 });
 
+const grammarIds = new Set<string>();
+GRAMMAR_LESSONS.forEach((lesson, index) => {
+  const label = `grammar[${index}](${lesson.id})`;
+  if (grammarIds.has(lesson.id)) warnings.push(`[문법] 중복 id: ${label}`);
+  grammarIds.add(lesson.id);
+  if (lesson.examples.length < 3) warnings.push(`[문법] 예문 3개 미만: ${label}`);
+  const choices = lesson.quiz.choices.map((choice) => typeof choice === "string" ? choice : choice.text);
+  if (!choices.includes(lesson.quiz.answer)) warnings.push(`[문법] 선택지에 정답 없음: ${label}`);
+  if (new Set(choices).size !== choices.length) warnings.push(`[문법] 선택지 중복: ${label}`);
+});
+
 if (warnings.length === 0) {
   console.log("데이터 검증 완료: 의심 항목 없음");
 } else {
@@ -121,4 +140,5 @@ if (warnings.length === 0) {
   warnings.forEach((warning, idx) => {
     console.log(`${idx + 1}. ${warning}`);
   });
+  process.exitCode = 1;
 }
