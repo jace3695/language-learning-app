@@ -45,6 +45,7 @@ const buildSentenceTtsText = (sentence: SentenceItem): string => {
 const warnings: string[] = [];
 const JAPANESE_SCRIPT_REGEX = /[ぁ-んァ-ヶ一-龯々]/;
 const DIGIT_REGEX = /[0-9]/;
+const STANDALONE_JAMO_REGEX = /[ㄱ-ㅎㅏ-ㅣ]/;
 
 if (WORDS.length < 1000) warnings.push(`[규모] 단어 1,000개 미만: ${WORDS.length}개`);
 if (SENTENCES.length < 1200) warnings.push(`[규모] 문장 1,200개 미만: ${SENTENCES.length}개`);
@@ -75,7 +76,9 @@ WORDS.forEach((word, index) => {
   }
   if (DIGIT_REGEX.test(word.reading ?? "")) warnings.push(`[단어] reading에 숫자 포함: ${label}`);
   if (JAPANESE_SCRIPT_REGEX.test(word.koreanPronunciation ?? "")) warnings.push(`[단어] 한글 발음에 일본어 문자 포함: ${label}`);
+  if (STANDALONE_JAMO_REGEX.test(word.koreanPronunciation ?? "")) warnings.push(`[단어] 한글 발음에 분리 자모 포함: ${label}`);
   if (JAPANESE_SCRIPT_REGEX.test(word.exampleKoreanPronunciation ?? "")) warnings.push(`[단어] 예문 한글 발음에 일본어 문자 포함: ${label}`);
+  if (STANDALONE_JAMO_REGEX.test(word.exampleKoreanPronunciation ?? "")) warnings.push(`[단어] 예문 한글 발음에 분리 자모 포함: ${label}`);
 });
 
 SENTENCES.forEach((sentence, index) => {
@@ -90,6 +93,7 @@ SENTENCES.forEach((sentence, index) => {
   }
   if (DIGIT_REGEX.test(sentence.reading ?? "")) warnings.push(`[문장] reading에 숫자 포함: ${label}`);
   if (JAPANESE_SCRIPT_REGEX.test(sentence.koreanPronunciation ?? "")) warnings.push(`[문장] 한글 발음에 일본어 문자 포함: ${label}`);
+  if (STANDALONE_JAMO_REGEX.test(sentence.koreanPronunciation ?? "")) warnings.push(`[문장] 한글 발음에 분리 자모 포함: ${label}`);
   if (sentence.koreanPronunciation === "발음 참고 준비 중") warnings.push(`[문장] 임시 발음 문구가 남아 있음: ${label}`);
 
   if (sentence.rubySegments && sentence.rubySegments.length > 0 && isBlank(sentence.reading)) {
